@@ -23,12 +23,12 @@ function daysInMonth(year: number, month: number) {
 export class Sheet {
     year: number
     month: number
-    month_length : number
+    month_length: number
     schedule: Array<ScheduleRow> = []
     constructor(_year: number, _month: number) {
         this.month = _month;
         this.year = _year;
-        this.month_length =  daysInMonth(this.year, this.month)
+        this.month_length = daysInMonth(this.year, this.month)
     }
     AddRow(employee_name: string) {
         this.schedule.push(new ScheduleRow(employee_name, this.month_length))
@@ -49,39 +49,59 @@ class ScheduleRow {
     }
 
     SetShift(day: number, start: number, duration = 12) {
-        this.days[day - 1] = new Shift(start, duration);
+        // this.days[day - 1] = new Shift(start, duration);
+        // this.days = this.days.map((x,i) => i == day - 1 ? new Shift(start, duration) : x)
+        this.GetDay(day).SetShift(start, duration);
+        // this.days = [...this.days]
     }
     DeleteShift(day: number) {
-        this.days[day - 1] = new ScheduleDay();
+        this.days[day - 1].Clear();
     }
     GetDay(day: number): ScheduleDay {
         if (day < 1 || day >= this.days.length) throw new Error("Érvénytelen nap ");
 
         return this.days[day - 1];
     }
+
 }
 
 class ScheduleDay {
-    type: "shift" | "paid" | "unpaid" | "holiday" | "weekend" | "rest" | "empty" = "empty"
-    Clear() {
 
+    constructor(
+        public type: DayType = DayType.empty,
+        public start: number = 0,
+        public duration = 0,
+    ) { }
+
+    Clear() {
+        this.type = DayType.empty
+    }
+    SetShift(start: number, duration: number) {
+        this.type = DayType.shift;
+        this.start = start;
+        this.duration = duration;
+       
     }
 }
 
-enum DayType {
+export enum DayType {
     shift,
     paid,
-    unpaid
+    unpaid,
+    holiday,
+    weekend,
+    rest,
+    empty
 }
 
-class Shift extends ScheduleDay {
-    public type: "shift" = "shift";
-    constructor(
-        public start: number = 7,
-        public duration = 8,
-    ) { super() }
+// class Shift extends ScheduleDay {
+//     public type: "shift" = "shift";
+//     constructor(
+//         public start: number = 7,
+//         public duration = 8,
+//     ) { super() }
 
 
-}
+// }
 
 

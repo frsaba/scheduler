@@ -1,32 +1,40 @@
 <script lang="ts">
-import Vue from 'vue'
+import Vue from "vue";
+import { DayType } from "@/schedule-sheet";
 export default Vue.extend({
-    name: "Day",
-    props: {
-        day: Number,
-        type: String,
-        test: Object
+  name: "Day",
+  props: {
+    day: Number,
+    test: Object,
+    type: Number,
+    start: Number,
+    duration: Number,
+  },
+  computed: {
+    display_text(): string {
+      if (this.type == DayType.shift) {
+        return `${this.start} - ${(this.duration + this.start) % 24}`;
+      } else {
+        return "*";
+      }
     },
-    computed: {
-        display_text() {
-            if(this.type == "shift"){
-                return "shift"
-            }else{
-                return "*"
-            }
-        }
-    },
-})
+  },
+});
 </script>
 
 <template>
-    <td>
-        {{display_text}}
-    </td>
+  <td>
+    {{ display_text }}
+  </td>
 </template>
 
 <style scoped>
-/* td{
-    padding: 10px;
-} */
+td:hover{
+    background-color: #ccc;
+    cursor: pointer;
+}
+td{
+    width: 4em;
+    text-align: center;
+}
 </style>
