@@ -1,12 +1,18 @@
 import Vue from "vue";
 import VueRouter, { RouteConfig } from "vue-router";
 import Home from "../views/Home.vue";
+import Monthly from "@/views/Monthly.vue"
 
 Vue.use(VueRouter);
 
 const routes: Array<RouteConfig> = [
   {
     path: "/",
+    name: "Monthly",
+    component: Monthly,
+  },
+  {
+    path: "/home",
     name: "Home",
     component: Home,
   },
