@@ -15,7 +15,7 @@ export default Vue.extend({
 
 <template>
   <tr>
-    <td class="fixed-column">{{ employee_name }}</td>
+    <th>{{ employee_name }}</th>
     <schedule-day
       v-for="(data, index) in days"
       :key="index"

@@ -32,44 +32,73 @@ export default Vue.extend({
 </script>
 
 <template>
-  <div>
-    <table fixed-header class="table">
-      <thead>
-        <tr>
-          <th class="text-center fixed-column">Név</th>
-          <th class="text-center" v-for="n in sheet.month_length" :key="n">
-            {{ n }}
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <monthly-row
-          v-for="row in this.sheet.schedule"
-          :key="row.employee_name"
-          :employee_name="row.employee_name"
-          :days="row.days"
-        />
-      </tbody>
-    </table>
+  <div class="wrapper">
     <v-btn color="success" @click="add">Új dolgozó</v-btn>
     <v-btn color="success" @click="shift">Shift</v-btn>
+    <div class="table-wrapper">
+      <table fixed-header class="table">
+        <thead>
+          <tr>
+            <th class="text-center"> <div class="nametag">Név</div></th>
+            <th class="text-center" v-for="n in sheet.month_length" :key="n">
+              {{ n }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <monthly-row
+            v-for="row in this.sheet.schedule"
+            :key="row.employee_name"
+            :employee_name="row.employee_name"
+            :days="row.days"
+          />
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 
 <style>
-.fixed-column {
-  position: absolute !important;
+.wrapper {
+  max-height: 100%;
+}
+.nametag{
   width: 8em;
-  margin-left: -8em;
 }
-.table {
-  margin-left: 8em;
-  border: 1px solid black;
-  table-layout: fixed; 
-  width: 100%;
-  overflow: auto;
+
+.table-wrapper {
+  overflow: scroll;
+  position: relative;
+  border: 1px solid #eee;
+  max-height: 75vh;
 }
+table {
+  position: relative;
+  border-collapse:unset;
+  table-layout: fixed;
+}
+
+td,
 th {
-  width: 8em
+  padding: 0.5em;
+}
+
+thead th {
+  position: sticky;
+  top: 0;
+  background: #000;
+  color: #fff;
+}
+
+thead th:first-child {
+  left: 0;
+  z-index: 1;
+}
+
+tbody th {
+  position: sticky;
+  left: 0;
+  background: #fff;
+  border: 1px solid #ccc;
 }
 </style>

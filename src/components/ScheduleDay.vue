@@ -24,17 +24,20 @@ export default Vue.extend({
 
 <template>
   <td>
-    {{ display_text }}
+    <div>{{ display_text }}</div>
   </td>
 </template>
 
 <style scoped>
-td:hover{
-    background-color: #ccc;
-    cursor: pointer;
+td:hover {
+  background-color: #ccc;
+  cursor: pointer;
 }
-td{
-    width: 4em;
-    text-align: center;
+td {
+  border: 1px solid #ccc;
+  text-align: center;
+}
+div{
+  width: 2.5em;
 }
 </style>
