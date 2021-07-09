@@ -10,6 +10,11 @@ export default Vue.extend({
     employee_name: String,
     days: Array,
   },
+  methods: {
+    click(index : number) {
+      this.$emit('day-click', index)
+    }
+  },
 });
 </script>
 
@@ -23,6 +28,7 @@ export default Vue.extend({
       :type="data.type"
       :duration="data.duration"
       :start="data.start"
+      @click.native="click(index + 1)"
     />
   </tr>
 </template>

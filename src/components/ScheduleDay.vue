@@ -15,7 +15,7 @@ export default Vue.extend({
       if (this.type == DayType.shift) {
         return `${this.start} - ${(this.duration + this.start) % 24}`;
       } else {
-        return "*";
+        return "-";
       }
     },
   },
@@ -38,6 +38,6 @@ td {
   text-align: center;
 }
 div{
-  width: 2.5em;
+  width: 3.2em;
 }
 </style>

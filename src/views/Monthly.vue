@@ -1,6 +1,6 @@
 <script lang="ts">
 import Vue from "vue";
-import { Sheet } from "@/schedule-sheet";
+import { DayType, Sheet } from "@/schedule-sheet";
 import MonthlyRow from "@/components/MonthlyRow.vue";
 export default Vue.extend({
   name: "Monthly",
@@ -22,10 +22,13 @@ export default Vue.extend({
       this.sheet.AddRow("Példa János" + this.x);
       this.x++;
     },
-    shift() {
-      this.sheet.GetRow("Példa János").SetShift(this.x, 19, 12);
-      this.x++;
-      console.log(this.sheet);
+    shift(name:string, day: number) {
+      let row = this.sheet.GetRow(name);
+      if(row.GetDay(day).type == DayType.empty){
+        row.SetShift(day, 10, 8);
+      }else{
+        row.DeleteShift(day)
+      }
     },
   },
 });
@@ -51,6 +54,7 @@ export default Vue.extend({
             :key="row.employee_name"
             :employee_name="row.employee_name"
             :days="row.days"
+            @day-click="shift(row.employee_name, $event)"
           />
         </tbody>
       </table>
@@ -76,6 +80,7 @@ table {
   position: relative;
   border-collapse:unset;
   table-layout: fixed;
+  user-select: none;
 }
 
 td,
