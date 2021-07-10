@@ -24,7 +24,7 @@ export default Vue.extend({
 
 <template>
   <td>
-    <div>{{ display_text }}</div>
+    {{ display_text }}
   </td>
 </template>
 
@@ -34,10 +34,8 @@ td:hover {
   cursor: pointer;
 }
 td {
-  border: 1px solid #ccc;
+  border: 0.5px solid #ccc;
   text-align: center;
-}
-div{
-  width: 3.2em;
+  min-width: 4em;
 }
 </style>

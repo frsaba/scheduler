@@ -22,12 +22,12 @@ export default Vue.extend({
       this.sheet.AddRow("Példa János" + this.x);
       this.x++;
     },
-    shift(name:string, day: number) {
+    shift(name: string, day: number) {
       let row = this.sheet.GetRow(name);
-      if(row.GetDay(day).type == DayType.empty){
+      if (row.GetDay(day).type == DayType.empty) {
         row.SetShift(day, 10, 8);
-      }else{
-        row.DeleteShift(day)
+      } else {
+        row.DeleteShift(day);
       }
     },
   },
@@ -42,7 +42,7 @@ export default Vue.extend({
       <table fixed-header class="table">
         <thead>
           <tr>
-            <th class="text-center"> <div class="nametag">Név</div></th>
+            <th class="text-center nametag">Név</th>
             <th class="text-center" v-for="n in sheet.month_length" :key="n">
               {{ n }}
             </th>
@@ -66,8 +66,8 @@ export default Vue.extend({
 .wrapper {
   max-height: 100%;
 }
-.nametag{
-  width: 8em;
+.nametag {
+  min-width: 10em;
 }
 
 .table-wrapper {
@@ -78,14 +78,15 @@ export default Vue.extend({
 }
 table {
   position: relative;
-  border-collapse:unset;
-  table-layout: fixed;
+  border-collapse: separate;
+  /* table-layout: fixed; */
   user-select: none;
+  border-spacing: 0;
 }
 
 td,
 th {
-  padding: 0.5em;
+  padding: 0.25em;
 }
 
 thead th {
