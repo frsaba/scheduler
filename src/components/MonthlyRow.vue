@@ -11,9 +11,15 @@ export default Vue.extend({
     days: Array,
   },
   methods: {
-    click(index : number) {
-      this.$emit('day-click', index)
-    }
+    down(i: number) {
+      this.$emit("day-mouse-down", i);
+    },
+    up(i: number) {
+      this.$emit("day-mouse-up", i);
+    },
+    enter(i: number) {
+      this.$emit("day-mouse-enter", i);
+    },
   },
 });
 </script>
@@ -28,7 +34,9 @@ export default Vue.extend({
       :type="data.type"
       :duration="data.duration"
       :start="data.start"
-      @click.native="click(index + 1)"
+      @mousedown.native="down(index + 1)"
+      @mouseup.native="up(index + 1)"
+      @mouseenter.native="enter(index + 1)"
     />
   </tr>
 </template>
