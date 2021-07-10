@@ -34,8 +34,8 @@ export default Vue.extend({
       :type="data.type"
       :duration="data.duration"
       :start="data.start"
-      @mousedown.native="down(index + 1)"
-      @mouseup.native="up(index + 1)"
+      @mousedown.native.left.prevent.stop="down(index + 1)"
+      @mouseup.native.left.stop="up(index + 1)"
       @mouseenter.native="enter(index + 1)"
     />
   </tr>

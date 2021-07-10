@@ -21,6 +21,12 @@ export default Vue.extend({
         this.sheet.AddRow("Példa János");
         this.sheet.GetRow("Példa János").GetDay(2).SetShift(19, 8);
     },
+    created: function () {
+        window.addEventListener("mouseup", this.dragEndEmpty);
+    },
+    destroyed: function () {
+        window.removeEventListener("mouseup", this.dragEndEmpty);
+    },
     methods: {
         add() {
             this.sheet.AddRow("Példa János" + this.x);
@@ -41,18 +47,25 @@ export default Vue.extend({
         },
         dragEnter(name: string, day: number) {
             if (this.drag) {
+                this.drag_end = day;
             }
         },
         dragEnd(name: string, day: number) {
             if (this.drag) {
                 this.drag_end = day;
-                const [min, max] = [this.drag_start, this.drag_end].sort()
+                const [min, max] = [this.drag_start, this.drag_end].sort();
                 for (let i = min; i <= max; i++) {
-                   this.shift(this.drag_employee, i)
+                    this.shift(this.drag_employee, i);
                 }
             }
             this.drag = false;
         },
+        dragEndEmpty(){
+            this.dragEnd(this.drag_employee, this.drag_end)
+            this.drag = false;
+            this.drag_start  = 0;
+            this.drag_end = 0;
+        }
     },
 });
 </script>
