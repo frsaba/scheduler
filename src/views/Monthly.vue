@@ -21,10 +21,10 @@ export default Vue.extend({
         this.sheet.AddRow("Példa János");
         this.sheet.GetRow("Példa János").GetDay(2).SetShift(19, 8);
     },
-    created: function () {
+    created() {
         window.addEventListener("mouseup", this.dragEndEmpty);
     },
-    destroyed: function () {
+    destroyed() {
         window.removeEventListener("mouseup", this.dragEndEmpty);
     },
     methods: {

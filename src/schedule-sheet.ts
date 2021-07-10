@@ -21,14 +21,10 @@ function daysInMonth(year: number, month: number) {
 // }
 
 export class Sheet {
-    year: number
-    month: number
     month_length: number
     schedule: Array<ScheduleRow> = []
-    constructor(_year: number, _month: number) {
-        this.month = _month;
-        this.year = _year;
-        this.month_length = daysInMonth(this.year, this.month)
+    constructor(public year: number, public month: number) {
+        this.month_length = daysInMonth(year, month)
     }
     AddRow(employee_name: string) {
         this.schedule.push(new ScheduleRow(employee_name, this.month_length))
@@ -58,7 +54,7 @@ class ScheduleRow {
         this.days[day - 1].Clear();
     }
     GetDay(day: number): ScheduleDay {
-        if (day < 1 || day >= this.days.length) throw new Error("Érvénytelen nap ");
+        if (day < 1 || day > this.days.length) throw new Error("Érvénytelen nap ");
 
         return this.days[day - 1];
     }
@@ -80,7 +76,6 @@ class ScheduleDay {
         this.type = DayType.shift;
         this.start = start;
         this.duration = duration;
-       
     }
 }
 
