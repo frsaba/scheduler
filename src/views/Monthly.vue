@@ -53,19 +53,21 @@ export default Vue.extend({
         dragEnd(name: string, day: number) {
             if (this.drag) {
                 this.drag_end = day;
-                const [min, max] = [this.drag_start, this.drag_end].sort();
+                const [min, max] = [this.drag_start, this.drag_end].sort(
+                    (a, b) => a - b
+                );
                 for (let i = min; i <= max; i++) {
                     this.shift(this.drag_employee, i);
                 }
             }
             this.drag = false;
         },
-        dragEndEmpty(){
-            this.dragEnd(this.drag_employee, this.drag_end)
+        dragEndEmpty() {
+            this.dragEnd(this.drag_employee, this.drag_end);
             this.drag = false;
-            this.drag_start  = 0;
+            this.drag_start = 0;
             this.drag_end = 0;
-        }
+        },
     },
 });
 </script>
