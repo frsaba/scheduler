@@ -7,15 +7,27 @@ export default Vue.extend({
 			type: Boolean,
 			default: false,
 		},
+		selected_start: DOMRect,
+		selected_end: DOMRect,
 	},
-	data() {
-		return {
-			menu: this.value,
-		};
+	computed: {
+		x() {
+			return (
+				this.selected_start.x +
+				(this.selected_end.x +
+					this.selected_end.width -
+					this.selected_start.x -
+					150) /
+					2
+			);
+		},
+		y(): number {
+			return this.selected_start.y + this.selected_start.height + 5;
+		},
 	},
 	methods: {
-		change(e : Event) {
-			this.$emit("input", this.menu);
+		close(e: Event) {
+			this.$emit("close");
 		},
 	},
 });
@@ -23,14 +35,16 @@ export default Vue.extend({
 
 <template>
 	<v-menu
-		v-model="menu"
+		v-model="value"
 		:close-on-content-click="false"
-        @change="change"
-		:nudge-width="200"
-		offset-x
+		:close-on-click="false"
+		:position-x="x"
+		:position-y="y"
+		absolute
 	>
-		<v-card>
+		<v-card width="150px">
 			<v-icon>edit</v-icon>
+			<v-btn color="error" @click="close">Close</v-btn>
 		</v-card>
 	</v-menu>
 </template>

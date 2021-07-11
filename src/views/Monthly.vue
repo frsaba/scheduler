@@ -18,6 +18,8 @@ export default Vue.extend({
 			drag_start: 0,
 			drag_end: 0,
 			popover: true,
+            selection_start_rect : new DOMRect(),
+            selection_end_rect : new DOMRect()
 		};
 	},
 	mounted() {
@@ -62,6 +64,7 @@ export default Vue.extend({
 			this.drag_employee = name;
 			this.drag_start = day;
 			this.drag_end = day;
+            this.popover = false;
 		},
 		dragEnter(name: string, day: number) {
 			if (this.drag) {
@@ -77,15 +80,21 @@ export default Vue.extend({
 				for (let i = min; i <= max; i++) {
 					this.shift(this.drag_employee, i);
 				}
-				console.log(this.getDayElement(name, day));
+                this.popover = true;
 			}
-			this.drag = false;
-			this.popover = true;
+            this.updateSelectRects();
+			this.drag = false;    
 		},
 		dragEndEmpty() {
 			this.dragEnd(this.drag_employee, this.drag_end);
 			// this.drag_start = 0;
 			// this.drag_end = 0;
+		},
+        updateSelectRects() : void {
+            if(this.drag_employee == '') return;
+            this.selection_start_rect = this.getDayElement(this.drag_employee, this.selection_start).getBoundingClientRect();
+            this.selection_end_rect = this.getDayElement(this.drag_employee, this.selection_end).getBoundingClientRect();
+
 		},
 	},
 	computed: {
@@ -94,7 +103,7 @@ export default Vue.extend({
 		},
 		selection_end(): number {
 			return Math.max(this.drag_start, this.drag_end);
-		},
+		},      
 	},
 });
 </script>
@@ -103,7 +112,7 @@ export default Vue.extend({
 	<div class="wrapper">
 		<v-btn color="success" @click="add">Új dolgozó</v-btn>
 		<v-btn color="success" @click="shift">Shift</v-btn>
-		<popover v-model="popover"></popover>
+		<popover v-model="popover" @close="popover = false" :selected_start="selection_start_rect" :selected_end="selection_end_rect"></popover>
 		<div class="table-wrapper">
 			<table fixed-header class="table" ref="asd">
 				<thead>
