@@ -22,7 +22,7 @@ export default Vue.extend({
             }
         },
         style(){
-            if(this.type == DayType.shift){
+            if(this.selected){
                 return "selected"
             }else{
                 return ""
@@ -49,7 +49,7 @@ td {
     min-width: 4em;
 }
 .selected {
-    border: 0.5px solid #ccc;
+    border: 0.5px solid #1f1f1f;
     background-color: #ccc;
     text-align: center;
     min-width: 4em;
