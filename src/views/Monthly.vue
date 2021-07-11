@@ -7,7 +7,7 @@ export default Vue.extend({
 	name: "Monthly",
 	components: {
 		MonthlyRow,
-        Popover
+		Popover,
 	},
 	data() {
 		return {
@@ -17,7 +17,7 @@ export default Vue.extend({
 			drag_employee: "",
 			drag_start: 0,
 			drag_end: 0,
-            popover: true
+			popover: true,
 		};
 	},
 	mounted() {
@@ -32,13 +32,18 @@ export default Vue.extend({
 	},
 	methods: {
 		getDayElement(name: string, day: number): Element {
-			let a = this.$refs[name];
-			if (a) {
-				//@ts-ignore
-				return a[0].$children.find((e) => e.day == day).$el;
-			} else {
-				throw `Nem sikerült megtalálni '${name}' sor  ${day}. oszlopát`;
-			}
+			let row = this.$refs[name] as Vue[];
+			if (!row) throw `Nem sikerült megtalálni '${name}' sort.`;
+
+			let currDay = row[0].$children.find((e) => {
+				if (!e.$props.day)
+					throw `Az '${name}' sornak nincsenek leszármazottjai`;
+
+				return e.$props.day == day;
+			});
+			if (!currDay) throw `Nem sikerült megtalálni ${day}. oszlopot.`;
+
+			return currDay.$el;
 		},
 		add() {
 			this.sheet.AddRow("Példa János" + this.x);
@@ -72,12 +77,10 @@ export default Vue.extend({
 				for (let i = min; i <= max; i++) {
 					this.shift(this.drag_employee, i);
 				}
-				console.log(
-					this.getDayElement(name, day).getBoundingClientRect()
-				);
+				console.log(this.getDayElement(name, day));
 			}
 			this.drag = false;
-            this.popover = true;
+			this.popover = true;
 		},
 		dragEndEmpty() {
 			this.dragEnd(this.drag_employee, this.drag_end);
@@ -100,7 +103,7 @@ export default Vue.extend({
 	<div class="wrapper">
 		<v-btn color="success" @click="add">Új dolgozó</v-btn>
 		<v-btn color="success" @click="shift">Shift</v-btn>
-        <popover v-model="popover"></popover>
+		<popover v-model="popover"></popover>
 		<div class="table-wrapper">
 			<table fixed-header class="table" ref="asd">
 				<thead>
