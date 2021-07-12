@@ -30,7 +30,7 @@ export default Vue.extend({
 	},
 	created() {
 		window.addEventListener("mouseup", this.dragEndEmpty);
-		this.scroll = debounce(this.fixPopoverTransition, 100)
+		this.scroll = debounce(this.fixPopoverTransition, 50)
 	},
 	destroyed() {
 		window.removeEventListener("mouseup", this.dragEndEmpty);
@@ -49,6 +49,10 @@ export default Vue.extend({
 			if (!currDay) throw `Nem sikerült megtalálni ${day}. oszlopot.`;
 
 			return currDay.$el;
+		},
+		getBounds(day: number, name = '') : DOMRect{
+			if(!name) name = this.drag_employee
+			return this.getDayElement(name,day).getBoundingClientRect();
 		},
 		add() {
 			this.sheet.AddRow("Példa János" + this.x);
@@ -88,18 +92,14 @@ export default Vue.extend({
 		dragEndEmpty() {
 			this.dragEnd(this.drag_employee, this.drag_end);
 		},
-		updateSelectRects(): void {
+		updateSelectRects(): void { 
+			//computed properties update immediately which lead to popover moving as it fades out
 			if (this.drag_employee == "") return;
-			this.selection_start_rect = this.getDayElement(
-				this.drag_employee,
-				this.selection_start
-			).getBoundingClientRect();
-			this.selection_end_rect = this.getDayElement(
-				this.drag_employee,
-				this.selection_end
-			).getBoundingClientRect();
+			this.selection_start_rect = this.getBounds(this.selection_start);
+			this.selection_end_rect = this.getBounds(this.selection_end);
 		},
-		fixPopoverTransition(){
+		fixPopoverTransition(){ 
+			//transitions are not normally applied when popover is moved, so visibility is toggled
 			this.updateSelectRects();
 			this.popover = false;
 			this.$nextTick(() => {
