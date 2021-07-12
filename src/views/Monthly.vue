@@ -92,6 +92,13 @@ export default Vue.extend({
 		dragEndEmpty() {
 			this.dragEnd(this.drag_employee, this.drag_end);
 		},
+		deselect(){
+			this.drag_employee = '';
+			this.drag_start = 0;
+			this.drag_end = 0;
+			this.popover = false;
+
+		},
 		updateSelectRects(): void { 
 			//computed properties update immediately which lead to popover moving as it fades out
 			if (this.drag_employee == "") return;
@@ -124,7 +131,7 @@ export default Vue.extend({
 		<v-btn color="success" @click="shift">Shift</v-btn>
 		<popover
 			v-model="popover"
-			@close="popover = false"
+			@close="deselect"
 			:selected_start="selection_start_rect"
 			:selected_end="selection_end_rect"
 		></popover>
