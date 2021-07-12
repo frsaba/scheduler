@@ -13,48 +13,55 @@ export default Vue.extend({
 	data() {
 		return {
 			shift_start: 8,
-			shift_end : 16,
-			shift_duration: 8
+			shift_end: 16,
+			shift_duration: 8,
 		};
 	},
 	computed: {
 		x() {
-			return (
-				this.selected_start.x +
-				(this.selected_end.x +
-					this.selected_end.width -
-					this.selected_start.x -
-					300 ) /
-					2
+			return (this.selected_start.x +(this.selected_end.x +this.selected_end.width -this.selected_start.x -300) /2
 			);
 		},
 		y(): number {
 			return this.selected_start.y + this.selected_start.height + 5;
 		},
 	},
+	created() {
+		window.addEventListener("keyup", this.escToClose);
+	},
+	destroyed() {
+		window.removeEventListener("keyup", this.escToClose);
+	},
 	methods: {
-		close(e: Event) {
+		close() {
 			this.$emit("close");
+		},
+		escToClose(e: KeyboardEvent) {
+			if (e.key == "Escape") {
+				this.close();
+			}
+			e.stopImmediatePropagation();
 		},
 		//if user changes the start, keep duration the same and set shift_end accordingly
 		inputStart() {
 			this.shift_start = Math.abs(this.shift_start + 24) % 24;
-			this.shift_end = (this.shift_duration + this.shift_start) % 24
+			this.shift_end = (this.shift_duration + this.shift_start) % 24;
 		},
 		//if user changes end, decrease duration and keep shift_start the same
-		inputEnd(){
+		inputEnd() {
 			this.shift_end = Math.abs(this.shift_end + 24) % 24;
-			this.shift_duration = (this.shift_start < this.shift_end ? 0 : 24 )+ this.shift_end - this.shift_start
-		}
+			this.shift_duration = (this.shift_start < this.shift_end ? 0 : 24) + this.shift_end - this.shift_start;
+		},
 	},
 });
 </script>
 
 <template>
 	<v-menu
-		v-model="value"
+		:value="value"
 		:close-on-content-click="false"
 		:close-on-click="false"
+		disable-keys
 		:position-x="x"
 		:position-y="y"
 		absolute
@@ -76,7 +83,9 @@ export default Vue.extend({
 				@input="inputEnd"
 			></v-text-field>
 			<v-btn fab><v-icon>mdi-square-edit-outline</v-icon></v-btn>
-			<v-btn fab @click="close" x-small elevation="0"><v-icon>mdi-close</v-icon></v-btn>
+			<v-btn fab @click="close" x-small elevation="0"
+				><v-icon>mdi-close</v-icon></v-btn
+			>
 		</v-card>
 	</v-menu>
 </template>
