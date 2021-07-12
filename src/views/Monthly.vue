@@ -3,8 +3,8 @@ import Vue from "vue";
 import { DayType, Sheet } from "@/schedule-sheet";
 import MonthlyRow from "@/components/MonthlyRow.vue";
 import Popover from "@/components/Popover.vue";
-import debounce from "lodash/debounce"
-import { mapState } from 'vuex'
+import debounce from "lodash/debounce";
+import { mapState } from "vuex";
 export default Vue.extend({
 	name: "Monthly",
 	components: {
@@ -22,13 +22,13 @@ export default Vue.extend({
 			popover: false,
 			selection_start_rect: new DOMRect(),
 			selection_end_rect: new DOMRect(),
-			scroll : function (){}
+			scroll: function () {},
 		};
 	},
 	created() {
 		window.addEventListener("mouseup", this.dragEndEmpty);
-		this.scroll = debounce(this.fixPopoverTransition, 50)
-		this.$store.dispatch('staff/add', "Példa János")
+		this.scroll = debounce(this.fixPopoverTransition, 50);
+		this.$store.dispatch("staff/add", "Példa János");
 	},
 	destroyed() {
 		window.removeEventListener("mouseup", this.dragEndEmpty);
@@ -48,12 +48,12 @@ export default Vue.extend({
 
 			return currDay.$el;
 		},
-		getBounds(day: number, name = '') : DOMRect{
-			if(!name) name = this.drag_employee
-			return this.getDayElement(name,day).getBoundingClientRect();
+		getBounds(day: number, name = ""): DOMRect {
+			if (!name) name = this.drag_employee;
+			return this.getDayElement(name, day).getBoundingClientRect();
 		},
 		add() {
-			this.$store.dispatch('staff/add', "Példa János" + this.x)
+			this.$store.dispatch("staff/add", "Példa János" + this.x);
 			this.x++;
 		},
 		shift(name: string, day: number) {
@@ -61,7 +61,7 @@ export default Vue.extend({
 			if (d.type == DayType.empty) {
 				this.$store.commit('set_shift', { name, day, start : 10, duration : 8 })
 			} else {
-				this.$store.commit('delete_shift', {name,day})
+				this.$store.commit("delete_shift", { name, day });
 			}
 		},
 		dragStart(name: string, day: number) {
@@ -90,27 +90,27 @@ export default Vue.extend({
 		dragEndEmpty() {
 			this.dragEnd(this.drag_employee, this.drag_end);
 		},
-		deselect(){
-			this.drag_employee = '';
+		deselect() {
+			this.drag_employee = "";
 			this.drag_start = 0;
 			this.drag_end = 0;
 			this.popover = false;
-
 		},
-		updateSelectRects(): void { 
+		updateSelectRects(): void {
 			//computed properties update immediately which lead to popover moving as it fades out
 			if (this.drag_employee == "") return;
 			this.selection_start_rect = this.getBounds(this.selection_start);
 			this.selection_end_rect = this.getBounds(this.selection_end);
 		},
-		fixPopoverTransition(){ 
+		fixPopoverTransition() {
 			//transitions are not normally applied when popover is moved, so visibility is toggled
 			this.updateSelectRects();
 			this.popover = false;
 			this.$nextTick(() => {
+				if (this.drag_employee == "") return;
 				this.popover = true;
 			});
-		}
+		},
 	},
 	computed: {
 		selection_start(): number {
