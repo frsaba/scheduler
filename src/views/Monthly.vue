@@ -4,6 +4,7 @@ import { DayType, Sheet } from "@/schedule-sheet";
 import MonthlyRow from "@/components/MonthlyRow.vue";
 import Popover from "@/components/Popover.vue";
 import debounce from "lodash/debounce"
+import { mapState } from 'vuex'
 export default Vue.extend({
 	name: "Monthly",
 	components: {
@@ -12,8 +13,8 @@ export default Vue.extend({
 	},
 	data() {
 		return {
+			sheet: this.$store.state.sheets.sheet,
 			x: 1,
-			sheet: new Sheet(2021, 2),
 			drag: false,
 			drag_employee: "",
 			drag_start: 0,
@@ -24,13 +25,10 @@ export default Vue.extend({
 			scroll : function (){}
 		};
 	},
-	mounted() {
-		this.sheet.AddRow("Példa János");
-		this.sheet.GetRow("Példa János").GetDay(2).SetShift(19, 8);
-	},
 	created() {
 		window.addEventListener("mouseup", this.dragEndEmpty);
 		this.scroll = debounce(this.fixPopoverTransition, 50)
+		this.$store.dispatch('staff/add', "Példa János")
 	},
 	destroyed() {
 		window.removeEventListener("mouseup", this.dragEndEmpty);
@@ -55,15 +53,15 @@ export default Vue.extend({
 			return this.getDayElement(name,day).getBoundingClientRect();
 		},
 		add() {
-			this.sheet.AddRow("Példa János" + this.x);
+			this.$store.dispatch('staff/add', "Példa János" + this.x)
 			this.x++;
 		},
 		shift(name: string, day: number) {
-			let row = this.sheet.GetRow(name);
-			if (row.GetDay(day).type == DayType.empty) {
-				row.SetShift(day, 10, 8);
+			let d = this.sheet.GetRow(name).GetDay(day);
+			if (d.type == DayType.empty) {
+				this.$store.commit('set_shift', { name, day, start : 10, duration : 8 })
 			} else {
-				row.DeleteShift(day);
+				this.$store.commit('delete_shift', {name,day})
 			}
 		},
 		dragStart(name: string, day: number) {
@@ -136,7 +134,7 @@ export default Vue.extend({
 			:selected_end="selection_end_rect"
 		></popover>
 		<div class="table-wrapper" @scroll="scroll">
-			<table fixed-header class="table" ref="asd">
+			<table fixed-header class="table">
 				<thead>
 					<tr>
 						<th class="text-center nametag">Név</th>
