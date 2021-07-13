@@ -33,7 +33,7 @@ export default new Vuetify({
                 paid: defaults.warning,
                 unpaid: colors.green.base,
                 holiday: colors.purple.base,
-                weekend: defaults.primary,
+                free_weekend: defaults.primary,
                 rest: defaults.warning,
                 sick: colors.pink.base,
                 empty: "#FFFFFF"

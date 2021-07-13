@@ -31,18 +31,17 @@ export default Vue.extend({
 				style += " selected"
 			}
 			if (this.is_weekend) {
-				style += " free-weekend"
+				style += " weekend"
 			}
 			// console.log(style)
 			return style
-			// return "kekw"
 
 		},
 		color(): string {
 			let from_desc = DayTypeDescriptions[this.type].color
-			if(this.type == DayType.empty || this.type == DayType.shift){
-			    return ""
-			}
+			// if(this.type == DayType.empty || this.type == DayType.shift){
+			//     return ""
+			// }
 			return from_desc
 			// return ""
 		},
@@ -88,9 +87,12 @@ td {
 	border: 0.5px solid #1f1f1f;
 	background-color: #ccc;
 	text-align: center;
-	
+	filter: brightness(80%);
 }
-.free-weekend {
-	/* opacity: 0.8; */
+.weekend {
+	/* background-color: lightblue; */
+	/* border: solid 1px #1f1f1f; */
+	filter: brightness(90%);
+	z-index: -1000;
 }
 </style>

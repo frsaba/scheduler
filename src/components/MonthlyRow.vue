@@ -36,13 +36,16 @@ export default Vue.extend({
 			:type="data.type"
 			:duration="data.duration"
 			:start="data.start"
-            :selected="index + 1 >= selection_start && index + 1 <= selection_end"
+			:selected="index + 1 >= selection_start && index + 1 <= selection_end"
 			@mousedown.native.left.prevent.stop="down(index + 1)"
 			@mouseup.native.left.stop="up(index + 1)"
-			@mouseenter.native="enter(index + 1)"
-		/>
+			@mouseenter.native="enter(index + 1)" />
 	</tr>
 </template>
 
 <style scoped>
+th {
+	filter: opacity(1);
+	z-index: 1;
+}
 </style>

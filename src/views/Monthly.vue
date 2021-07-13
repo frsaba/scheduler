@@ -141,8 +141,7 @@ export default Vue.extend({
 			@set-shift="setShift"
 			@set-type="setType"
 			:selected_start="selection_start_rect"
-			:selected_end="selection_end_rect"
-		></popover>
+			:selected_end="selection_end_rect"></popover>
 		<div class="table-wrapper" @scroll="scroll">
 			<table fixed-header class="table">
 				<thead>
@@ -151,8 +150,7 @@ export default Vue.extend({
 						<th
 							class="text-center"
 							v-for="n in sheet.month_length"
-							:key="n"
-						>
+							:key="n">
 							{{ n }}
 						</th>
 					</tr>
@@ -176,8 +174,7 @@ export default Vue.extend({
 						:ref="row.employee_name"
 						@day-mouse-down="dragStart(row.employee_name, $event)"
 						@day-mouse-up="dragEnd(row.employee_name, $event)"
-						@day-mouse-enter="dragEnter(row.employee_name, $event)"
-					/>
+						@day-mouse-enter="dragEnter(row.employee_name, $event)" />
 				</tbody>
 			</table>
 		</div>
