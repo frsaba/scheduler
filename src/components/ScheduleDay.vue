@@ -1,7 +1,6 @@
 <script lang="ts">
 import Vue from "vue";
-import { DayType, DayTypeDescriptions } from "@/schedule-sheet";
-import { type } from "process";
+import { DayType, DayTypeDescriptions } from "@/day-types";
 export default Vue.extend({
 	name: "Day",
 	props: {
@@ -26,23 +25,26 @@ export default Vue.extend({
 			}
 		},
 		style(): string {
-			let style = this.type_string
+			// let style = this.type_string
+			let style = ""
 			if (this.selected) {
 				style += " selected"
 			}
 			if (this.is_weekend) {
-				style += " weekend"
+				style += " free-weekend"
 			}
 			// console.log(style)
 			return style
+			// return "kekw"
 
 		},
 		color(): string {
 			let from_desc = DayTypeDescriptions[this.type].color
-			// if(from_desc == "white"){
-			//     return ""
-			// }
+			if(this.type == DayType.empty || this.type == DayType.shift){
+			    return ""
+			}
 			return from_desc
+			// return ""
 		},
 		type_string(): string {
 			return Object.entries(DayType)[this.type][1] as string
@@ -86,9 +88,9 @@ td {
 	border: 0.5px solid #1f1f1f;
 	background-color: #ccc;
 	text-align: center;
+	
 }
-.weekend {
-	filter: brightness(90%);
-	background-color: lightblue;
+.free-weekend {
+	/* opacity: 0.8; */
 }
 </style>
