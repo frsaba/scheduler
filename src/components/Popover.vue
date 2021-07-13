@@ -1,8 +1,20 @@
 <script lang="ts">
 import Vue from "vue";
 import { DayType } from "@/schedule-sheet";
+import LeaveButton from "@/components/LeaveButton.vue";
+
+interface LeaveButtonData {
+	type: string,
+	color: string,
+	tooltip: string,
+	label: string
+}
+
 export default Vue.extend({
 	name: "Popover",
+	components: {
+		LeaveButton,
+	},
 	props: {
 		value: {
 			type: Boolean,
@@ -16,11 +28,19 @@ export default Vue.extend({
 			shift_start: 8,
 			shift_end: 16,
 			shift_duration: 8,
+			last_width: 500,
+			leave_buttons: [
+				{ type: "paid", 	color: "warning", tooltip: "Fizetett szabadság", label: "FSZ"  },
+				{ type: "unpaid", 	color: "success", tooltip: "Szabadnap", 		 label: "SZ/P" },
+				{ type: "weekend", 	color: "primary", tooltip: "Szabad hétvége", 	 label: "SZH"  },
+				{ type: "holiday", 	color: "purple",  tooltip: "Fizetett ünnep", 	 label: "FÜ"   },
+				{ type: "sick", 	color: "pink", 	  tooltip: "Táppénz", 			 label: "TP"   }
+			] as LeaveButtonData[]
 		};
 	},
 	computed: {
-		x() {
-			return (this.selected_start.x + (this.selected_end.x + this.selected_end.width - this.selected_start.x - 400) / 2);
+		x(): number {
+			return (this.selected_start.x + (this.selected_end.x + this.selected_end.width - this.selected_start.x - this.width()) / 2);
 		},
 		y(): number {
 			return this.selected_start.y + this.selected_start.height + 5;
@@ -56,9 +76,21 @@ export default Vue.extend({
 		setShift() {
 			this.$emit('set-shift', { start: this.shift_start, duration: this.shift_duration })
 		},
-		setType(type: string) {
-			let t = DayType[type as keyof typeof DayType]
-			this.$emit('set-type', t)
+		setType(type: DayType) {
+			this.$emit('set-type', type)
+		},
+		card_rect_width(): number {
+			let element = this.$refs.card as Vue
+			if (element) {
+				return element.$el.getBoundingClientRect().width;
+			}
+			return 0;
+		},
+		width(): number {
+			if (this.card_rect_width() != 0) {
+				this.last_width = this.card_rect_width();
+			}
+			return this.last_width
 		}
 	},
 });
@@ -74,43 +106,66 @@ export default Vue.extend({
 		:position-y="y"
 		absolute
 	>
-		<v-card class="card">
-			<v-text-field
-				solo
-				label="label"
-				type="number"
-				v-model.number="shift_start"
-				@input="inputStart"
-			></v-text-field>
-			<span>-</span>
-			<v-text-field
-				solo
-				label="label"
-				type="number"
-				v-model.number="shift_end"
-				@input="inputEnd"
-			></v-text-field>
-			<v-btn class="fab" fab @click="setShift()"><v-icon>mdi-set-split</v-icon></v-btn>
-			<v-btn class="fab" fab @click="setType('empty')"><v-icon>mdi-delete</v-icon></v-btn>
-			<v-btn class="fab" fab @click="close" x-small elevation="0"
-				><v-icon>mdi-close</v-icon></v-btn
-			>
+		<v-card class="card" ref="card">
+			<div class="upper">
+				<v-text-field
+					solo
+					label="label"
+					type="number"
+					hide-details="true"
+					v-model.number="shift_start"
+					@input="inputStart"
+				></v-text-field>
+				<span>-</span>
+				<v-text-field
+					solo
+					label="label"
+					type="number"
+					hide-details="true"
+					v-model.number="shift_end"
+					@input="inputEnd"
+				></v-text-field>
+
+				<v-btn class="fab" fab @click="setShift()">
+					<v-icon>mdi-set-split</v-icon>
+				</v-btn>
+
+				<v-btn class="absolute" fab @click="close" x-small elevation="0">
+					<v-icon>mdi-close</v-icon>
+				</v-btn>
+			</div>
+			<div class="lower">
+				<leave-button v-for="b in leave_buttons" :key="b.type" 
+					:type="b.type" @set-type="setType" 
+					:color="b.color" :tooltip="b.tooltip">
+					{{b.label}}
+				</leave-button>
+				
+				<leave-button type="empty" @set-type="setType" tooltip="Törlés" color="red">
+					<v-icon>mdi-delete</v-icon>
+				</leave-button>
+			</div>
 		</v-card>
 	</v-menu>
 </template>
 
 <style scoped>
-.card {
-	padding: 0.5em;
+/* .card {
+} */
+.v-text-field {
+	width: 4em;
+}
+.upper,
+.lower {
+	margin: 1em;
 	display: flex;
-	width: 400px;
-	align-items: baseline;
+	align-items: center;
 	gap: 10px;
+	justify-content: space-between;
+	flex-wrap: wrap;
 }
-.fab:focus::before {
-  opacity: 0 !important;
-}
-.fab:hover::before {
-  opacity: 0.08 !important;
-}
+
+/* .absolute {
+	position: absolute;
+} */
 </style>

@@ -89,6 +89,7 @@ export enum DayType {
     holiday,
     weekend,
     rest,
+    sick,
     empty
 }
 
