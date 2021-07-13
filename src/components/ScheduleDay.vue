@@ -16,43 +16,79 @@ export default Vue.extend({
 	},
 	computed: {
 		display_text(): string {
-			return DayTypeDescriptions[this.type].label
+			if (this.type == DayType.shift) {
+				return `${this.start} - ${(this.duration + this.start) % 24}`;
+			} else if (this.type == DayType.unpaid) {
+				return this.is_sunday ? "P" : "SZ"
+			}
+			else {
+				return DayTypeDescriptions[this.type].label
+			}
 		},
 		style(): string {
-			let style = Object.entries(DayType)[this.type][1] as string
+			let style = this.type_string
 			if (this.selected) {
-				return style + " selected"
-			} else {
-				return style
+				style += " selected"
 			}
+			if (this.is_weekend) {
+				style += " weekend"
+			}
+			// console.log(style)
+			return style
+
+		},
+		color(): string {
+			let from_desc = DayTypeDescriptions[this.type].color
+			// if(from_desc == "white"){
+			//     return ""
+			// }
+			return from_desc
+		},
+		type_string(): string {
+			return Object.entries(DayType)[this.type][1] as string
+		},
+		is_weekend(): boolean {
+			let dayOfWeek = this.to_date.getDay()
+			return (dayOfWeek === 6) || (dayOfWeek === 0); // 6 = Saturday, 0 = Sunday
+		},
+		is_sunday(): boolean {
+			let dayOfWeek = this.to_date.getDay()
+			return (dayOfWeek === 0); // 6 = Saturday, 0 = Sunday
+		},
+		to_date(): Date {
+			let sheet = this.$store.state.sheets.sheet
+			return new Date(sheet.year, sheet.month, this.day)
 		}
+
 	},
 });
 </script>
 
 <template>
-	<td :class="style">
+	<td :class="style" :style="{backgroundColor: color}">
 		{{ display_text }}
 	</td>
 </template>
 
 <style scoped>
 td:hover {
-	background-color: #ddd;
+	/* background-color: #ddd; */
+	filter: brightness(80%);
 	cursor: pointer;
 }
 td {
 	border: 0.5px solid #ccc;
 	text-align: center;
-	min-width: 4em;
+	min-width: 3.75em;
+	text-shadow: white 0px 0px 10px;
 }
 .selected {
 	border: 0.5px solid #1f1f1f;
 	background-color: #ccc;
 	text-align: center;
-	min-width: 4em;
 }
-.sick {
-	background-color: hotpink;
+.weekend {
+	filter: brightness(90%);
+	background-color: lightblue;
 }
 </style>

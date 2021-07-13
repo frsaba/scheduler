@@ -102,12 +102,12 @@ export enum DayType {
 
 export const DayTypeDescriptions = [
     { type: "shift", 	color: "white",   desc: "Műszak",             label: "M"},
-    { type: "paid", 	color: "warning", desc: "Fizetett szabadság", label: "FSZ"  },
-    { type: "unpaid", 	color: "success", desc: "Szabadnap", 		  label: "SZ/P" },
-    { type: "holiday", 	color: "purple",  desc: "Fizetett ünnep", 	  label: "FÜ"   },
-    { type: "weekend", 	color: "primary", desc: "Szabad hétvége", 	  label: "SZH"  },
-    { type: "rest", 	color: "primary", desc: "Pihenőnap", 	      label: "*"    },
-    { type: "sick", 	color: "pink", 	  desc: "Táppénz", 			  label: "TP"   },
+    { type: "paid", 	color: "var(--v-warning-base)", desc: "Fizetett szabadság", label: "FSZ"  },
+    { type: "unpaid", 	color: "var(--v-success-base)", desc: "Szabadnap", 		  label: "SZ/P" },
+    { type: "holiday", 	color: "#9c27b0",  desc: "Fizetett ünnep", 	  label: "FÜ"   },
+    { type: "weekend", 	color: "var(--v-primary-base)", desc: "Szabad hétvége", 	  label: "SZH"  },
+    { type: "rest", 	color: "var(--v-primary-base)", desc: "Pihenőnap", 	      label: "*"    },
+    { type: "sick", 	color: "#e91e63", 	  desc: "Táppénz", 			  label: "TP"   },
     { type: "empty", 	color: "white",   desc: "Üres", 			  label: "-"    }
 ] as DayTypeDescription[]
 

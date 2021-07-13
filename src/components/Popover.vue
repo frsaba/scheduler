@@ -1,6 +1,6 @@
 <script lang="ts">
 import Vue from "vue";
-import { DayType, DayTypeDescriptions} from "@/schedule-sheet";
+import { DayType, DayTypeDescriptions } from "@/schedule-sheet";
 import LeaveButton from "@/components/LeaveButton.vue";
 
 interface LeaveButtonData {
@@ -39,7 +39,7 @@ export default Vue.extend({
 		y(): number {
 			return this.selected_start.y + this.selected_start.height + 5;
 		},
-		desc(){
+		desc() {
 			return DayTypeDescriptions
 		}
 	},
@@ -101,8 +101,7 @@ export default Vue.extend({
 		disable-keys
 		:position-x="x"
 		:position-y="y"
-		absolute
-	>
+		absolute>
 		<v-card class="card" ref="card">
 			<div class="upper">
 				<v-text-field
@@ -111,8 +110,7 @@ export default Vue.extend({
 					type="number"
 					hide-details="true"
 					v-model.number="shift_start"
-					@input="inputStart"
-				></v-text-field>
+					@input="inputStart"></v-text-field>
 				<span>-</span>
 				<v-text-field
 					solo
@@ -120,24 +118,21 @@ export default Vue.extend({
 					type="number"
 					hide-details="true"
 					v-model.number="shift_end"
-					@input="inputEnd"
-				></v-text-field>
+					@input="inputEnd"></v-text-field>
 
 				<v-btn class="fab" fab @click="setShift()">
 					<v-icon>mdi-set-split</v-icon>
 				</v-btn>
-
+				<leave-button :type="7" @set-type="setType" tooltip="Törlés" color="red">
+					<v-icon>mdi-delete</v-icon>
+				</leave-button>
 				<v-btn class="absolute" fab @click="close" x-small elevation="0">
 					<v-icon>mdi-close</v-icon>
 				</v-btn>
 			</div>
 			<div class="lower">
 				<leave-button v-for="b in leave_buttons" :key="b" :type="b" @set-type="setType" />
-	
 				
-				<leave-button :type="7" @set-type="setType" tooltip="Törlés" color="red">
-					<v-icon>mdi-delete</v-icon>
-				</leave-button>
 			</div>
 		</v-card>
 	</v-menu>
@@ -145,6 +140,7 @@ export default Vue.extend({
 
 <style scoped>
 /* .card {
+	border: 1px solid grey;
 } */
 .v-text-field {
 	width: 4em;
