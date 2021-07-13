@@ -14,9 +14,12 @@ const staff : Module<State, {}> = {
         set_shift(context, {name, day, start, duration}){
             context.sheet.GetRow(name).SetShift(day, start, duration);
         },
-        delete_shift(context, {name, day,}){
+        delete_shift(context, {name, day}){
             context.sheet.GetRow(name).DeleteShift(day);
-        }
+        },
+        set_type(context, {name, day, type}){
+            context.sheet.GetRow(name).GetDay(day).SetType(type);
+        },
     },
     actions: {
         add(context, payload) : void{

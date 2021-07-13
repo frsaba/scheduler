@@ -1,10 +1,9 @@
 <script lang="ts">
 import Vue from "vue";
-import { DayType, Sheet } from "@/schedule-sheet";
+import { DayType } from "@/schedule-sheet";
 import MonthlyRow from "@/components/MonthlyRow.vue";
 import Popover from "@/components/Popover.vue";
 import debounce from "lodash/debounce";
-import { mapState } from "vuex";
 export default Vue.extend({
 	name: "Monthly",
 	components: {
@@ -22,13 +21,15 @@ export default Vue.extend({
 			popover: false,
 			selection_start_rect: new DOMRect(),
 			selection_end_rect: new DOMRect(),
-			scroll: function () {},
+			scroll: function () { },
 		};
 	},
 	created() {
 		window.addEventListener("mouseup", this.dragEndEmpty);
 		this.scroll = debounce(this.fixPopoverTransition, 50);
-		this.$store.dispatch("staff/add", "Példa János");
+		if (this.$store.getters['staff/count'] < 1) {
+			this.$store.dispatch("staff/add", "Példa János");
+		}
 	},
 	destroyed() {
 		window.removeEventListener("mouseup", this.dragEndEmpty);
@@ -59,9 +60,19 @@ export default Vue.extend({
 		shift(name: string, day: number) {
 			let d = this.sheet.GetRow(name).GetDay(day);
 			if (d.type == DayType.empty) {
-				this.$store.commit('set_shift', { name, day, start : 10, duration : 8 })
+				this.$store.commit('set_shift', { name, day, start: 10, duration: 8 })
 			} else {
 				this.$store.commit("delete_shift", { name, day });
+			}
+		},
+		setShift({ start, duration }: { start: number, duration: number }) {
+			for (let i = this.selection_start; i <= this.selection_end; i++) {
+				this.$store.commit('set_shift', { name: this.drag_employee, day: i, start, duration })
+			}
+		},
+		setType(type: DayType) {
+			for (let i = this.selection_start; i <= this.selection_end; i++) {
+				this.$store.commit('set_type', { name: this.drag_employee, day: i, type })
 			}
 		},
 		dragStart(name: string, day: number) {
@@ -79,9 +90,6 @@ export default Vue.extend({
 		dragEnd(name: string, day: number) {
 			if (this.drag) {
 				this.drag_end = day;
-				for (let i = this.selection_start; i <= this.selection_end; i++) {
-					this.shift(this.drag_employee, i);
-				}
 				this.popover = true;
 			}
 			this.updateSelectRects();
@@ -130,6 +138,8 @@ export default Vue.extend({
 		<popover
 			v-model="popover"
 			@close="deselect"
+			@set-shift="setShift"
+			@set-type="setType"
 			:selected_start="selection_start_rect"
 			:selected_end="selection_end_rect"
 		></popover>

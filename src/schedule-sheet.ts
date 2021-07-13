@@ -77,6 +77,9 @@ class ScheduleDay {
         this.start = start;
         this.duration = duration;
     }
+    SetType(type : DayType){
+        this.type = type;
+    }
 }
 
 export enum DayType {
