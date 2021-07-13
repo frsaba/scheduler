@@ -82,6 +82,13 @@ class ScheduleDay {
     }
 }
 
+interface DayTypeDescription {
+	type: string,
+	color: string,
+	desc: string,
+	label: string
+}
+
 export enum DayType {
     shift,
     paid,
@@ -93,14 +100,15 @@ export enum DayType {
     empty
 }
 
-// class Shift extends ScheduleDay {
-//     public type: "shift" = "shift";
-//     constructor(
-//         public start: number = 7,
-//         public duration = 8,
-//     ) { super() }
-
-
-// }
+export const DayTypeDescriptions = [
+    { type: "shift", 	color: "white",   desc: "Műszak",             label: "M"},
+    { type: "paid", 	color: "warning", desc: "Fizetett szabadság", label: "FSZ"  },
+    { type: "unpaid", 	color: "success", desc: "Szabadnap", 		  label: "SZ/P" },
+    { type: "holiday", 	color: "purple",  desc: "Fizetett ünnep", 	  label: "FÜ"   },
+    { type: "weekend", 	color: "primary", desc: "Szabad hétvége", 	  label: "SZH"  },
+    { type: "rest", 	color: "primary", desc: "Pihenőnap", 	      label: "*"    },
+    { type: "sick", 	color: "pink", 	  desc: "Táppénz", 			  label: "TP"   },
+    { type: "empty", 	color: "white",   desc: "Üres", 			  label: "-"    }
+] as DayTypeDescription[]
 
 

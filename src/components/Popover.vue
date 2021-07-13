@@ -1,6 +1,6 @@
 <script lang="ts">
 import Vue from "vue";
-import { DayType } from "@/schedule-sheet";
+import { DayType, DayTypeDescriptions} from "@/schedule-sheet";
 import LeaveButton from "@/components/LeaveButton.vue";
 
 interface LeaveButtonData {
@@ -29,13 +29,7 @@ export default Vue.extend({
 			shift_end: 16,
 			shift_duration: 8,
 			last_width: 500,
-			leave_buttons: [
-				{ type: "paid", 	color: "warning", tooltip: "Fizetett szabadság", label: "FSZ"  },
-				{ type: "unpaid", 	color: "success", tooltip: "Szabadnap", 		 label: "SZ/P" },
-				{ type: "weekend", 	color: "primary", tooltip: "Szabad hétvége", 	 label: "SZH"  },
-				{ type: "holiday", 	color: "purple",  tooltip: "Fizetett ünnep", 	 label: "FÜ"   },
-				{ type: "sick", 	color: "pink", 	  tooltip: "Táppénz", 			 label: "TP"   }
-			] as LeaveButtonData[]
+			leave_buttons: [DayType.paid, DayType.unpaid, DayType.weekend, DayType.sick, DayType.holiday] as DayType[]
 		};
 	},
 	computed: {
@@ -45,6 +39,9 @@ export default Vue.extend({
 		y(): number {
 			return this.selected_start.y + this.selected_start.height + 5;
 		},
+		desc(){
+			return DayTypeDescriptions
+		}
 	},
 	created() {
 		window.addEventListener("keyup", this.escToClose);
@@ -135,13 +132,10 @@ export default Vue.extend({
 				</v-btn>
 			</div>
 			<div class="lower">
-				<leave-button v-for="b in leave_buttons" :key="b.type" 
-					:type="b.type" @set-type="setType" 
-					:color="b.color" :tooltip="b.tooltip">
-					{{b.label}}
-				</leave-button>
+				<leave-button v-for="b in leave_buttons" :key="b" :type="b" @set-type="setType" />
+	
 				
-				<leave-button type="empty" @set-type="setType" tooltip="Törlés" color="red">
+				<leave-button :type="7" @set-type="setType" tooltip="Törlés" color="red">
 					<v-icon>mdi-delete</v-icon>
 				</leave-button>
 			</div>
