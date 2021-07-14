@@ -5,8 +5,7 @@ export default function init(win: BrowserWindow)
 {
     win.webContents.on("zoom-changed", (event, zoomDirection) => {
         let currZoom = win.webContents.getZoomLevel();
-
-        console.log(currZoom);
+        
         if (zoomDirection === "in")
             win.webContents.setZoomLevel(Math.min(currZoom + 0.2, max));
         else

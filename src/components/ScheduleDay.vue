@@ -15,7 +15,7 @@ export default Vue.extend({
 		display_text(): string {
 			switch (this.type) {
 				case DayType.shift:
-					return `${this.start} - ${(this.duration + this.start) % 24}`;
+					return `${this.start} <br> ${(this.duration + this.start) % 24}`;
 				case DayType.unpaid:
 					return this.is_sunday ? "P" : "SZ"
 				default:
@@ -59,8 +59,7 @@ export default Vue.extend({
 </script>
 
 <template>
-	<td :class="style" :style="{backgroundColor: color}">
-		{{ display_text }}
+	<td :class="style" :style="{backgroundColor: color}" v-html="display_text">
 	</td>
 </template>
 
@@ -73,7 +72,9 @@ td:hover {
 td {
 	border: 0.5px solid #ccc;
 	text-align: center;
-	min-width: 4.2em;
+	min-width: 2.7em;
+	max-width: 2.7em;
+    height: 3.5em;
 	text-shadow: white 0px 0px 20px;
 	font-weight: 500;
 	font-size: 15px;
