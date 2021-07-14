@@ -9,8 +9,7 @@ export default Vue.extend({
 	props: {
 		employee_name: String,
 		days: Array,
-		selection_start: Number,
-		selection_end: Number,
+		selection : []
 	},
 	methods: {
 		down(i: number) {
@@ -36,7 +35,7 @@ export default Vue.extend({
 			:type="data.type"
 			:duration="data.duration"
 			:start="data.start"
-			:selected="index + 1 >= selection_start && index + 1 <= selection_end"
+			:selection="selection"
 			@mousedown.native.left.prevent.stop="down(index + 1)"
 			@mouseup.native.left.stop="up(index + 1)"
 			@mouseenter.native="enter(index + 1)" />

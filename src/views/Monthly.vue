@@ -127,6 +127,10 @@ export default Vue.extend({
 		selection_end(): number {
 			return Math.max(this.drag_start, this.drag_end);
 		},
+		selection(): number[] {
+			if (this.selection_end == 0) return []
+			return Array(this.selection_end - this.selection_start + 1).fill(0).map((x, i) => i + this.selection_start);
+		}
 	},
 });
 </script>
@@ -147,10 +151,7 @@ export default Vue.extend({
 				<thead>
 					<tr>
 						<th class="text-center nametag">Név</th>
-						<th
-							class="text-center"
-							v-for="n in sheet.month_length"
-							:key="n">
+						<th class="text-center" v-for="n in sheet.month_length" :key="n">
 							{{ n }}
 						</th>
 					</tr>
@@ -161,16 +162,7 @@ export default Vue.extend({
 						:key="row.employee_name"
 						:employee_name="row.employee_name"
 						:days="row.days"
-						:selection_start="
-							row.employee_name == drag_employee
-								? selection_start
-								: null
-						"
-						:selection_end="
-							row.employee_name == drag_employee
-								? selection_end
-								: null
-						"
+						:selection="row.employee_name == drag_employee? selection: []"
 						:ref="row.employee_name"
 						@day-mouse-down="dragStart(row.employee_name, $event)"
 						@day-mouse-up="dragEnd(row.employee_name, $event)"
