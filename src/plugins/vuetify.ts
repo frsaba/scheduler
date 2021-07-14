@@ -36,7 +36,9 @@ export default new Vuetify({
                 free_weekend: defaults.primary,
                 rest: defaults.warning,
                 sick: colors.pink.base,
-                empty: "#FFFFFF"
+                empty: "#FFFFFF",
+                
+                "selected-border" : "#1f1f1f"
             },
         },
     },
