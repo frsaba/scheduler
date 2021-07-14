@@ -189,7 +189,7 @@ export default Vue.extend({
 }
 table {
 	position: relative;
-	border-collapse: separate;
+	border-collapse:separate;
 	/* table-layout: fixed; */
 	user-select: none;
 	border-spacing: 0;
@@ -205,11 +205,12 @@ thead th {
 	top: 0;
 	background: #000;
 	color: #fff;
+	z-index: 1;
 }
 
 thead th:first-child {
 	left: 0;
-	z-index: 1;
+	z-index: 2;
 }
 
 tbody th {
