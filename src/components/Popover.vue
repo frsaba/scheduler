@@ -1,6 +1,6 @@
 <script lang="ts">
 import Vue from "vue";
-import { DayType, DayTypeDescriptions } from "@/day-types";
+import { DayType, DayTypeDescriptions } from "@/model/day-types";
 import LeaveButton from "@/components/LeaveButton.vue";
 
 interface LeaveButtonData {

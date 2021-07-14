@@ -1,6 +1,6 @@
 import { dialog } from "electron"
 import * as Excel from 'exceljs';
-import { Sheet } from "./schedule-sheet";
+import { Sheet } from "@/model/schedule-sheet";
 
 export function ImportSheet() {
     const path = GetPathFromUser();

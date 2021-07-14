@@ -1,6 +1,6 @@
 <script lang="ts">
 import Vue from "vue";
-import { DayType } from "@/day-types";
+import { DayType } from "@/model/day-types";
 import MonthlyRow from "@/components/MonthlyRow.vue";
 import Popover from "@/components/Popover.vue";
 import debounce from "lodash/debounce";

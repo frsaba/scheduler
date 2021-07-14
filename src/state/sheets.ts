@@ -1,5 +1,5 @@
 import { Module } from "vuex";
-import { Sheet } from "@/schedule-sheet"
+import { Sheet } from "@/model/schedule-sheet"
 
 class State{
     sheet : Sheet = new Sheet(2021, 2);
