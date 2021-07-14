@@ -73,9 +73,10 @@ td:hover {
 td {
 	border: 0.5px solid #ccc;
 	text-align: center;
-	min-width: 3.75em;
+	min-width: 4.2em;
 	text-shadow: white 0px 0px 20px;
 	font-weight: 500;
+	font-size: 15px;
 	letter-spacing: 1px;
 }
 .selected {

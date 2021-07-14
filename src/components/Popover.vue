@@ -120,9 +120,9 @@ export default Vue.extend({
 					v-model.number="shift_end"
 					@input="inputEnd"></v-text-field>
 
-				<v-btn class="fab" fab @click="setShift()">
+				<leave-button :type="0" @set-type="setShift" tooltip="Műszak" :dark="false">
 					<v-icon>mdi-set-split</v-icon>
-				</v-btn>
+				</leave-button>
 				<leave-button :type="7" @set-type="setType" tooltip="Törlés" color="red">
 					<v-icon>mdi-delete</v-icon>
 				</leave-button>
@@ -131,7 +131,7 @@ export default Vue.extend({
 				</v-btn>
 			</div>
 			<div class="lower">
-				<leave-button v-for="b in leave_buttons" :key="b" :type="b" @set-type="setType" />
+				<leave-button v-for="b in leave_buttons" :key="b" :type="b" @set-type="setType"/>
 				
 			</div>
 		</v-card>
