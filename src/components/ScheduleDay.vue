@@ -67,7 +67,7 @@ export default Vue.extend({
 <style scoped>
 td:hover {
 	/* background-color: #ddd; */
-	filter: brightness(70%);
+	filter: brightness(90%);
 	cursor: pointer;
 }
 td {
@@ -83,10 +83,14 @@ td {
 	border-bottom-color: var(--v-selected-border-base);
 	background-color: #ccc;
 	text-align: center;
-	filter: brightness(90%);
+	filter: brightness(85%);
 }
 .weekend {
-	filter: brightness(80%);
+	filter: hue-rotate(-20deg);
+	z-index: -1;
+}
+.weekend.t-empty, .weekend.t-shift {
+	filter: brightness(95%);
 	z-index: -1;
 }
 .t-holiday,
@@ -95,9 +99,6 @@ td {
 .t-unpaid {
 	color: white;
 	text-shadow: black 0px 0px 20px;
-}
-.t-weekend {
-	filter: none;
 }
 .last.selected {
 	border-right-color: var(--v-selected-border-base);
