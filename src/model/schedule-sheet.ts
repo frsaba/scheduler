@@ -54,9 +54,7 @@ export class ScheduleDay {
     ) { }
 
     Clear() {
-        this.type = DayType.empty
-        this.start = 0;
-        this.duration = 0;
+        this.SetType(DayType.empty)
     }
     SetShift(start: number, duration: number) {
         this.type = DayType.shift;

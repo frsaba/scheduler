@@ -74,7 +74,7 @@ td {
 	text-align: center;
 	min-width: 2.7em;
 	max-width: 2.7em;
-    height: 3.5em;
+    height: 3.75em;
 	text-shadow: white 0px 0px 20px;
 	font-weight: 500;
 	font-size: 15px;
