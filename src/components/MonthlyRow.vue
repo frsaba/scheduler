@@ -1,15 +1,17 @@
 <script lang="ts">
 import Vue from "vue";
-import ScheduleDay from "@/components/ScheduleDay.vue";
+import ScheduleDayComponent from "@/components/ScheduleDay.vue";
+import { accumulators, Aggregate } from "@/model/aggregates"
+import { ScheduleDay } from "@/model/schedule-sheet";
 export default Vue.extend({
 	name: "Monthlyrow",
 	components: {
-		ScheduleDay,
+		ScheduleDayComponent,
 	},
 	props: {
 		employee_name: String,
 		days: Array,
-		selection : []
+		selection: []
 	},
 	methods: {
 		down(i: number) {
@@ -21,14 +23,25 @@ export default Vue.extend({
 		enter(i: number) {
 			this.$emit("day-mouse-enter", i);
 		},
+		// get_acc(acc : Aggregate, days : sch) : number{
+		// 	return
+		// }
 	},
+	computed: {
+		accumulators(): Aggregate[] {
+			return accumulators
+		},
+		accumulator_values(): number[] {
+			return this.accumulators.map(a => a.evaluate(this.days as ScheduleDay[]))
+		}
+	}
 });
 </script>
 
 <template>
 	<tr>
 		<th>{{ employee_name }}</th>
-		<schedule-day
+		<schedule-day-component
 			v-for="(data, index) in days"
 			:key="index"
 			:day="index + 1"
@@ -39,6 +52,7 @@ export default Vue.extend({
 			@mousedown.native.left.prevent.stop="down(index + 1)"
 			@mouseup.native.left.stop="up(index + 1)"
 			@mouseenter.native="enter(index + 1)" />
+		<td class="sticky-right text-center" v-for="(acc,i) in accumulators" :key="acc.label">{{accumulator_values[i]}}</td>
 	</tr>
 </template>
 

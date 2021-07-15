@@ -1,9 +1,10 @@
 <script lang="ts">
 import Vue from "vue";
-import { DayType } from "@/model/day-types";
+import { DayType, DayTypeDescriptions } from "@/model/day-types";
 import MonthlyRow from "@/components/MonthlyRow.vue";
 import Popover from "@/components/Popover.vue";
 import debounce from "lodash/debounce";
+import { accumulators, Aggregate, DayTypeCounter } from "@/model/aggregates"
 export default Vue.extend({
 	name: "Monthly",
 	components: {
@@ -119,6 +120,7 @@ export default Vue.extend({
 				this.popover = true;
 			});
 		},
+		
 	},
 	computed: {
 		selection_start(): number {
@@ -130,7 +132,14 @@ export default Vue.extend({
 		selection(): number[] {
 			if (this.selection_end == 0) return []
 			return Array(this.selection_end - this.selection_start + 1).fill(0).map((x, i) => i + this.selection_start);
-		}
+		},
+		right_side_headers() : Array<Aggregate> {
+			return accumulators
+		},
+		header_styles() : Array<any>{
+			console.log("asd")
+			return accumulators.map(a => ({  backgroundColor: DayTypeDescriptions[(a as DayTypeCounter).types[0]].color }) )
+		}	
 	},
 });
 </script>
@@ -154,6 +163,8 @@ export default Vue.extend({
 						<th class="text-center" v-for="n in sheet.month_length" :key="n">
 							{{ n }}
 						</th>
+						<th class="sticky-right acc-header" v-for="(acc, i) in right_side_headers" :key="acc.label"
+							:style="header_styles[i]">{{acc.label }}</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -180,7 +191,14 @@ export default Vue.extend({
 .nametag {
 	min-width: 10em;
 }
-
+.acc-header{
+	min-width: 3em;
+}
+.sticky-right {
+	position: sticky;
+	/* right: 0; */
+	z-index: 2;
+}
 .table-wrapper {
 	overflow: auto;
 	position: relative;
@@ -189,7 +207,7 @@ export default Vue.extend({
 }
 table {
 	position: relative;
-	border-collapse:separate;
+	border-collapse: separate;
 	/* table-layout: fixed; */
 	user-select: none;
 	border-spacing: 0;

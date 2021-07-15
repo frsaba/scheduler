@@ -20,7 +20,7 @@ export class Sheet {
     }
 }
 
-class ScheduleRow {
+export class ScheduleRow {
     // employee_name : string
     days: Array<ScheduleDay>
     constructor(public employee_name: string, length: number) {
@@ -45,7 +45,7 @@ class ScheduleRow {
 
 }
 
-class ScheduleDay {
+export class ScheduleDay {
 
     constructor(
         public type: DayType = DayType.empty,
