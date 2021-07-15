@@ -167,7 +167,7 @@ export default Vue.extend({
 						<th class="text-center" v-for="n in sheet.month_length" :key="n">
 							{{ n }}
 						</th>
-						<th class="sticky-right acc-header" v-for="(acc, i) in right_side_headers" :key="acc"
+						<th class="header-sticky-right acc-header" v-for="(acc, i) in right_side_headers" :key="acc"
 							:style="header_styles[i]">{{acc}}</th>
 					</tr>
 				</thead>
@@ -194,11 +194,12 @@ export default Vue.extend({
 }
 .nametag {
 	min-width: 10em;
+	border-right-style:double;
 }
 .acc-header {
 	min-width: 3em;
 }
-.sticky-right {
+.header-sticky-right {
 	position: sticky;
 	/* right: 0; */
 	z-index: 2;

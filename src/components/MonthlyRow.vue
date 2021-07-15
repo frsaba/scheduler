@@ -23,20 +23,18 @@ export default Vue.extend({
 		enter(i: number) {
 			this.$emit("day-mouse-enter", i);
 		},
-		// get_acc(acc : Aggregate, days : sch) : number{
-		// 	return
-		// }
 	},
 	computed: {
 		accumulators(): Aggregate[] {
 			return accumulators
 		},
+		//Having this as computed means it only updates when this.days changes
 		accumulator_values(): number[] {
 			return this.accumulators.map(a => a.evaluate(this.days as ScheduleDay[]))
 		},
 		counter_styles(): Array<any> {
 			// return accumulators.map(a => ({ backgroundColor: a.header_color }))
-			return accumulators.map(a => ({}))
+			return accumulators.map((a, i) => ({right: i * 3 + "em"})).reverse()
 		}
 	}
 });
@@ -63,11 +61,18 @@ export default Vue.extend({
 <style scoped>
 th {
 	filter: opacity(1);
+	border-right: 4px double #ccc;
 	z-index: 1;
 }
 .counter{
 	/* filter: brightness(120%) saturate(50%); */
-	border: 1px solid #ccc;
+	border: 3px double #ccc;
 	position: sticky;
+	background-color: white;
+}
+.sticky-right {
+	position: sticky;
+	/* right: 0; */
+	z-index: 1;
 }
 </style>
