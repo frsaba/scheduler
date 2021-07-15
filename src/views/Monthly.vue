@@ -141,7 +141,7 @@ export default Vue.extend({
 		header_styles(): Array<any> {
 			return accumulators.map((a, i) => ({
 				backgroundColor: a.header_color,
-				right: (accumulators.length - 1 - i) * 3 + "em"
+				right: (accumulators.length - 1 - i) * 3 + "em" //right side sticky columns
 			}))
 		}
 	},

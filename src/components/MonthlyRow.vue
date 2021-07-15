@@ -1,7 +1,7 @@
 <script lang="ts">
 import Vue from "vue";
 import ScheduleDayComponent from "@/components/ScheduleDay.vue";
-import { accumulators, Aggregate } from "@/model/aggregates"
+import { accumulators, Aggregate, DayTypeCounter } from "@/model/aggregates"
 import { ScheduleDay } from "@/model/schedule-sheet";
 export default Vue.extend({
 	name: "Monthlyrow",
@@ -34,7 +34,11 @@ export default Vue.extend({
 		},
 		counter_styles(): Array<any> {
 			// return accumulators.map(a => ({ backgroundColor: a.header_color }))
-			return accumulators.map((a, i) => ({right: i * 3 + "em"})).reverse()
+			return accumulators.map((a, i) =>
+			({
+				backgroundColor: `var(--v-${(a as DayTypeCounter).desc.type}-lighten5)`,
+				right: (accumulators.length - 1 - i) * 3 + "em" //right side sticky columns
+			}))
 		}
 	}
 });
@@ -64,11 +68,21 @@ th {
 	border-right: 4px double #ccc;
 	z-index: 1;
 }
-.counter{
+.counter {
 	/* filter: brightness(120%) saturate(50%); */
 	border: 3px double #ccc;
 	position: sticky;
 	background-color: white;
+}
+.counter::before {
+	/* content: "asd"; */
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	background: white;
+	filter: opacity(90%);
 }
 .sticky-right {
 	position: sticky;

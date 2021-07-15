@@ -97,6 +97,9 @@ td {
 	filter: hue-rotate(-20deg);
 	z-index: -1;
 }
+.weekend:hover{
+	filter: brightness(90%) !important;
+}
 .weekend.t-empty, .weekend.t-shift {
 	filter: brightness(95%);
 	z-index: -1;
