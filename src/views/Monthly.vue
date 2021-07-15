@@ -1,10 +1,10 @@
 <script lang="ts">
 import Vue from "vue";
-import { DayType, DayTypeDescriptions } from "@/model/day-types";
+import { DayType } from "@/model/day-types";
 import MonthlyRow from "@/components/MonthlyRow.vue";
 import Popover from "@/components/Popover.vue";
 import debounce from "lodash/debounce";
-import { accumulators, Aggregate, DayTypeCounter } from "@/model/aggregates"
+import { accumulators } from "@/model/aggregates"
 export default Vue.extend({
 	name: "Monthly",
 	components: {
@@ -130,14 +130,19 @@ export default Vue.extend({
 			return Math.max(this.drag_start, this.drag_end);
 		},
 		selection(): number[] {
+			//(selection_start: 5, selection_end: 7) => [5,6,7]
 			if (this.selection_end == 0) return []
 			return Array(this.selection_end - this.selection_start + 1).fill(0).map((x, i) => i + this.selection_start);
 		},
 		right_side_headers(): string[] {
 			return accumulators.map(a => a.label)
 		},
+		//Having this as computed so it's cached and doesn't run on every render
 		header_styles(): Array<any> {
-			return accumulators.map(a => ({ backgroundColor: a.header_color }))
+			return accumulators.map((a, i) => ({
+				backgroundColor: a.header_color,
+				right: (accumulators.length - 1 - i) * 3 + "em"
+			}))
 		}
 	},
 });
