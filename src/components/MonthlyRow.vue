@@ -33,6 +33,10 @@ export default Vue.extend({
 		},
 		accumulator_values(): number[] {
 			return this.accumulators.map(a => a.evaluate(this.days as ScheduleDay[]))
+		},
+		counter_styles(): Array<any> {
+			// return accumulators.map(a => ({ backgroundColor: a.header_color }))
+			return accumulators.map(a => ({}))
 		}
 	}
 });
@@ -52,7 +56,7 @@ export default Vue.extend({
 			@mousedown.native.left.prevent.stop="down(index + 1)"
 			@mouseup.native.left.stop="up(index + 1)"
 			@mouseenter.native="enter(index + 1)" />
-		<td class="sticky-right text-center" v-for="(acc,i) in accumulators" :key="acc.label">{{accumulator_values[i]}}</td>
+		<td class="sticky-right text-center counter" v-for="(acc,i) in accumulators" :style="counter_styles[i]" :key="acc.label">{{accumulator_values[i]}}</td>
 	</tr>
 </template>
 
@@ -60,5 +64,10 @@ export default Vue.extend({
 th {
 	filter: opacity(1);
 	z-index: 1;
+}
+.counter{
+	/* filter: brightness(120%) saturate(50%); */
+	border: 1px solid #ccc;
+	position: sticky;
 }
 </style>

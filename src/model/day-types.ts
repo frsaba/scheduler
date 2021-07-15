@@ -11,7 +11,7 @@ export enum DayType {
     empty
 }
 
-interface DayTypeDescription {
+export interface DayTypeDescription {
 	type: string,
 	color: string,
 	desc: string,

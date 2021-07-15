@@ -120,7 +120,7 @@ export default Vue.extend({
 				this.popover = true;
 			});
 		},
-		
+
 	},
 	computed: {
 		selection_start(): number {
@@ -133,13 +133,12 @@ export default Vue.extend({
 			if (this.selection_end == 0) return []
 			return Array(this.selection_end - this.selection_start + 1).fill(0).map((x, i) => i + this.selection_start);
 		},
-		right_side_headers() : Array<Aggregate> {
-			return accumulators
+		right_side_headers(): string[] {
+			return accumulators.map(a => a.label)
 		},
-		header_styles() : Array<any>{
-			console.log("asd")
-			return accumulators.map(a => ({  backgroundColor: DayTypeDescriptions[(a as DayTypeCounter).types[0]].color }) )
-		}	
+		header_styles(): Array<any> {
+			return accumulators.map(a => ({ backgroundColor: a.header_color }))
+		}
 	},
 });
 </script>
@@ -163,8 +162,8 @@ export default Vue.extend({
 						<th class="text-center" v-for="n in sheet.month_length" :key="n">
 							{{ n }}
 						</th>
-						<th class="sticky-right acc-header" v-for="(acc, i) in right_side_headers" :key="acc.label"
-							:style="header_styles[i]">{{acc.label }}</th>
+						<th class="sticky-right acc-header" v-for="(acc, i) in right_side_headers" :key="acc"
+							:style="header_styles[i]">{{acc}}</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -191,7 +190,7 @@ export default Vue.extend({
 .nametag {
 	min-width: 10em;
 }
-.acc-header{
+.acc-header {
 	min-width: 3em;
 }
 .sticky-right {
