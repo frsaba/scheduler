@@ -70,7 +70,7 @@ interface GlobalAssertion {
 }
 
 export const accumulators: Array<Aggregate> = [
-    new TotalHours("Össz. óra", "grey"),
+    new TotalHours("Össz. óra", "#FFFFFF"),
     ...[DayType.paid, DayType.sick, [DayType.unpaid, DayType.weekend]].map(t => new DayTypeCounter(t)),
 ]
 

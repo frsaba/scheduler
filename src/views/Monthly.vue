@@ -5,6 +5,8 @@ import MonthlyRow from "@/components/MonthlyRow.vue";
 import Popover from "@/components/Popover.vue";
 import debounce from "lodash/debounce";
 import { accumulators } from "@/model/aggregates"
+import { FontColorFromBackground } from "@/utils/color-helpers"
+
 export default Vue.extend({
 	name: "Monthly",
 	components: {
@@ -141,6 +143,7 @@ export default Vue.extend({
 		header_styles(): Array<any> {
 			return accumulators.map((a, i) => ({
 				backgroundColor: a.header_color,
+				color: FontColorFromBackground(a.header_color),
 				right: (accumulators.length - 1 - i) * 3 + "em" //right side sticky columns
 			}))
 		}
@@ -213,7 +216,7 @@ export default Vue.extend({
 table {
 	position: relative;
 	border-collapse: separate;
-	/* table-layout: fixed; */
+	table-layout: fixed;
 	user-select: none;
 	border-spacing: 0;
 }
