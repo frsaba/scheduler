@@ -221,11 +221,6 @@ table {
 	border-spacing: 0;
 }
 
-td,
-th {
-	padding: 0.25em;
-}
-
 thead th {
 	position: sticky;
 	top: 0;

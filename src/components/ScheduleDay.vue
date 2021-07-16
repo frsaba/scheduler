@@ -61,8 +61,8 @@ export default Vue.extend({
 </script>
 
 <template>
-	<td :class="classes" :style="style" v-html="display_text">
-	</td>
+    <td :class="classes" :style="style" v-html="display_text">
+    </td>
 </template>
 
 <style scoped>
@@ -75,7 +75,7 @@ td {
 	border: 0.5px solid #ccc;
 	text-align: center;
 	min-width: 2.7em;
-	/* max-width: 2.7em; */
+    width: 100vw;
 	height: 3.75em;
 	text-shadow: white 0px 0px 20px;
 	font-weight: 500;
