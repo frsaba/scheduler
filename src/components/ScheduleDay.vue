@@ -2,6 +2,7 @@
 import Vue from "vue";
 import { DayType, DayTypeDescriptions } from "@/model/day-types";
 import { FontColorFromBackground } from "@/utils/color-helpers"
+import { isWeekend, isDay } from "@/utils/date-helpers"
 export default Vue.extend({
 	name: "Day",
 	props: {
@@ -39,17 +40,15 @@ export default Vue.extend({
 		is_selected(): boolean {
 			return this.selection.includes(this.day)
 		},
+        to_date(): Date {
+            let sheet = this.$store.state.sheets.sheet
+            return new Date(sheet.year, sheet.month, this.day)
+        },
 		is_weekend(): boolean {
-			let dayOfWeek = this.to_date.getDay()
-			return (dayOfWeek === 6) || (dayOfWeek === 0); // 6 = Saturday, 0 = Sunday
+            return isWeekend(this.to_date);
 		},
 		is_sunday(): boolean {
-			let dayOfWeek = this.to_date.getDay()
-			return (dayOfWeek === 0); // 0 = Sunday
-		},
-		to_date(): Date {
-			let sheet = this.$store.state.sheets.sheet
-			return new Date(sheet.year, sheet.month, this.day)
+            return isDay(this.to_date, 0) // 0 = Sunday
 		},
 		style(): unknown {
 			const color = DayTypeDescriptions[this.type].color

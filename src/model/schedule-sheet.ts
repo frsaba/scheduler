@@ -1,8 +1,5 @@
 import { DayType, DayTypeDescriptions } from "./day-types";
-
-function daysInMonth(year: number, month: number) {
-    return new Date(year, month, 0).getDate();
-}
+import { daysInMonth } from "@/utils/date-helpers"
 
 export class Sheet {
     month_length: number

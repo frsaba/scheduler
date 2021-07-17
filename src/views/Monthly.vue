@@ -6,6 +6,7 @@ import Popover from "@/components/Popover.vue";
 import debounce from "lodash/debounce";
 import { accumulators } from "@/model/aggregates"
 import { FontColorFromBackground } from "@/utils/color-helpers"
+import { isWeekend } from "@/utils/date-helpers"
 
 export default Vue.extend({
 	name: "Monthly",
@@ -146,7 +147,13 @@ export default Vue.extend({
 				color: FontColorFromBackground(a.header_color),
 				right: (accumulators.length - 1 - i) * 3 + "em" //right side sticky columns
 			}))
-		}
+		},
+        day_header_style(): Array<any> {
+            return new Array(this.sheet.month_length).fill(1).map((a, i) => ({
+				backgroundColor: isWeekend(new Date(this.sheet.year, this.sheet.month, i + 1)) ? 
+                    "var(--v-header-weekend-base)" : "var(--v-header-weekday-base)",
+			}))
+        }
 	},
 });
 </script>
@@ -167,7 +174,7 @@ export default Vue.extend({
 				<thead>
 					<tr>
 						<th class="text-center nametag">Név</th>
-						<th class="text-center" v-for="n in sheet.month_length" :key="n">
+						<th class="text-center" :style="day_header_style[n - 1]" v-for="n in sheet.month_length" :key="n">
 							{{ n }}
 						</th>
 						<th class="header-sticky-right acc-header" v-for="(acc, i) in right_side_headers" :key="acc"
