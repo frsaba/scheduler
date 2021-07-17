@@ -6,7 +6,9 @@ import Popover from "@/components/Popover.vue";
 import debounce from "lodash/debounce";
 import { accumulators } from "@/model/aggregates"
 import { FontColorFromBackground } from "@/utils/color-helpers"
-import { isWeekend } from "@/utils/date-helpers"
+import { isWeekend, isNight } from "@/utils/date-helpers"
+import { ScheduleDay } from "@/model/schedule-sheet";
+import { type } from "process";
 
 export default Vue.extend({
 	name: "Monthly",
@@ -71,12 +73,12 @@ export default Vue.extend({
 		},
 		setShift({ start, duration }: { start: number, duration: number }) {
 			for (let i = this.selection_start; i <= this.selection_end; i++) {
-				this.$store.commit('set_shift', { name: this.drag_employee, day: i, start, duration })
+                this.$store.dispatch('set_shift', { name: this.drag_employee, day: i, start, duration })    
 			}
 		},
 		setType(type: DayType) {
 			for (let i = this.selection_start; i <= this.selection_end; i++) {
-				this.$store.commit('set_type', { name: this.drag_employee, day: i, type })
+				this.$store.dispatch('set_type', { name: this.drag_employee, day: i, type })
 			}
 		},
 		dragStart(name: string, day: number) {
