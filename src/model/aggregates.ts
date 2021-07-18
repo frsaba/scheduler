@@ -4,6 +4,7 @@ import { DayType, DayTypeDescription, DayTypeDescriptions } from "@/model/day-ty
 export interface Aggregate {
     label: string,
     header_color: string,
+    background_color: string,
     evaluate: (row: ScheduleDay[]) => number | boolean
 }
 
@@ -27,13 +28,18 @@ export interface Aggregate {
 
 // }
 export class DayTypeCounter implements Aggregate {
-    label: string
     types: DayType[]
-    header_color: string
     desc: DayTypeDescription
-    constructor(types: DayType | DayType[], label: string = '', header_color: string = '') {
+    constructor(
+        types: DayType | DayType[], 
+        public label: string = '', 
+        public header_color: string = '', 
+        public background_color: string = ''
+    ) {
         this.types = ([] as DayType[]).concat(types)
         this.desc = DayTypeDescriptions[this.types[0]]
+        this.background_color = background_color || `var(--v-${this.desc.type}-lighten5)`
+        console.log(this.background_color);
         this.label = label || this.desc.label
         this.header_color = header_color || this.desc.color
     }
@@ -46,13 +52,12 @@ export class DayTypeCounter implements Aggregate {
 }
 
 export class TotalHours implements Aggregate {
-    label: string
-    header_color: string
     desc = DayTypeDescriptions[DayType.shift]
-    constructor(label: string = '', header_color: string = '') {
-        this.label = label || this.desc.label
-        this.header_color = header_color || this.desc.color
-    }
+    constructor(
+        public label: string,
+        public header_color: string,
+        public background_color: string,
+    ) { }
     evaluate(row: ScheduleDay[]): number {
         return row.reduce((acc, d) => {
             if (d.type === DayType.shift)
@@ -68,9 +73,11 @@ export class TotalHours implements Aggregate {
 export class ShiftVariety implements Aggregate {
     static differencePercentage: number = 33;
     constructor(
-        public label: string = '',
-        public header_color: string = ''
-    ) { }
+        public label: string,
+        public header_color: string,
+        public background_color: string,
+    ) {
+    }
     evaluate(row: ScheduleDay[]): boolean {
         let [normalShiftCount, differentShiftCount] = row.reduce((acc, curr) => {
             if (curr.start === 7) acc[0]++;
@@ -95,9 +102,9 @@ interface GlobalAssertion {
 }
 
 export const accumulators: Array<Aggregate> = [
-    new TotalHours("Össz. óra", "#FFFFFF"),
+    new TotalHours("Össz. óra", "#FFFFFF", "#FFFFFF"),
     ...[DayType.paid, DayType.sick, [DayType.unpaid, DayType.weekend]].map(t => new DayTypeCounter(t)),
-    new ShiftVariety("33%", "#FFFFFF")
+    new ShiftVariety("33%", "#FFFFFF", "#FFFFFF")
 ]
 
 export const assertions = [

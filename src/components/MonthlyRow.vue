@@ -29,20 +29,14 @@ export default Vue.extend({
 			return accumulators
 		},
 		//Having this as computed means it only updates when this.days changes
-		accumulator_values(): (number | string)[] {
-			return this.accumulators.map(a => {
-                let value = a.evaluate(this.days as ScheduleDay[]);
-                if (typeof value === "boolean")
-                    return value ? "OK" : "!";
-                else
-                    return value;
-            })
+		accumulator_values(): (number | boolean)[] {
+			return this.accumulators.map(a => a.evaluate(this.days as ScheduleDay[]));
 		},
 		counter_styles(): Array<any> {
 			// return accumulators.map(a => ({ backgroundColor: a.header_color }))
 			return accumulators.map((a, i) =>
 			({
-				// backgroundColor: `var(--v-${(a as DayTypeCounter).desc.type}-lighten5)`,
+				backgroundColor: a.background_color,
 				right: (accumulators.length - 1 - i) * 3 + "em" //right side sticky columns
 			}))
 		}
@@ -64,7 +58,12 @@ export default Vue.extend({
 			@mousedown.native.left.prevent.stop="down(index + 1)"
 			@mouseup.native.left.stop="up(index + 1)"
 			@mouseenter.native="enter(index + 1)" />
-		<td class="sticky-right text-center counter" v-for="(acc,i) in accumulators" :style="counter_styles[i]" :key="acc.label">{{accumulator_values[i]}}</td>
+		<td class="sticky-right text-center counter" v-for="(acc,i) in accumulator_values" :style="counter_styles[i]" :key="accumulators[i].label" >
+            <v-icon v-if="typeof acc === 'boolean'" :color="acc ? 'green' : 'red'">
+                {{acc ? 'mdi-check' : 'mdi-alert'}}
+            </v-icon>
+            <span v-else>{{acc}}</span>
+        </td>
 	</tr>
 </template>
 
