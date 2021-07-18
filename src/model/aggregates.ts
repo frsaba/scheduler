@@ -4,7 +4,7 @@ import { DayType, DayTypeDescription, DayTypeDescriptions } from "@/model/day-ty
 export interface Aggregate {
     label: string,
     header_color: string,
-    evaluate: (row: ScheduleDay[]) => number
+    evaluate: (row: ScheduleDay[]) => number | boolean
 }
 
 // export interface Aggregate {
@@ -54,9 +54,34 @@ export class TotalHours implements Aggregate {
         this.header_color = header_color || this.desc.color
     }
     evaluate(row: ScheduleDay[]): number {
-        return row.reduce((acc, d) => { return acc + d.duration }, 0)
-    }
+        return row.reduce((acc, d) => {
+            if (d.type === DayType.shift)
+                return acc + d.duration;
+            if (d.type === DayType.paid || d.type === DayType.sick)
+                return acc + 8;
 
+            return acc;
+        }, 0)
+    }
+}
+
+export class ShiftVariety implements Aggregate {
+    static differencePercentage: number = 33;
+    constructor(
+        public label: string = '',
+        public header_color: string = ''
+    ) { }
+    evaluate(row: ScheduleDay[]): boolean {
+        let [normalShiftCount, differentShiftCount] = row.reduce((acc, curr) => {
+            if (curr.start === 7) acc[0]++;
+            else if (curr.type === DayType.shift) acc[1]++;
+
+            return acc;
+        }, [0, 0]);
+        console.log(normalShiftCount, differentShiftCount);
+
+        return differentShiftCount / normalShiftCount * 100 > ShiftVariety.differencePercentage;
+    }
 }
 
 interface RowAssertion {
@@ -72,6 +97,7 @@ interface GlobalAssertion {
 export const accumulators: Array<Aggregate> = [
     new TotalHours("Össz. óra", "#FFFFFF"),
     ...[DayType.paid, DayType.sick, [DayType.unpaid, DayType.weekend]].map(t => new DayTypeCounter(t)),
+    new ShiftVariety("33%", "#FFFFFF")
 ]
 
 export const assertions = [

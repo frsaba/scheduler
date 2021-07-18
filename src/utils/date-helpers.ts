@@ -14,14 +14,10 @@ export function isDay(date: Date, weekday: number): boolean {
     return date.getDay() === weekday
 }
 
-let nightShift: number = 19;
-export function isNight(shift: ScheduleDay): boolean
-{
+export function isNight(shift: ScheduleDay): boolean {
     if (shift.type !== DayType.shift)
         return false;
-    
-    if (shift.start >= nightShift)
-        return true;
-    
-    return false;
+
+    return Array(shift.duration).fill(0).map((x, i) => (i + shift.start) % 24) // Includes every started hour in a shift
+        .filter(x => x >= 22 || x < 6).length > 1; // Counts the hours that are considered as night (between 22 and 6)
 }

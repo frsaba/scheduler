@@ -29,14 +29,20 @@ export default Vue.extend({
 			return accumulators
 		},
 		//Having this as computed means it only updates when this.days changes
-		accumulator_values(): number[] {
-			return this.accumulators.map(a => a.evaluate(this.days as ScheduleDay[]))
+		accumulator_values(): (number | string)[] {
+			return this.accumulators.map(a => {
+                let value = a.evaluate(this.days as ScheduleDay[]);
+                if (typeof value === "boolean")
+                    return value ? "OK" : "!";
+                else
+                    return value;
+            })
 		},
 		counter_styles(): Array<any> {
 			// return accumulators.map(a => ({ backgroundColor: a.header_color }))
 			return accumulators.map((a, i) =>
 			({
-				backgroundColor: `var(--v-${(a as DayTypeCounter).desc.type}-lighten5)`,
+				// backgroundColor: `var(--v-${(a as DayTypeCounter).desc.type}-lighten5)`,
 				right: (accumulators.length - 1 - i) * 3 + "em" //right side sticky columns
 			}))
 		}
@@ -70,7 +76,7 @@ th {
 }
 .counter {
 	/* filter: brightness(120%) saturate(50%); */
-	border: 3px double #ccc;
+	border: 1px solid #ccc;
 	position: sticky;
 	background-color: white;
 }
