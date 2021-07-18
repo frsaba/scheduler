@@ -1,14 +1,17 @@
 import { BrowserWindow } from "electron";
-let [min, max] = [-2, 3];
+let [min, max] = [0.5, 2]; // 50% - 200%
+let changeFactor = 0.1;
 
 export default function init(win: BrowserWindow)
 {
+    win.webContents.setZoomFactor(1);
     win.webContents.on("zoom-changed", (event, zoomDirection) => {
-        let currZoom = win.webContents.getZoomLevel();
+        let zoom = win.webContents.getZoomFactor();
         
-        if (zoomDirection === "in")
-            win.webContents.setZoomLevel(Math.min(currZoom + 0.2, max));
-        else
-            win.webContents.setZoomLevel(Math.max(currZoom - 0.2, min));
+        zoom += (zoomDirection === "in" ? changeFactor : -changeFactor);
+        zoom = Math.min(Math.max(zoom, min), max);
+        win.webContents.setZoomFactor(zoom);
+
+        win.webContents.send("zoom", {zoom});
     })
 }

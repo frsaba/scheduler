@@ -28,7 +28,7 @@ export default new Vuetify({
                 unpaid: colors.green.base,
                 holiday: colors.purple.base,
                 free_weekend: defaults.primary,
-                rest: defaults.warning,
+                rest: colors.indigo.base,
                 sick: colors.pink.base,
                 empty: "#FFFFFF",
                 
