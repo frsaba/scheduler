@@ -61,7 +61,7 @@ export class TotalHours implements Aggregate {
         return row.reduce((acc, d) => {
             if (d.type === DayType.shift)
                 return acc + d.duration;
-            if (d.type === DayType.paid || d.type === DayType.sick)
+            if ([DayType.paid, DayType.sick, DayType.holiday].some(x => x === d.type))
                 return acc + 8;
 
             return acc;

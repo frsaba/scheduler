@@ -106,11 +106,13 @@ export default Vue.extend({
 			<div class="upper">
 				<v-text-field
 					solo
+                    autofocus
 					label="label"
 					type="number"
 					hide-details="true"
 					v-model.number="shift_start"
-					@input="inputStart"></v-text-field>
+					@input="inputStart"
+                    @focus="$event.target.select()"></v-text-field>
 				<span>-</span>
 				<v-text-field
 					solo
@@ -118,7 +120,8 @@ export default Vue.extend({
 					type="number"
 					hide-details="true"
 					v-model.number="shift_end"
-					@input="inputEnd"></v-text-field>
+					@input="inputEnd"
+                    @focus="$event.target.select()"></v-text-field>
 
 				<leave-button :type="0" @set-type="setShift" tooltip="Műszak" :dark="false">
 					<v-icon>mdi-set-split</v-icon>
