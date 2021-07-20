@@ -59,7 +59,7 @@ export default Vue.extend({
 			@mouseup.native.left.stop="up(index + 1)"
 			@mouseenter.native="enter(index + 1)" />
 		<td class="sticky-right text-center counter" v-for="(acc,i) in accumulator_values" :style="counter_styles[i]" :key="accumulators[i].label" >
-            <v-icon v-if="typeof acc === 'boolean'" :color="acc ? 'green' : 'red'">
+            <v-icon v-if="typeof acc === 'boolean'" :color="acc ? 'success' : 'warning'">
                 {{acc ? 'mdi-check' : 'mdi-alert'}}
             </v-icon>
             <span v-else>{{acc}}</span>
@@ -78,6 +78,7 @@ th {
 	border: 1px solid #ccc;
 	position: sticky;
 	background-color: white;
+	width: 100vw
 }
 .counter::before {
 	/* content: "asd"; */

@@ -31,15 +31,14 @@ export class DayTypeCounter implements Aggregate {
     types: DayType[]
     desc: DayTypeDescription
     constructor(
-        types: DayType | DayType[], 
-        public label: string = '', 
-        public header_color: string = '', 
+        types: DayType | DayType[],
+        public label: string = '',
+        public header_color: string = '',
         public background_color: string = ''
     ) {
         this.types = ([] as DayType[]).concat(types)
         this.desc = DayTypeDescriptions[this.types[0]]
         this.background_color = background_color || `var(--v-${this.desc.type}-lighten5)`
-        console.log(this.background_color);
         this.label = label || this.desc.label
         this.header_color = header_color || this.desc.color
     }
@@ -85,10 +84,23 @@ export class ShiftVariety implements Aggregate {
 
             return acc;
         }, [0, 0]);
-        console.log(normalShiftCount, differentShiftCount);
+        // console.log(normalShiftCount, differentShiftCount);
 
         return differentShiftCount / normalShiftCount * 100 > ShiftVariety.differencePercentage;
     }
+}
+
+class SomeShortShifts implements Aggregate {
+    desc = DayTypeDescriptions[DayType.shift]
+    constructor(
+        public label: string,
+        public header_color: string,
+        public background_color: string,
+    ) { }
+    evaluate(row: ScheduleDay[]): boolean {
+        return row.filter(d => d.type == DayType.shift && d.duration <= 8).length > 1
+    }
+
 }
 
 interface RowAssertion {
@@ -103,8 +115,9 @@ interface GlobalAssertion {
 
 export const accumulators: Array<Aggregate> = [
     new TotalHours("Össz. óra", "#FFFFFF", "#FFFFFF"),
+    new ShiftVariety("33%", "#FFFFFF", "#FFFFFF"),
+    new SomeShortShifts("2x8", "#FFFFFF", "#FFFFFF"),
     ...[DayType.paid, DayType.sick, [DayType.unpaid, DayType.weekend]].map(t => new DayTypeCounter(t)),
-    new ShiftVariety("33%", "#FFFFFF", "#FFFFFF")
 ]
 
 export const assertions = [
