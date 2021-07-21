@@ -6,9 +6,8 @@ import Popover from "@/components/Popover.vue";
 import debounce from "lodash/debounce";
 import { accumulators } from "@/model/aggregates"
 import { FontColorFromBackground } from "@/utils/color-helpers"
-import { isWeekend, isNight } from "@/utils/date-helpers"
-import { ScheduleDay } from "@/model/schedule-sheet";
-import { type } from "process";
+import { isWeekend } from "@/utils/date-helpers"
+import { clamp } from "lodash";
 
 export default Vue.extend({
 	name: "Monthly",
@@ -32,6 +31,7 @@ export default Vue.extend({
 	},
 	created() {
 		window.addEventListener("mouseup", this.dragEndEmpty);
+		window.addEventListener('keydown', this.keydown);
 		this.scroll = debounce(this.fixPopoverTransition, 50);
 		if (this.$store.getters['staff/count'] < 1) {
 			this.$store.dispatch("staff/add", "Példa János");
@@ -39,6 +39,7 @@ export default Vue.extend({
 	},
 	destroyed() {
 		window.removeEventListener("mouseup", this.dragEndEmpty);
+		window.removeEventListener('keydown', this.keydown);
 	},
 	methods: {
 		getDayElement(name: string, day: number): Element {
@@ -73,13 +74,33 @@ export default Vue.extend({
 		},
 		setShift({ start, duration }: { start: number, duration: number }) {
 			for (let i = this.selection_start; i <= this.selection_end; i++) {
-                this.$store.dispatch('set_shift', { name: this.drag_employee, day: i, start, duration })    
+				this.$store.dispatch('set_shift', { name: this.drag_employee, day: i, start, duration })
 			}
 		},
 		setType(type: DayType) {
 			for (let i = this.selection_start; i <= this.selection_end; i++) {
 				this.$store.dispatch('set_type', { name: this.drag_employee, day: i, type })
 			}
+		},
+		keydown(e: KeyboardEvent) {
+			const bindings = {
+				"ArrowRight": [1, 0],
+				"ArrowLeft": [-1, 0],
+				"ArrowUp": [0, -1],
+				"ArrowDown": [0, 1]
+			}
+			const bind = Object.entries(bindings).find(b => b[0] == e.key)
+			if (bind) {
+				const dir = bind[1] as [number, number]
+				if (e.ctrlKey == false)
+					this.drag_start = clamp(this.drag_start + dir[0], 1, this.sheet.month_length)
+				this.drag_end = clamp(this.drag_end + dir[0], 1, this.sheet.month_length)
+				const old_id = this.$store.getters['staff/id'](this.drag_employee)
+				const count = this.$store.getters['staff/count']
+				this.drag_employee = this.$store.getters['staff/name'](clamp(old_id + dir[1], 0, count - 1))
+				this.fixPopoverTransition()
+			}
+
 		},
 		dragStart(name: string, day: number) {
 			this.drag = true;
@@ -150,12 +171,12 @@ export default Vue.extend({
 				right: (accumulators.length - 1 - i) * 3 + "em" //right side sticky columns
 			}))
 		},
-        day_header_style(): Array<any> {
-            return new Array(this.sheet.month_length).fill(1).map((a, i) => ({
-				backgroundColor: isWeekend(new Date(this.sheet.year, this.sheet.month, i + 1)) ? 
-                    "var(--v-header-weekend-base)" : "var(--v-header-weekday-base)",
+		day_header_style(): Array<any> {
+			return new Array(this.sheet.month_length).fill(1).map((a, i) => ({
+				backgroundColor: isWeekend(new Date(this.sheet.year, this.sheet.month, i + 1)) ?
+					"var(--v-header-weekend-base)" : "var(--v-header-weekday-base)",
 			}))
-        }
+		}
 	},
 });
 </script>
@@ -171,7 +192,7 @@ export default Vue.extend({
 			@set-type="setType"
 			:selected_start="selection_start_rect"
 			:selected_end="selection_end_rect"></popover>
-		<div class="table-wrapper" @scroll="scroll">
+		<div class="table-wrapper" @scroll="scroll" ref="table">
 			<table fixed-header class="table">
 				<thead>
 					<tr>
@@ -206,7 +227,7 @@ export default Vue.extend({
 }
 .nametag {
 	min-width: 10em;
-	border-right-style:double;
+	border-right-style: double;
 }
 .acc-header {
 	min-width: 3em;

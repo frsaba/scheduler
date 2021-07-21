@@ -44,9 +44,11 @@ export default Vue.extend({
 		}
 	},
 	created() {
+		window.addEventListener("keydown", this.ignoreKeys);
 		window.addEventListener("keyup", this.escToClose);
 	},
 	destroyed() {
+		window.removeEventListener("keydown", this.ignoreKeys);
 		window.removeEventListener("keyup", this.escToClose);
 	},
 	methods: {
@@ -57,6 +59,9 @@ export default Vue.extend({
 			if (e.key == "Escape") {
 				this.close();
 			}
+		},
+		ignoreKeys(e : KeyboardEvent){
+			if(e.key.startsWith("Arrow")) e.preventDefault()
 		},
 		//if user changes the start, keep duration the same and set shift_end accordingly
 		inputStart() {

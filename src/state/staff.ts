@@ -22,6 +22,20 @@ const staff: Module<StaffState, {}> = {
     getters: {
         count: state => {
             return state.employees.length
+        },
+        name: (context) => (id: number): string | undefined => {
+            try {
+                return context.employees[id]
+            } catch {
+                return undefined
+            }
+        },
+        id: (context) => (name: string): number | undefined => {
+            try {
+                return context.employees.findIndex(e => e == name)
+            } catch {
+                return undefined
+            }
         }
     }
 }
