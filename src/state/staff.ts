@@ -1,7 +1,8 @@
 import { Module } from "vuex";
+import m_staff, {Employee} from "@/model/staff"
 
 class StaffState {
-    employees: Array<string> = new Array()
+    staff = m_staff
 }
 
 const staff: Module<StaffState, {}> = {
@@ -9,7 +10,7 @@ const staff: Module<StaffState, {}> = {
     state: new StaffState,
     mutations: {
         add_employee(state, payload) {
-            state.employees.push(payload)
+            state.staff.Add(payload)
         }
     },
     actions: {
@@ -21,21 +22,17 @@ const staff: Module<StaffState, {}> = {
     },
     getters: {
         count: state => {
-            return state.employees.length
+            return state.staff.employees.length
         },
         name: (context) => (id: number): string | undefined => {
             try {
-                return context.employees[id]
+                return context.staff.employees[id].name
             } catch {
                 return undefined
             }
         },
         id: (context) => (name: string): number | undefined => {
-            try {
-                return context.employees.findIndex(e => e == name)
-            } catch {
-                return undefined
-            }
+            return context.staff.GetEmployee(name).id
         }
     }
 }

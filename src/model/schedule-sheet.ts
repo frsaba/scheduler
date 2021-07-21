@@ -1,26 +1,34 @@
 import { DayType, DayTypeDescriptions } from "./day-types";
 import { daysInMonth } from "@/utils/date-helpers"
+import staff, {Employee} from "@/model/staff"
 
 export class Sheet {
     month_length: number
     schedule: Array<ScheduleRow> = []
+
     constructor(public year: number, public month: number) {
         this.month_length = daysInMonth(year, month)
     }
-    AddRow(employee_name: string) {
-        this.schedule.push(new ScheduleRow(employee_name, this.month_length))
+    AddRow(employee: string | number) {
+        this.schedule.push(new ScheduleRow(staff.GetEmployee(employee), this.month_length))
     }
-    GetRow(employee_name: string): ScheduleRow {
-        let result = this.schedule.find(s => s.employee_name == employee_name);
-        if (!result) throw new Error(`Nem létezik '${employee_name}' nevű dolgozó!`);
-        return result;
+    GetRow(employee: string | number): ScheduleRow {
+        
+        if(typeof employee == "string"){
+            let result = this.schedule.find(r => r.employee.name == employee)
+            if(!result) throw new Error( `Nincs '${employee}' nevű dolgozó ezen a munkalapon! ` )
+            return result;
+        }
+    
+        return this.schedule[employee];
     }
+
 }
 
 export class ScheduleRow {
     // employee_name : string
     days: Array<ScheduleDay>
-    constructor(public employee_name: string, length: number) {
+    constructor(public employee: Employee, length: number) {
         // this.employee_name = employee_name
         this.days = [...Array(length).keys()].map(d => new ScheduleDay())
     }
@@ -67,5 +75,4 @@ export class ScheduleDay {
 
     }
 }
-
 

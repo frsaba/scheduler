@@ -8,6 +8,7 @@ import { accumulators } from "@/model/aggregates"
 import { FontColorFromBackground } from "@/utils/color-helpers"
 import { isWeekend } from "@/utils/date-helpers"
 import { clamp } from "lodash";
+import staff, { Employee } from "@/model/staff"
 
 export default Vue.extend({
 	name: "Monthly",
@@ -20,7 +21,7 @@ export default Vue.extend({
 			sheet: this.$store.state.sheets.sheet,
 			x: 1,
 			drag: false,
-			drag_employee: "",
+			drag_employee_index: -1,
 			drag_start: 0,
 			drag_end: 0,
 			popover: false,
@@ -34,17 +35,22 @@ export default Vue.extend({
 		window.addEventListener('keydown', this.keydown);
 		this.scroll = debounce(this.fixPopoverTransition, 50);
 		if (this.$store.getters['staff/count'] < 1) {
+			this.$store.commit("staff/add_employee", "Példa János_Lusta");
+			this.$store.commit("staff/add_employee", "Példa János_Lusta2");
 			this.$store.dispatch("staff/add", "Példa János");
+			this.$store.dispatch("staff/add", "Példa János2");
+			this.$store.dispatch("staff/add", "Példa János3");
 		}
+
 	},
 	destroyed() {
 		window.removeEventListener("mouseup", this.dragEndEmpty);
 		window.removeEventListener('keydown', this.keydown);
 	},
 	methods: {
-		getDayElement(name: string, day: number): Element {
+		getDayElement(index: number, day: number): Element {
+			let name = this.sheet.GetRow(index).employee.name
 			let row = this.$refs[name] as Vue[];
-			if (!row) throw `Nem sikerült megtalálni '${name}' sort.`;
 
 			let currDay = row[0].$children.find((e) => {
 				if (!e.$props.day)
@@ -56,9 +62,9 @@ export default Vue.extend({
 
 			return currDay.$el;
 		},
-		getBounds(day: number, name = ""): DOMRect {
-			if (!name) name = this.drag_employee;
-			return this.getDayElement(name, day).getBoundingClientRect();
+		getBounds(day: number, id = -1): DOMRect {
+			if (id < 0) id = this.drag_employee_index;
+			return this.getDayElement(id, day).getBoundingClientRect();
 		},
 		add() {
 			this.$store.dispatch("staff/add", "Példa János" + this.x);
@@ -74,12 +80,12 @@ export default Vue.extend({
 		},
 		setShift({ start, duration }: { start: number, duration: number }) {
 			for (let i = this.selection_start; i <= this.selection_end; i++) {
-				this.$store.dispatch('set_shift', { name: this.drag_employee, day: i, start, duration })
+				this.$store.dispatch('set_shift', { name: this.drag_employee_index, day: i, start, duration })
 			}
 		},
 		setType(type: DayType) {
 			for (let i = this.selection_start; i <= this.selection_end; i++) {
-				this.$store.dispatch('set_type', { name: this.drag_employee, day: i, type })
+				this.$store.dispatch('set_type', { name: this.drag_employee_index, day: i, type })
 			}
 		},
 		keydown(e: KeyboardEvent) {
@@ -91,30 +97,29 @@ export default Vue.extend({
 			}
 			const bind = Object.entries(bindings).find(b => b[0] == e.key)
 			if (bind) {
-				const dir = bind[1] as [number, number]
+				const [dx, dy] = bind[1] as [number, number]
 				if (e.ctrlKey == false)
-					this.drag_start = clamp(this.drag_start + dir[0], 1, this.sheet.month_length)
-				this.drag_end = clamp(this.drag_end + dir[0], 1, this.sheet.month_length)
-				const old_id = this.$store.getters['staff/id'](this.drag_employee)
+					this.drag_start = clamp(this.drag_start + dx, 1, this.sheet.month_length)
+				this.drag_end = clamp(this.drag_end + dx, 1, this.sheet.month_length)
 				const count = this.$store.getters['staff/count']
-				this.drag_employee = this.$store.getters['staff/name'](clamp(old_id + dir[1], 0, count - 1))
+				this.drag_employee_index = clamp(this.drag_employee_index + dy, 0, count - 1)
 				this.fixPopoverTransition()
 			}
 
 		},
-		dragStart(name: string, day: number) {
+		dragStart(index: number, day: number) {
 			this.drag = true;
-			this.drag_employee = name;
+			this.drag_employee_index = index;
 			this.drag_start = day;
 			this.drag_end = day;
 			this.popover = false;
 		},
-		dragEnter(name: string, day: number) {
+		dragEnter(index: number, day: number) {
 			if (this.drag) {
 				this.drag_end = day;
 			}
 		},
-		dragEnd(name: string, day: number) {
+		dragEnd(index: number, day: number) {
 			if (this.drag) {
 				this.drag_end = day;
 				this.popover = true;
@@ -123,17 +128,17 @@ export default Vue.extend({
 			this.drag = false;
 		},
 		dragEndEmpty() {
-			this.dragEnd(this.drag_employee, this.drag_end);
+			this.dragEnd(this.drag_employee_index, this.drag_end);
 		},
 		deselect() {
-			this.drag_employee = "";
+			this.drag_employee_index = -1;
 			this.drag_start = 0;
 			this.drag_end = 0;
 			this.popover = false;
 		},
 		updateSelectRects(): void {
 			//computed properties update immediately which lead to popover moving as it fades out
-			if (this.drag_employee == "") return;
+			if (!this.drag_employee) return;
 			this.selection_start_rect = this.getBounds(this.selection_start);
 			this.selection_end_rect = this.getBounds(this.selection_end);
 		},
@@ -142,13 +147,20 @@ export default Vue.extend({
 			this.updateSelectRects();
 			this.popover = false;
 			this.$nextTick(() => {
-				if (this.drag_employee == "") return;
+				if (!this.drag_employee) return;
 				this.popover = true;
 			});
 		},
 
 	},
 	computed: {
+		drag_employee(): Employee | undefined {
+			try {
+				return this.sheet.GetRow(this.drag_employee_index).employee
+			} catch {
+				return undefined
+			}
+		},
 		selection_start(): number {
 			return Math.min(this.drag_start, this.drag_end);
 		},
@@ -206,15 +218,15 @@ export default Vue.extend({
 				</thead>
 				<tbody>
 					<monthly-row
-						v-for="row in this.sheet.schedule"
-						:key="row.employee_name"
-						:employee_name="row.employee_name"
+						v-for="(row, i) in this.sheet.schedule"
+						:key="row.employee.name"
+						:employee_name="row.employee.name"
 						:days="row.days"
-						:selection="row.employee_name == drag_employee? selection: []"
-						:ref="row.employee_name"
-						@day-mouse-down="dragStart(row.employee_name, $event)"
-						@day-mouse-up="dragEnd(row.employee_name, $event)"
-						@day-mouse-enter="dragEnter(row.employee_name, $event)" />
+						:selection="i == drag_employee_index ? selection: []"
+						:ref="row.employee.name"
+						@day-mouse-down="dragStart(i, $event)"
+						@day-mouse-up="dragEnd(i, $event)"
+						@day-mouse-enter="dragEnter(i, $event)" />
 				</tbody>
 			</table>
 		</div>
