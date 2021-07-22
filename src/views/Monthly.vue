@@ -1,5 +1,6 @@
 <script lang="ts">
 import Vue from "vue";
+import { ipcRenderer } from "electron";
 import { DayType } from "@/model/day-types";
 import MonthlyRow from "@/components/MonthlyRow.vue";
 import Popover from "@/components/Popover.vue";
@@ -28,17 +29,21 @@ export default Vue.extend({
 			selection_start_rect: new DOMRect(),
 			selection_end_rect: new DOMRect(),
 			scroll: function () { },
-			keydown: function (e : KeyboardEvent) { },
+			keydown: function (e: KeyboardEvent) { },
 		};
 	},
 	created() {
 		//Without throttling, holding down arrow keys makes the cursor move unreasonably fast,
 		//but scrolling unreasonably slow (when combined with smooth scrolling)
-		this.keydown = throttle(this.arrowKeys, 100); 
-		this.scroll = debounce(this.fixPopoverTransition, 50);
+		this.keydown = throttle(this.arrowKeys, 100);
+		this.scroll = debounce(this.updateSelectRects, 50);
 
 		window.addEventListener("mouseup", this.dragEndEmpty);
 		window.addEventListener('keydown', this.keydown);
+
+        ipcRenderer.on("zoom", () => {
+            this.updateSelectRects();
+        })
 
 		if (this.$store.getters['staff/count'] < 1) {
 			this.$store.commit("staff/add_employee", "Példa János_Lusta");
@@ -118,7 +123,7 @@ export default Vue.extend({
 						this.drag_start = this.drag_end;
 
 					this.drag_employee_index = clamp(this.drag_employee_index + dy, 0, this.sheet.schedule.length - 1)
-					this.fixPopoverTransition()
+					this.updateSelectRects()
 				}
 			}
 
@@ -157,15 +162,6 @@ export default Vue.extend({
 			if (!this.drag_employee) return;
 			this.selection_start_rect = this.getBounds(this.selection_start);
 			this.selection_end_rect = this.getBounds(this.selection_end);
-		},
-		fixPopoverTransition() {
-			//transitions are not normally applied when popover is moved, so visibility is toggled
-			this.updateSelectRects();
-			this.popover = false;
-			this.$nextTick(() => {
-				if (!this.drag_employee) return;
-				this.popover = true;
-			});
 		},
 
 	},
@@ -270,7 +266,7 @@ export default Vue.extend({
 	position: relative;
 	border: 1px solid #eee;
 	max-height: 75vh;
-	scroll-behavior:smooth;
+	scroll-behavior: smooth;
 }
 table {
 	position: relative;

@@ -47,8 +47,8 @@ export default Vue.extend({
 
 <template>
 	<v-tooltip bottom>
-		<template v-slot:activator="{ on }">
-			<v-btn class="fab" fab @click="click()" :color="color" v-bind="$attrs" v-on="on">
+		<template v-slot:activator="{ on, attrs }">
+			<v-btn class="fab" fab @click="click()" :color="color" v-bind="[$attrs, attrs]" v-on="on">
 				<slot>{{desc.label}}</slot>
 			</v-btn>
 		</template>

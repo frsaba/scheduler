@@ -2,7 +2,7 @@
 import Vue from "vue";
 import { DayType, DayTypeDescriptions } from "@/model/day-types";
 import LeaveButton from "@/components/LeaveButton.vue";
-import { Accelerator } from "electron";
+import { Accelerator, ipcRenderer } from "electron";
 
 interface LeaveButtonData {
 	type: string,
@@ -30,6 +30,7 @@ export default Vue.extend({
 			shift_end: 16,
 			shift_duration: 8,
 			last_width: 500,
+            skipTransition: false,
 			leave_buttons: [DayType.paid, DayType.unpaid, DayType.weekend, DayType.sick, DayType.holiday] as DayType[],
 			accelerators: ["f", "s", "h", "t", "ü", "Delete", "Enter", "Escape"] //Last three are used only in IgnoreKeys
 		};
@@ -47,9 +48,14 @@ export default Vue.extend({
 	},
 	created() {
 		window.addEventListener("keydown", this.ignoreKeys);
+
+        ipcRenderer.on("zoom", () => {
+            this.skipTransition = true
+        })
 	},
 	destroyed() {
 		window.removeEventListener("keydown", this.ignoreKeys);
+        // ipcRenderer.removeAllListeners("zoom");
 	},
 	methods: {
 		close() {
@@ -88,8 +94,32 @@ export default Vue.extend({
 				this.last_width = this.card_rect_width();
 			}
 			return this.last_width
-		}
+		},
+        transition() {
+			//transitions are not normally applied when popover is moved, so visibility is toggled
+            this.$emit('input', false);
+			this.$nextTick(() => {
+                this.$emit('input', true);
+			});
+		},
 	},
+    watch: {
+        selected_start(prev: DOMRect, curr: DOMRect) {
+            if (this.skipTransition) return;
+
+            if (prev.x !== curr.x || prev.y !== curr.y) // If not in the same place
+                this.transition()
+        },
+        selected_end(prev: DOMRect, curr: DOMRect) {
+            if (this.skipTransition) {
+                this.skipTransition = false;
+                return;
+            }
+
+            if (prev.x !== curr.x || prev.y !== curr.y) // If not in the same place
+                this.transition()
+        }
+    }
 });
 </script>
 
