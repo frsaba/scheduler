@@ -123,18 +123,18 @@ export default Vue.extend({
 					@input="inputEnd"
 					@focus="$event.target.select()"></v-text-field>
 
-				<leave-button :type="0" @click="setShift" tooltip="Műszak" :dark="false" accelerator="Enter">
+				<leave-button :type="0" @click="setShift" tooltip="Műszak" accelerator="Enter">
 					<v-icon>mdi-set-split</v-icon>
 				</leave-button>
-				<leave-button :type="7" @click="setType" tooltip="Törlés" color="red" accelerator="Delete">
+				<leave-button :type="7" @click="setType" dark tooltip="Törlés" color="red" accelerator="Delete">
 					<v-icon>mdi-delete</v-icon>
 				</leave-button>
-				<leave-button class="absolute" :dark="false" @click="close" x-small elevation="0" color="white" tooltip="Bezárás" accelerator="Escape">
+				<leave-button class="absolute" @click="close" x-small elevation="0" color="white" tooltip="Bezárás" accelerator="Escape">
 					<v-icon>mdi-close</v-icon>
 				</leave-button>
 			</div>
 			<div class="lower">
-				<leave-button v-for="(b, i) in leave_buttons" :key="b" :type="b" @click="setType" :accelerator="accelerators[i]" />
+				<leave-button v-for="(b, i) in leave_buttons" dark :key="b" :type="b" @click="setType" :accelerator="accelerators[i]" />
 
 			</div>
 		</v-card>
