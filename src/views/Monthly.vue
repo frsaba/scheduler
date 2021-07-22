@@ -28,14 +28,18 @@ export default Vue.extend({
 			selection_start_rect: new DOMRect(),
 			selection_end_rect: new DOMRect(),
 			scroll: function () { },
-			arrow_scroll: function (top: number, left: number) { },
+			keydown: function (e : KeyboardEvent) { },
 		};
 	},
 	created() {
+		//Without throttling, holding down arrow keys makes the cursor move unreasonably fast,
+		//but scrolling unreasonably slow (when combined with smooth scrolling)
+		this.keydown = throttle(this.arrowKeys, 100); 
+		this.scroll = debounce(this.fixPopoverTransition, 50);
+
 		window.addEventListener("mouseup", this.dragEndEmpty);
 		window.addEventListener('keydown', this.keydown);
-		this.scroll = debounce(this.fixPopoverTransition, 50);
-		this.arrow_scroll = throttle(this.setTableScroll, 100);
+
 		if (this.$store.getters['staff/count'] < 1) {
 			this.$store.commit("staff/add_employee", "Példa János_Lusta");
 			this.$store.commit("staff/add_employee", "Példa János_Lusta2");
@@ -95,7 +99,7 @@ export default Vue.extend({
 				this.$store.dispatch('set_type', { name: this.drag_employee_index, day: i, type })
 			}
 		},
-		keydown(e: KeyboardEvent) {
+		arrowKeys(e: KeyboardEvent) {
 			const bindings = {
 				"ArrowRight": [1, 0],
 				"ArrowLeft": [-1, 0],
@@ -106,7 +110,7 @@ export default Vue.extend({
 			if (bind) {
 				const [dx, dy] = bind[1] as [number, number]
 				if (e.ctrlKey) {
-					this.arrow_scroll(dx * 40, dy * 40)
+					this.setTableScroll(dx * 40, dy * 40)
 				} else {
 
 					this.drag_end = clamp(this.drag_end + dx, 1, this.sheet.month_length)
