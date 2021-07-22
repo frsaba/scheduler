@@ -19,7 +19,7 @@ export default Vue.extend({
 	data() {
 		return {
 			sheet: this.$store.state.sheets.sheet,
-			x: 1,
+			x: 4,
 			drag: false,
 			drag_employee_index: -1,
 			drag_start: 0,
@@ -79,12 +79,12 @@ export default Vue.extend({
 			}
 		},
 		setShift({ start, duration }: { start: number, duration: number }) {
-			for (let i = this.selection_start; i <= this.selection_end; i++) {
+			for (let i of this.selection) {
 				this.$store.dispatch('set_shift', { name: this.drag_employee_index, day: i, start, duration })
 			}
 		},
 		setType(type: DayType) {
-			for (let i = this.selection_start; i <= this.selection_end; i++) {
+			for (let i of this.selection) {
 				this.$store.dispatch('set_type', { name: this.drag_employee_index, day: i, type })
 			}
 		},
@@ -98,11 +98,10 @@ export default Vue.extend({
 			const bind = Object.entries(bindings).find(b => b[0] == e.key)
 			if (bind) {
 				const [dx, dy] = bind[1] as [number, number]
-				if (e.ctrlKey == false)
+				if (e.shiftKey == false)
 					this.drag_start = clamp(this.drag_start + dx, 1, this.sheet.month_length)
 				this.drag_end = clamp(this.drag_end + dx, 1, this.sheet.month_length)
-				const count = this.$store.getters['staff/count']
-				this.drag_employee_index = clamp(this.drag_employee_index + dy, 0, count - 1)
+				this.drag_employee_index = clamp(this.drag_employee_index + dy, 0, this.sheet.schedule.length - 1)
 				this.fixPopoverTransition()
 			}
 

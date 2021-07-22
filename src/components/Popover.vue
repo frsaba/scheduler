@@ -2,6 +2,7 @@
 import Vue from "vue";
 import { DayType, DayTypeDescriptions } from "@/model/day-types";
 import LeaveButton from "@/components/LeaveButton.vue";
+import { Accelerator } from "electron";
 
 interface LeaveButtonData {
 	type: string,
@@ -29,7 +30,8 @@ export default Vue.extend({
 			shift_end: 16,
 			shift_duration: 8,
 			last_width: 500,
-			leave_buttons: [DayType.paid, DayType.unpaid, DayType.weekend, DayType.sick, DayType.holiday] as DayType[]
+			leave_buttons: [DayType.paid, DayType.unpaid, DayType.weekend, DayType.sick, DayType.holiday] as DayType[],
+			accelerators: ["f", "s", "h", "t", "ü", "Delete", "Enter", "Escape"] //Last three are used only in IgnoreKeys
 		};
 	},
 	computed: {
@@ -45,23 +47,16 @@ export default Vue.extend({
 	},
 	created() {
 		window.addEventListener("keydown", this.ignoreKeys);
-		window.addEventListener("keyup", this.escToClose);
 	},
 	destroyed() {
 		window.removeEventListener("keydown", this.ignoreKeys);
-		window.removeEventListener("keyup", this.escToClose);
 	},
 	methods: {
 		close() {
 			this.$emit("close");
 		},
-		escToClose(e: KeyboardEvent) {
-			if (e.key == "Escape") {
-				this.close();
-			}
-		},
-		ignoreKeys(e : KeyboardEvent){
-			if(e.key.startsWith("Arrow")) e.preventDefault()
+		ignoreKeys(e: KeyboardEvent) {
+			if (e.key.startsWith("Arrow") || this.accelerators.includes(e.key)) e.preventDefault()
 		},
 		//if user changes the start, keep duration the same and set shift_end accordingly
 		inputStart() {
@@ -111,13 +106,13 @@ export default Vue.extend({
 			<div class="upper">
 				<v-text-field
 					solo
-                    autofocus
+					autofocus
 					label="label"
 					type="number"
 					hide-details="true"
 					v-model.number="shift_start"
 					@input="inputStart"
-                    @focus="$event.target.select()"></v-text-field>
+					@focus="$event.target.select()"></v-text-field>
 				<span>-</span>
 				<v-text-field
 					solo
@@ -126,21 +121,21 @@ export default Vue.extend({
 					hide-details="true"
 					v-model.number="shift_end"
 					@input="inputEnd"
-                    @focus="$event.target.select()"></v-text-field>
+					@focus="$event.target.select()"></v-text-field>
 
-				<leave-button :type="0" @set-type="setShift" tooltip="Műszak" :dark="false">
+				<leave-button :type="0" @click="setShift" tooltip="Műszak" :dark="false" accelerator="Enter">
 					<v-icon>mdi-set-split</v-icon>
 				</leave-button>
-				<leave-button :type="7" @set-type="setType" tooltip="Törlés" color="red">
+				<leave-button :type="7" @click="setType" tooltip="Törlés" color="red" accelerator="Delete">
 					<v-icon>mdi-delete</v-icon>
 				</leave-button>
-				<v-btn class="absolute" fab @click="close" x-small elevation="0">
+				<leave-button class="absolute" :dark="false" @click="close" x-small elevation="0" color="white" tooltip="Bezárás" accelerator="Escape">
 					<v-icon>mdi-close</v-icon>
-				</v-btn>
+				</leave-button>
 			</div>
 			<div class="lower">
-				<leave-button v-for="b in leave_buttons" :key="b" :type="b" @set-type="setType"/>
-				
+				<leave-button v-for="(b, i) in leave_buttons" :key="b" :type="b" @click="setType" :accelerator="accelerators[i]" />
+
 			</div>
 		</v-card>
 	</v-menu>

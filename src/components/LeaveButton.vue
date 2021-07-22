@@ -7,13 +7,13 @@ export default Vue.extend({
 		type: Number,
 		color: {
 			type: String,
-			default: function () : string{
+			default: function (): string {
 				return DayTypeDescriptions[this.type].color
 			}
 		},
 		tooltip: {
 			type: String,
-			default: function () : string {
+			default: function (): string {
 				return DayTypeDescriptions[this.type].desc
 			}
 		},
@@ -21,10 +21,24 @@ export default Vue.extend({
 			type: Boolean,
 			default: true
 		},
+		accelerator: {
+			type: String
+		}
+	},
+	created() {
+		window.addEventListener("keydown", this.keydown);
+	},
+	destroyed() {
+		window.removeEventListener("keydown", this.keydown);
 	},
 	methods: {
-		setType(type: DayType) {
-			this.$emit('set-type', type)
+		click() {
+			this.$emit('click', this.type)
+		},
+		keydown(e: KeyboardEvent) {
+			if(e.key == this.accelerator){
+				this.click();
+			}
 		}
 	},
 	computed: {
@@ -37,8 +51,8 @@ export default Vue.extend({
 
 <template>
 	<v-tooltip bottom>
-		<template v-slot:activator="{ on, attrs }" >
-			<v-btn class="fab" fab @click="setType(type)" :dark="dark" :color="color" v-bind="attrs" v-on="on">
+		<template v-slot:activator="{ on, attrs }">
+			<v-btn class="fab" fab @click="click()" :dark="dark" :color="color" v-bind="attrs" v-on="on">
 				<slot>{{desc.label}}</slot>
 			</v-btn>
 		</template>
