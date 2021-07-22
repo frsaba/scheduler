@@ -7,7 +7,7 @@ import debounce from "lodash/debounce";
 import { accumulators } from "@/model/aggregates"
 import { FontColorFromBackground } from "@/utils/color-helpers"
 import { isWeekend } from "@/utils/date-helpers"
-import { clamp } from "lodash";
+import { clamp, throttle } from "lodash";
 import staff, { Employee } from "@/model/staff"
 
 export default Vue.extend({
@@ -28,12 +28,14 @@ export default Vue.extend({
 			selection_start_rect: new DOMRect(),
 			selection_end_rect: new DOMRect(),
 			scroll: function () { },
+			arrow_scroll: function (top: number, left: number) { },
 		};
 	},
 	created() {
 		window.addEventListener("mouseup", this.dragEndEmpty);
 		window.addEventListener('keydown', this.keydown);
 		this.scroll = debounce(this.fixPopoverTransition, 50);
+		this.arrow_scroll = throttle(this.setTableScroll, 100);
 		if (this.$store.getters['staff/count'] < 1) {
 			this.$store.commit("staff/add_employee", "Példa János_Lusta");
 			this.$store.commit("staff/add_employee", "Példa János_Lusta2");
@@ -70,6 +72,11 @@ export default Vue.extend({
 			this.$store.dispatch("staff/add", "Példa János" + this.x);
 			this.x++;
 		},
+		setTableScroll(left: number, top: number) {
+			let table = this.$refs.table as Element
+			table.scrollLeft += left
+			table.scrollTop += top
+		},
 		shift(name: string, day: number) {
 			let d = this.sheet.GetRow(name).GetDay(day);
 			if (d.type == DayType.empty) {
@@ -98,11 +105,17 @@ export default Vue.extend({
 			const bind = Object.entries(bindings).find(b => b[0] == e.key)
 			if (bind) {
 				const [dx, dy] = bind[1] as [number, number]
-				if (e.shiftKey == false)
-					this.drag_start = clamp(this.drag_start + dx, 1, this.sheet.month_length)
-				this.drag_end = clamp(this.drag_end + dx, 1, this.sheet.month_length)
-				this.drag_employee_index = clamp(this.drag_employee_index + dy, 0, this.sheet.schedule.length - 1)
-				this.fixPopoverTransition()
+				if (e.ctrlKey) {
+					this.arrow_scroll(dx * 40, dy * 40)
+				} else {
+
+					this.drag_end = clamp(this.drag_end + dx, 1, this.sheet.month_length)
+					if (e.shiftKey == false)
+						this.drag_start = this.drag_end;
+
+					this.drag_employee_index = clamp(this.drag_employee_index + dy, 0, this.sheet.schedule.length - 1)
+					this.fixPopoverTransition()
+				}
 			}
 
 		},
@@ -253,6 +266,7 @@ export default Vue.extend({
 	position: relative;
 	border: 1px solid #eee;
 	max-height: 75vh;
+	scroll-behavior:smooth;
 }
 table {
 	position: relative;
