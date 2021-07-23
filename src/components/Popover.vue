@@ -62,7 +62,7 @@ export default Vue.extend({
 			this.$emit("close");
 		},
 		ignoreKeys(e: KeyboardEvent) {
-			if (e.key.startsWith("Arrow") || this.accelerators.includes(e.key)) e.preventDefault()
+			if (e.key.startsWith("Arrow") || this.accelerators.includes(e.key) || e.ctrlKey) e.preventDefault()
 		},
 		//if user changes the start, keep duration the same and set shift_end accordingly
 		inputStart() {

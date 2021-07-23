@@ -2,11 +2,12 @@ import { Module } from "vuex";
 import { Sheet, ScheduleDay } from "@/model/schedule-sheet"
 import { DayType } from "@/model/day-types"
 import { isNight } from "@/utils/date-helpers"
+import _ from "lodash";
 
 class State {
     sheet: Sheet = new Sheet(2021, 2);
     undoStack = new Array<Operation>();
-    redoStack = new Array<Operation>()
+    redoStack = new Array<Operation>();
 }
 
 interface Operation {
@@ -36,7 +37,8 @@ const staff: Module<State, {}> = {
         },
 
         set_shift(context, { index, day, start, duration, undo = false, redo = false }) {
-            if (!undo) context.dispatch('register_undo', { index: index, day, redo })
+            context.dispatch('register_undo', { action: "set_shift", payload: { index, day, start, duration, undo, redo } })
+
             context.commit('set_shift', { index, day, start, duration })
             let currentShift: ScheduleDay = context.getters.get_shift(index, day);
             let nextShift: ScheduleDay = context.getters.get_shift(index, day + 1);
@@ -49,7 +51,7 @@ const staff: Module<State, {}> = {
             }
         },
         set_type(context, { index, day, type, undo = false, redo = false }) {
-            if (!undo) context.dispatch('register_undo', { index: index, day, redo })
+            context.dispatch('register_undo', { action: "set_type", payload: { index, day, type, undo, redo } })
             let previousShift: ScheduleDay = context.getters.get_shift(index, day - 1);
             let currentShift: ScheduleDay = context.getters.get_shift(index, day);
             let nextShift: ScheduleDay = context.getters.get_shift(index, day + 1);
@@ -63,10 +65,18 @@ const staff: Module<State, {}> = {
                 context.commit('set_type', { index, day, type });
         },
         undo({ state, dispatch, getters }) {
-            let op = state.undoStack.pop()
-            if (op) {
-                state.redoStack.push(getters['revert_action'](op.payload.index, op.payload.day))
-                dispatch(op.action, { ...op.payload, undo: true })
+            let last = state.undoStack.pop()
+            if (!last) return; //Empty history => No actions to revert
+            state.redoStack.push(last)
+
+            //Look for the last action in history that mutated the same day
+            let revertTo = state.undoStack.filter(({payload: {index, day}}) => (index == last?.payload.index && day == last?.payload.day)).pop()
+
+            if (revertTo) { 
+                dispatch(revertTo.action, { ...revertTo.payload, undo: true }) //Do that action again
+            } else { 
+                //If no such action is found, clear the cell (TODO: In case of imported sheet, revert to initial)
+                dispatch('set_type', { index: last.payload.index, day: last.payload.day, type: DayType.empty, undo: true })
             }
         },
         redo({ state, dispatch }) {
@@ -75,9 +85,13 @@ const staff: Module<State, {}> = {
                 dispatch(op.action, { ...op.payload, redo: true })
             }
         },
-        register_undo({ state, getters }, { index, day, redo }) {
-            if (!redo) state.redoStack = []
-            state.undoStack.push(getters['revert_action'](index, day))
+        register_undo({ state }, op: Operation) {
+            if (!op.payload.undo) { // If this action was a result of an undo, don't register it since it would lead to looping undos
+                if (op.payload.redo == false)
+                    state.redoStack = []
+                if (_.isEqual([...state.undoStack].pop(), op) == false) //Don't register the same action 
+                    state.undoStack.push(op)
+            }
         },
     },
     getters: {
