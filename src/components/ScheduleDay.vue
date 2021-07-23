@@ -106,4 +106,8 @@ td {
 	filter: brightness(95%);
 	z-index: -1;
 }
+.weekend.t-empty.selected,
+.weekend.t-shift.selected {
+	filter: brightness(80%);
+}
 </style>

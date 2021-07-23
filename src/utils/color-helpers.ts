@@ -1,3 +1,5 @@
+import { clamp } from "lodash";
+
 class RGB {
     constructor(public red: number, public green: number, public blue: number) { }
 }
@@ -11,9 +13,9 @@ export function HexToRGB(color: string): RGB {
 }
 //Based on https://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
 export function RGBToHex(color: RGB) {
-    const r = Math.round(color.red)
-    const g = Math.round(color.green)
-    const b = Math.round(color.blue)
+    const r = clamp(Math.round(color.red), 0, 255);
+    const g = clamp(Math.round(color.green), 0, 255);
+    const b = clamp(Math.round(color.blue), 0, 255);
     return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('')
 }
 
@@ -23,4 +25,12 @@ export function FontColorFromBackground(bgColor: string, lightColor = "#FFFFFF",
 
     return (((red * 0.299) + (green * 0.587) + (blue * 0.114)) > 186) ?
         darkColor : lightColor;
+}
+
+export function Lighten(hex: string, amount : number) {
+    let { red, green, blue } = HexToRGB(hex);
+    red += amount;
+    green += amount
+    blue += amount
+    return RGBToHex(new RGB(red,green,blue))
 }

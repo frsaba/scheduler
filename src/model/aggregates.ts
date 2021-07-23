@@ -1,5 +1,6 @@
 import { Sheet, ScheduleRow, ScheduleDay } from "@/model/schedule-sheet"
 import { DayType, DayTypeDescription, DayTypeDescriptions } from "@/model/day-types"
+import { Lighten } from "@/utils/color-helpers"
 
 export interface Aggregate {
     label: string,
@@ -8,25 +9,6 @@ export interface Aggregate {
     evaluate: (row: ScheduleDay[]) => number | boolean
 }
 
-// export interface Aggregate {
-//     label: string,
-//     evaluate: (row: ScheduleRow) => number
-// }
-
-// class TypeAccumulator implements Aggregate {
-//     label: string
-//     type: DayType
-//     constructor(type: DayType, label: string = DayTypeDescriptions[type].label) {
-//         this.label = label
-//         console.log(label)
-//         this.type = type
-//     }
-//     evaluate(row: ScheduleRow): number {
-//         // return row.days.filter(d => this.types.some((t) => t == d.type)).length
-//         return row.days.filter(d => d.type == this.type).length
-//     }
-
-// }
 export class DayTypeCounter implements Aggregate {
     types: DayType[]
     desc: DayTypeDescription
@@ -38,7 +20,7 @@ export class DayTypeCounter implements Aggregate {
     ) {
         this.types = ([] as DayType[]).concat(types)
         this.desc = DayTypeDescriptions[this.types[0]]
-        this.background_color = background_color || `var(--v-${this.desc.type}-lighten5)`
+        this.background_color = background_color || Lighten(this.desc.color, 175)
         this.label = label || this.desc.label
         this.header_color = header_color || this.desc.color
     }
