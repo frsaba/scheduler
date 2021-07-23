@@ -1,6 +1,7 @@
 <script lang="ts">
 import Vue from 'vue'
 import { DayType, DayTypeDescriptions } from "@/model/day-types";
+import { capitalize } from "lodash"
 export default Vue.extend({
 	name: 'LeaveButton',
 	props: {
@@ -18,7 +19,8 @@ export default Vue.extend({
 			}
 		},
 		accelerator: {
-			type: String
+			type: String,
+			default: ""
 		}
 	},
 	created() {
@@ -32,7 +34,7 @@ export default Vue.extend({
 			this.$emit('click', this.type)
 		},
 		keydown(e: KeyboardEvent) {
-			if(e.key == this.accelerator){
+			if (e.key == this.accelerator) {
 				this.click();
 			}
 		}
@@ -40,6 +42,12 @@ export default Vue.extend({
 	computed: {
 		desc() {
 			return DayTypeDescriptions[this.type]
+		},
+		full_tooltip() {
+			if (this.accelerator != "") {
+				return `${this.tooltip} (${capitalize(this.accelerator)})`
+			}
+			return this.tooltip
 		}
 	},
 })
@@ -52,7 +60,7 @@ export default Vue.extend({
 				<slot>{{desc.label}}</slot>
 			</v-btn>
 		</template>
-		<span>{{tooltip}}</span>
+		<span>{{full_tooltip}}</span>
 	</v-tooltip>
 
 </template>
