@@ -87,24 +87,34 @@ export default Vue.extend({
 			table.scrollTop += top
 		},
 		shift(name: string, day: number) {
-			let d = this.sheet.GetRow(name).GetDay(day);
-			if (d.type == DayType.empty) {
-				this.$store.commit('set_shift', { name, day, start: 10, duration: 8 })
-			} else {
-				this.$store.commit("delete_shift", { name, day });
-			}
+			this.$store.dispatch('undo')
+			// let d = this.sheet.GetRow(name).GetDay(day);
+			// if (d.type == DayType.empty) {
+			// 	this.$store.commit('set_shift', { name, day, start: 10, duration: 8 })
+			// } else {
+			// 	this.$store.commit("delete_shift", { name, day });
+			// }
 		},
 		setShift({ start, duration }: { start: number, duration: number }) {
 			for (let i of this.selection) {
-				this.$store.dispatch('set_shift', { name: this.drag_employee_index, day: i, start, duration })
+				this.$store.dispatch('set_shift', { index: this.drag_employee_index, day: i, start, duration })
 			}
 		},
 		setType(type: DayType) {
 			for (let i of this.selection) {
-				this.$store.dispatch('set_type', { name: this.drag_employee_index, day: i, type })
+				this.$store.dispatch('set_type', { index: this.drag_employee_index, day: i, type })
 			}
 		},
 		arrowKeys(e: KeyboardEvent) {
+			if(e.ctrlKey){
+				if(e.key == "z"){
+					this.undo();
+				}
+				if(e.key == "y"){
+					this.redo();
+				}
+			}
+
 			const bindings = {
 				"ArrowRight": [1, 0],
 				"ArrowLeft": [-1, 0],
@@ -127,6 +137,12 @@ export default Vue.extend({
 				}
 			}
 
+		},
+		undo(){
+			this.$store.dispatch('undo')
+		},
+		redo(){
+			this.$store.dispatch('redo')
 		},
 		dragStart(index: number, day: number) {
 			this.drag = true;
@@ -208,7 +224,8 @@ export default Vue.extend({
 <template>
 	<div class="wrapper">
 		<v-btn color="success" @click="add">Új dolgozó</v-btn>
-		<v-btn color="success" @click="shift">Shift</v-btn>
+		<v-btn color="success" @click="undo">Undo</v-btn>
+		<v-btn color="success" @click="redo">Redo</v-btn>
 		<popover
 			v-model="popover"
 			@close="deselect"
