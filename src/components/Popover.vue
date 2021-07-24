@@ -30,7 +30,7 @@ export default Vue.extend({
 			shift_end: 16,
 			shift_duration: 8,
 			last_width: 500,
-            skipTransition: false,
+			skipTransition: false,
 			leave_buttons: [DayType.paid, DayType.unpaid, DayType.weekend, DayType.sick, DayType.holiday] as DayType[],
 			accelerators: ["f", "s", "h", "t", "ü", "Delete", "Enter", "Escape"] //Last three are used only in IgnoreKeys
 		};
@@ -49,15 +49,18 @@ export default Vue.extend({
 	created() {
 		window.addEventListener("keydown", this.ignoreKeys);
 
-        ipcRenderer.on("zoom", () => {
-            this.skipTransition = true
-        })
+		ipcRenderer.on("zoom", () => {
+			this.skipTransition = true
+		})
 	},
 	destroyed() {
 		window.removeEventListener("keydown", this.ignoreKeys);
-        // ipcRenderer.removeAllListeners("zoom");
+		// ipcRenderer.removeAllListeners("zoom");
 	},
 	methods: {
+		newBatch() {
+			this.$store.dispatch('new_batch')
+		},
 		close() {
 			this.$emit("close");
 		},
@@ -68,16 +71,18 @@ export default Vue.extend({
 		inputStart() {
 			this.shift_start = Math.abs(this.shift_start + 24) % 24;
 			this.shift_end = (this.shift_duration + this.shift_start) % 24;
-			this.setShift();
+			this.setShift(false);
 		},
 		//if user changes end, decrease duration and keep shift_start the same
 		inputEnd() {
 			this.shift_end = Math.abs(this.shift_end + 24) % 24;
 			this.shift_duration = (this.shift_start < this.shift_end ? 0 : 24) + this.shift_end - this.shift_start;
-			this.setShift()
+			this.setShift(false)
 		},
-		setShift() {
+		setShift(newBatch : boolean) {
 			this.$emit('set-shift', { start: this.shift_start, duration: this.shift_duration })
+			console.log(newBatch)
+			if(newBatch) this.newBatch()
 		},
 		setType(type: DayType) {
 			this.$emit('set-type', type)
@@ -95,31 +100,35 @@ export default Vue.extend({
 			}
 			return this.last_width
 		},
-        transition() {
+		transition() {
 			//transitions are not normally applied when popover is moved, so visibility is toggled
-            this.$emit('input', false);
+			this.$emit('input', false);
 			this.$nextTick(() => {
-                this.$emit('input', true);
+				this.$emit('input', true);
 			});
 		},
 	},
-    watch: {
-        selected_start(prev: DOMRect, curr: DOMRect) {
-            if (this.skipTransition) return;
+	watch: {
+		selected_start(prev: DOMRect, curr: DOMRect) {
+			if (this.skipTransition) return;
 
-            if (prev.x !== curr.x || prev.y !== curr.y) // If not in the same place
-                this.transition()
-        },
-        selected_end(prev: DOMRect, curr: DOMRect) {
-            if (this.skipTransition) {
-                this.skipTransition = false;
-                return;
-            }
+			if (prev.x !== curr.x || prev.y !== curr.y) { // If not in the same place
+				this.transition()
+				this.newBatch()
+			}
+		},
+		selected_end(prev: DOMRect, curr: DOMRect) {
+			if (this.skipTransition) {
+				this.skipTransition = false;
+				return;
+			}
 
-            if (prev.x !== curr.x || prev.y !== curr.y) // If not in the same place
-                this.transition()
-        }
-    }
+			if (prev.x !== curr.x || prev.y !== curr.y) { // If not in the same place
+				this.transition()
+				this.newBatch()
+			}
+		}
+	}
 });
 </script>
 
@@ -153,7 +162,7 @@ export default Vue.extend({
 					@input="inputEnd"
 					@focus="$event.target.select()"></v-text-field>
 
-				<leave-button :type="0" @click="setShift" tooltip="Műszak" accelerator="Enter">
+				<leave-button :type="0" @click="setShift(true)" tooltip="Műszak" accelerator="Enter">
 					<v-icon>mdi-set-split</v-icon>
 				</leave-button>
 				<leave-button :type="7" @click="setType" dark tooltip="Törlés" color="red" accelerator="Delete">

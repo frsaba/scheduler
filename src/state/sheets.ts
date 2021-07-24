@@ -2,12 +2,12 @@ import { Module } from "vuex";
 import { Sheet, ScheduleDay } from "@/model/schedule-sheet"
 import { DayType } from "@/model/day-types"
 import { isNight } from "@/utils/date-helpers"
-import _ from "lodash";
+import _, { last } from "lodash";
 
 class State {
     sheet: Sheet = new Sheet(2021, 2);
-    undoStack = new Array<Operation>();
-    redoStack = new Array<Operation>();
+    undoStack = new Array<Array<Operation>>();
+    redoStack = new Array<Array<Operation>>();
 }
 
 interface Operation {
@@ -62,7 +62,7 @@ const staff: Module<State, {}> = {
             if (currentShift.type == type) return; //This is a duplicate call, we don't have to do anything
 
             context.dispatch('register_undo', { action: "set_type", payload: { index, day, type, undo, redo } })
-            
+
             let previousShift: ScheduleDay = context.getters.day(index, day - 1);
             let nextShift: ScheduleDay = context.getters.day(index, day + 1);
 
@@ -75,34 +75,55 @@ const staff: Module<State, {}> = {
                 context.commit('set_type', { index, day, type });
         },
         undo({ state, dispatch, getters }) {
-            let last = state.undoStack.pop()
-            if (!last) return; //Empty history => No actions to revert
-            state.redoStack.push(last)
+            let last_batch = state.undoStack.pop()
+            if (!last_batch || !last_batch.length) last_batch = state.undoStack.pop() //new batch has been started => undo the previous one
+            if (!last_batch) return; //Empty history => No actions to revert
+            state.redoStack.push(last_batch)
 
-            //Look for the last action in history that mutated the same day
-            let revertTo = state.undoStack.filter(({ payload: { index, day } }) => (index == last?.payload.index && day == last?.payload.day)).pop()
+            for (let last of last_batch) {
+                //Look for the last action in history that mutated the same day
+                let revertTo = state.undoStack.flat().filter(({ payload: { index, day } }) => (index == last?.payload.index && day == last?.payload.day)).pop()
 
-            if (revertTo) {
-                dispatch(revertTo.action, { ...revertTo.payload, undo: true }) //Do that action again
-            } else {
-                //If no such action is found, clear the cell (TODO: In case of imported sheet, revert to initial)
-                dispatch('set_type', { index: last.payload.index, day: last.payload.day, type: DayType.empty, undo: true })
+                if (revertTo) {
+                    dispatch(revertTo.action, { ...revertTo.payload, undo: true }) //Do that action again
+                } else {
+                    //If no such action is found, clear the cell (TODO: In case of imported sheet, revert to initial)
+                    dispatch('set_type', { index: last.payload.index, day: last.payload.day, type: DayType.empty, undo: true })
+                }
+
             }
+            dispatch('new_batch') //If a new batch was already started before the undo, we need to restore it
+
         },
         redo({ state, dispatch }) {
-            let op = state.redoStack.pop()
-            if (op) {
-                dispatch(op.action, { ...op.payload, redo: true })
+            let batch = state.redoStack.pop()
+            if (batch) {
+                dispatch('new_batch')
+                for (let op of batch) {
+                    dispatch(op.action, { ...op.payload, redo: true })
+                }
             }
+
+
         },
-        register_undo({ state }, op: Operation) {
+        register_undo({ state, dispatch }, op: Operation) {
             if (!op.payload.undo) { // If this action was a result of an undo, don't register it since it would lead to looping undos
-                if (op.payload.redo == false)
-                    state.redoStack = []
+                if (op.payload.redo == false) state.redoStack = []
+                let last_batch = _.last(state.undoStack)
+                // Start new batch if op action is different or stack is empty
+                if (last_batch == undefined || (last_batch[0] && (last_batch[0].payload.type != op.payload.type))) {
+                    dispatch('new_batch')
+                    last_batch = _.last(state.undoStack)
+                }
                 if (_.isEqual([...state.undoStack].pop(), op) == false) //Don't register the same action 
-                    state.undoStack.push(op)
+                    last_batch!.push(op)
             }
+
         },
+        new_batch({ state }) {
+            let last_batch = state.undoStack[state.undoStack.length - 1]
+            if (!last_batch || last_batch.length > 0) state.undoStack.push([]);
+        }
     },
     getters: {
         day: (context: State) => (index: number, day: number): ScheduleDay | undefined => {
@@ -112,14 +133,6 @@ const staff: Module<State, {}> = {
                 return undefined
             }
         },
-        // revert_action: (context: State) => (index: number, day: number): Operation => {
-        //     let old = context.sheet.GetRow(index).GetDay(day)
-        //     if (old.type == DayType.shift) {
-        //         return { action: "set_shift", payload: { index, day, start: old.start, duration: old.duration } }
-        //     } else {
-        //         return { action: "set_type", payload: { index, day, type: old.type } }
-        //     }
-        // }
     }
 }
 export default staff
