@@ -37,24 +37,34 @@ const staff: Module<State, {}> = {
         },
 
         set_shift(context, { index, day, start, duration, undo = false, redo = false }) {
+            //Check if we're actually about to make a change
+            let old: ScheduleDay = context.getters.day(index, day);
+            if (old.type == DayType.shift && old.start == start && old.duration == duration) return;
+
             context.dispatch('register_undo', { action: "set_shift", payload: { index, day, start, duration, undo, redo } })
 
             context.commit('set_shift', { index, day, start, duration })
-            let currentShift: ScheduleDay = context.getters.get_shift(index, day);
-            let nextShift: ScheduleDay = context.getters.get_shift(index, day + 1);
+
+            let currentShift: ScheduleDay = context.getters.day(index, day);
+            let nextShift: ScheduleDay = context.getters.day(index, day + 1);
 
             if (nextShift) {
+                //Add rest day after night shift
                 if (isNight(currentShift) && !isNight(nextShift))
                     context.commit('set_type', { index: index, day: day + 1, type: DayType.rest })
+                //Remove rest day if we're removing a night shift
                 else if (!isNight(currentShift) && nextShift.type == DayType.rest)
                     context.commit('set_type', { index: index, day: day + 1, type: DayType.empty })
             }
         },
         set_type(context, { index, day, type, undo = false, redo = false }) {
+            let currentShift: ScheduleDay = context.getters.day(index, day);
+            if (currentShift.type == type) return; //This is a duplicate call, we don't have to do anything
+
             context.dispatch('register_undo', { action: "set_type", payload: { index, day, type, undo, redo } })
-            let previousShift: ScheduleDay = context.getters.get_shift(index, day - 1);
-            let currentShift: ScheduleDay = context.getters.get_shift(index, day);
-            let nextShift: ScheduleDay = context.getters.get_shift(index, day + 1);
+            
+            let previousShift: ScheduleDay = context.getters.day(index, day - 1);
+            let nextShift: ScheduleDay = context.getters.day(index, day + 1);
 
             if (nextShift && isNight(currentShift) && nextShift.type === DayType.rest)
                 context.commit('set_type', { index, day: day + 1, type: DayType.empty })
@@ -70,11 +80,11 @@ const staff: Module<State, {}> = {
             state.redoStack.push(last)
 
             //Look for the last action in history that mutated the same day
-            let revertTo = state.undoStack.filter(({payload: {index, day}}) => (index == last?.payload.index && day == last?.payload.day)).pop()
+            let revertTo = state.undoStack.filter(({ payload: { index, day } }) => (index == last?.payload.index && day == last?.payload.day)).pop()
 
-            if (revertTo) { 
+            if (revertTo) {
                 dispatch(revertTo.action, { ...revertTo.payload, undo: true }) //Do that action again
-            } else { 
+            } else {
                 //If no such action is found, clear the cell (TODO: In case of imported sheet, revert to initial)
                 dispatch('set_type', { index: last.payload.index, day: last.payload.day, type: DayType.empty, undo: true })
             }
@@ -95,21 +105,21 @@ const staff: Module<State, {}> = {
         },
     },
     getters: {
-        get_shift: (context: State) => (index: number, day: number): ScheduleDay | undefined => {
+        day: (context: State) => (index: number, day: number): ScheduleDay | undefined => {
             try {
                 return context.sheet.GetRow(index).GetDay(day)
             } catch {
                 return undefined
             }
         },
-        revert_action: (context: State) => (index: number, day: number): Operation => {
-            let old = context.sheet.GetRow(index).GetDay(day)
-            if (old.type == DayType.shift) {
-                return { action: "set_shift", payload: { index, day, start: old.start, duration: old.duration } }
-            } else {
-                return { action: "set_type", payload: { index, day, type: old.type } }
-            }
-        }
+        // revert_action: (context: State) => (index: number, day: number): Operation => {
+        //     let old = context.sheet.GetRow(index).GetDay(day)
+        //     if (old.type == DayType.shift) {
+        //         return { action: "set_shift", payload: { index, day, start: old.start, duration: old.duration } }
+        //     } else {
+        //         return { action: "set_type", payload: { index, day, type: old.type } }
+        //     }
+        // }
     }
 }
 export default staff
