@@ -6,16 +6,11 @@ import Vue from "vue";
 import { ipcRenderer } from "electron";
 
 export default Vue.extend({
-  name: "Home",
+	name: "Home",
 
-  components: {
-  },
-  mounted() {
-    ipcRenderer.on("hi", (event) => {
-      console.log("hali");
-    });
-
-    // io.ReadFile();
-  },
+	components: {
+	},
+	mounted() {
+	},
 });
 </script>

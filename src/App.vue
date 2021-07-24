@@ -59,6 +59,10 @@ export default Vue.extend({
 	created() {
 		this.hide = debounce(() => { this.snackbar = false }, this.timeout);
 
+        ipcRenderer.on("export-query", () => {
+			ipcRenderer.send("export-reply", this.$store.state.sheets.sheet)
+		})
+
 		ipcRenderer.on("zoom", (event, { zoom }) => {
 			this.zoomLevel = Math.round(zoom * 100);
 			this.snackbar = true;
