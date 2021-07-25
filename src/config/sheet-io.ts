@@ -1,9 +1,12 @@
 import { dialog, BrowserWindow, ipcMain } from "electron"
 import * as Excel from 'exceljs';
 import { Sheet } from "@/model/schedule-sheet";
+import _, { bind } from "lodash";
+import strftime from "strftime"
+import Path from "path"
 
 let sheet: Sheet;
-let bindings: Map<string, any>
+let bindings: Map<string, Function>
 
 export function ImportSheet() {
     const path = GetPathFromUser();
@@ -23,47 +26,54 @@ export function ExportSheet() {
 
 ipcMain.on("export-reply", async (event: Event, s: Sheet) => {
     sheet = s;
-    bindings = new Map<string, any>([
-        ["year", sheet.year],
-        ["month", sheet.month],
+    bindings = new Map<string, () => string>([
+        ["year", () => sheet.year.toString()],
+        ["month", () => sheet.month.toString()],
+        ["startDate", () => strftime("%F", new Date(sheet.year, sheet.month, 1))]
     ])
-    let templatePath = "C:\\Users\\Guczi\\Desktop\\template.xlsx";
-    let exportPath = "C:\\Users\\Guczi\\Desktop\\out.xlsx";
+    let templatePath = Path.join(__dirname, "../src/assets/template.xlsx");
+    let exportPath = Path.join(__dirname, "../src/assets/out.xlsx");
     await writeFile(templatePath, exportPath);
 })
 
 export async function writeFile(templatePath: string, exportPath: string) {
-    let templateWb = new Excel.Workbook();
-    let template = (await templateWb.xlsx.readFile(templatePath)).worksheets[0];
+    let workbook = new Excel.Workbook();
+    let template = (await workbook.xlsx.readFile(templatePath)).worksheets[0];
 
-    let exportWb = new Excel.Workbook();
-    let output = exportWb.addWorksheet("Sheet1");
-    
-    template.eachRow({includeEmpty: true}, (row, i) => {
-        row.eachCell({includeEmpty: true}, (cell, j) => {
-            let outCell = output.getCell(i, j);
-            Object.assign(outCell, cell); // Copy all values from cell to outCell
-
-            if (cell.value && typeof cell.value === "string") {
-                outCell.value = replaceTemplate(cell.value);
-            }
+    template.eachRow({ includeEmpty: true }, (row, i) => {      
+        row.eachCell({ includeEmpty: true }, (current, j) => {
+            current.value = replaceTemplate(current.value);
         });
     })
 
-    await exportWb.xlsx.writeFile(exportPath);
+    // let copyTo = template.getCell("");
+    // copyTo.value = template.getCell("A12").value;
+    
+    await workbook.xlsx.writeFile(exportPath);
 }
 
-function replaceTemplate(str: string)
-{
-    let reg = /(?<=\$\{).*?(?=\})/g;
+let reg = /(?<=\$\{).*?(?=\})/g;
+
+function replaceTemplate(str: Excel.CellValue) {
+    if (!str || typeof str !== "string") return str;
+
     let matches = Array.from(str.matchAll(reg));
-    let result = str;
-    
-    for(let match of matches) {
-        for (let value of match)
-            result = result.replace(`\${${value}}`, bindings.get(value));
+
+    for (let value of matches.flat()) {
+        let fn = bindings.get(value)
+        if (fn)
+            str = str.replace(`\${${value}}`, fn());
     }
-    return result
+
+    return str
+}
+
+function containsBindings(cell: string, ...bindings: string[]) {
+    if (!cell) return false;
+    
+    let matches = Array.from(cell.matchAll(reg));
+
+    return matches.flat().some(x => bindings.includes(x))   
 }
 
 function GetPathFromUser(): string | undefined {
