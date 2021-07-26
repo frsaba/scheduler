@@ -2,7 +2,8 @@
 import Vue from "vue";
 import { DayType, DayTypeDescriptions } from "@/model/day-types";
 import LeaveButton from "@/components/LeaveButton.vue";
-import { Accelerator, ipcRenderer } from "electron";
+import HourPicker from "@/components/HourPicker.vue";
+import { ipcRenderer } from "electron";
 
 interface LeaveButtonData {
 	type: string,
@@ -15,6 +16,7 @@ export default Vue.extend({
 	name: "Popover",
 	components: {
 		LeaveButton,
+		HourPicker
 	},
 	props: {
 		value: {
@@ -65,10 +67,13 @@ export default Vue.extend({
 			this.$emit("close");
 		},
 		ignoreKeys(e: KeyboardEvent) {
-			if (e.key.startsWith("Arrow") || this.accelerators.includes(e.key) || e.ctrlKey) e.preventDefault()
+			let k = e.key
+			//Arrow key, Ctrl + *, any single letter, any accelerator
+			if (k.startsWith("Arrow") || e.ctrlKey || (k.length == 1 && k.toLowerCase() != k.toUpperCase()) || this.accelerators.includes(k))
+				e.preventDefault()
 		},
 		//if user changes the start, keep duration the same and set shift_end accordingly
-		inputStart() {
+		inputStart(e: InputEvent) {
 			this.shift_start = Math.abs(this.shift_start + 24) % 24;
 			this.shift_end = (this.shift_duration + this.shift_start) % 24;
 			this.setShift(false);
@@ -79,10 +84,9 @@ export default Vue.extend({
 			this.shift_duration = (this.shift_start < this.shift_end ? 0 : 24) + this.shift_end - this.shift_start;
 			this.setShift(false)
 		},
-		setShift(newBatch : boolean) {
+		setShift(newBatch: boolean) {
 			this.$emit('set-shift', { start: this.shift_start, duration: this.shift_duration })
-			console.log(newBatch)
-			if(newBatch) this.newBatch()
+			if (newBatch) this.newBatch()
 		},
 		setType(type: DayType) {
 			this.$emit('set-type', type)
@@ -143,24 +147,8 @@ export default Vue.extend({
 		absolute>
 		<v-card class="card" ref="card">
 			<div class="upper">
-				<v-text-field
-					solo
-					autofocus
-					label="label"
-					type="number"
-					hide-details="true"
-					v-model.number="shift_start"
-					@input="inputStart"
-					@focus="$event.target.select()"></v-text-field>
-				<span>-</span>
-				<v-text-field
-					solo
-					label="label"
-					type="number"
-					hide-details="true"
-					v-model.number="shift_end"
-					@input="inputEnd"
-					@focus="$event.target.select()"></v-text-field>
+				<hour-picker v-model.number="shift_start" @input="inputStart" />
+				<hour-picker v-model.number="shift_end" @input="inputEnd" />
 
 				<leave-button :type="0" @click="setShift(true)" tooltip="Műszak" accelerator="Enter">
 					<v-icon>mdi-set-split</v-icon>
