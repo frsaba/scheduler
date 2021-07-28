@@ -1,3 +1,5 @@
+// Input style based on https://codepen.io/prasanthmj/pen/EWQPrK
+
 <script lang="ts">
 import Vue from 'vue'
 export default Vue.extend({
@@ -12,60 +14,82 @@ export default Vue.extend({
 	{
 		add(n: number) {
 			this.$emit('input', this.value + n)
-		}
+		},
 	}
 })
 </script>
 
 <template>
 	<div class="wrapper">
-		<v-text-field class="field"
-			solo
-			autofocus
-			hide-details="true"
-            v-bind:value="value"
-			@input="$emit('input', $event)"
+		<input type="number" min="0" max="23"
+			v-bind:value="value"
+			@input="$emit('input', $event.target.value)"
 			@focus="$event.target.select()">
-		</v-text-field>
-		<v-btn x-small class="button plus" tabindex="-1" @click="add(1)">
-			<v-icon small> mdi-plus</v-icon>
-		</v-btn>
-		<v-btn x-small class="button minus" tabindex="-1"  @click="add(-1)">
-			<v-icon small> mdi-minus</v-icon>
-		</v-btn>
+
+		<div class="spinner-nav">
+			<div class="spinner-button plus" v-ripple @click="add(1)">+</div>
+			<div class="spinner-button minus" v-ripple @click="add(-1)">-</div>
+		</div>
 	</div>
 </template>
 
 <style scoped>
 .wrapper {
-	display: grid;
-	grid-template-rows: 1fr 1fr;
-	grid-template-columns: 2.7em min-content;
-	align-items: center;
+	position: relative;
 }
-.field {
-	grid-column: 1;
-	grid-row: 1/3;
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+.wrapper input {
+	padding-right: 20px !important;
+	height: 42px;
+	line-height: 1.65;
+	float: left;
+	display: block;
 	padding: 0;
-}
-.field >>> input {
+	margin: 0;
+	border: 1px solid #eee;
 	text-align: center;
 }
-.button {
-	grid-column: 2;
-	padding: 50px;
-	margin: 3px;
+
+.wrapper input:focus {
+	outline: 0;
 }
-.plus {
-	grid-row: 1;
+
+.spinner-nav {
+	float: left;
+	position: relative;
+	height: 42px;
 }
-.minus {
-	grid-row: 2;
+
+.spinner-button {
+	position: absolute;
+	height: 50%;
+	cursor: pointer;
+	border-left: 1px solid #eee;
+	width: 20px;
+	text-align: center;
+	color: #333;
+	font-size: 0.8em;
+	line-height: 1.6;
+	transform: translateX(-100%);
+	user-select: none;
 }
-.button:focus::before {
-	opacity: 0 !important;
+
+.spinner-button.plus {
+	top: 0;
+	border-bottom: 1px solid #eee;
 }
-.button:hover::before {
-	opacity: 0.15 !important;
+
+.spinner-button.minus {
+	bottom: 0px;
+}
+
+.spinner-button:hover {
+	background: #eee;
 }
 </style>

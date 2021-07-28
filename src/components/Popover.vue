@@ -73,7 +73,7 @@ export default Vue.extend({
 				e.preventDefault()
 		},
 		//if user changes the start, keep duration the same and set shift_end accordingly
-		inputStart(e: InputEvent) {
+		inputStart() {
 			this.shift_start = Math.abs(this.shift_start + 24) % 24;
 			this.shift_end = (this.shift_duration + this.shift_start) % 24;
 			this.setShift(false);
@@ -148,6 +148,7 @@ export default Vue.extend({
 		<v-card class="card" ref="card">
 			<div class="upper">
 				<hour-picker v-model.number="shift_start" @input="inputStart" />
+				-
 				<hour-picker v-model.number="shift_end" @input="inputEnd" />
 
 				<leave-button :type="0" @click="setShift(true)" tooltip="Műszak" accelerator="Enter">
