@@ -15,6 +15,16 @@ export default Vue.extend({
 		add(n: number) {
 			this.$emit('input', this.value + n)
 		},
+		keydown(e: KeyboardEvent) {
+			if (e.key == "+") {
+				this.add(1);
+				e.preventDefault();
+			}
+			else if (e.key == "-") {
+				this.add(-1)
+				e.preventDefault();
+			}
+		}
 	}
 })
 </script>
@@ -24,7 +34,8 @@ export default Vue.extend({
 		<input type="number" min="0" max="23"
 			v-bind:value="value"
 			@input="$emit('input', $event.target.value)"
-			@focus="$event.target.select()">
+			@focus="$event.target.select()"
+			@keydown="keydown">
 
 		<div class="spinner-nav">
 			<div class="spinner-button plus" v-ripple @click="add(1)">+</div>
