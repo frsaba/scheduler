@@ -12,8 +12,9 @@ export default Vue.extend({
 	},
 	methods:
 	{
-		add(n: number) {
-			this.$emit('input', this.value + n)
+		add(n: number) : void{
+			this.$emit('input', this.value + n);
+			(this.$refs.field as HTMLInputElement).select();
 		},
 		keydown(e: KeyboardEvent) {
 			if (e.key == "+") {
@@ -31,7 +32,7 @@ export default Vue.extend({
 
 <template>
 	<div class="wrapper">
-		<input type="number" min="0" max="23"
+		<input type="number" min="0" max="23" ref="field"
 			v-bind:value="value"
 			@input="$emit('input', $event.target.value)"
 			@focus="$event.target.select()"
