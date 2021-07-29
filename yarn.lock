@@ -1260,6 +1260,13 @@
   resolved "https://registry.yarnpkg.com/@types/source-list-map/-/source-list-map-0.1.2.tgz#0078836063ffaf17412349bba364087e0ac02ec9"
   integrity sha512-K5K+yml8LTo9bWJI/rECfIPrGgxdpeNbj+d53lwN4QjW1MCwlkhUms+gtdzigTeUyBr09+u8BwOIY3MXvHdcsA==
 
+"@types/splitpanes@^2.2.1":
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/@types/splitpanes/-/splitpanes-2.2.1.tgz#7ff67e639b16eecfc3ad403269dff320cf96e866"
+  integrity sha512-H5BgO6UdJRzz5ddRzuGvLBiPSPEuuHXb5ET+7avLLrEx1uc7f5Ut5oLMDQsfvGtHBBAFczt1QNYuDf27wHbvDQ==
+  dependencies:
+    vue "^2.0.0"
+
 "@types/strftime@^0.9.3":
   version "0.9.3"
   resolved "https://registry.yarnpkg.com/@types/strftime/-/strftime-0.9.3.tgz#76afa01e8338fc804a3c710229206eeed2fd479c"
@@ -9289,6 +9296,11 @@ split2@^3.0.0:
   dependencies:
     readable-stream "^3.0.0"
 
+splitpanes@^2.3.8:
+  version "2.3.8"
+  resolved "https://registry.yarnpkg.com/splitpanes/-/splitpanes-2.3.8.tgz#371655e5c8c6356d76bbf2f6f22d5564927b5bb4"
+  integrity sha512-eM/qZ1v7U5BMV8FQR7oeqVlllz3sTGTm0//g/eJMa0hZ4s+A1VK68j26FWzcaVlw2P5+dCXk7/X6ZRjjwcbrgw==
+
 sprintf-js@^1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/sprintf-js/-/sprintf-js-1.1.2.tgz#da1765262bf8c0f571749f2ad6c26300207ae673"
@@ -10394,7 +10406,7 @@ vue-template-es2015-compiler@^1.9.0:
   resolved "https://registry.yarnpkg.com/vue-template-es2015-compiler/-/vue-template-es2015-compiler-1.9.1.tgz#1ee3bc9a16ecbf5118be334bb15f9c46f82f5825"
   integrity sha512-4gDntzrifFnCEvyoO8PqyJDmguXgVPxKiIxrBKjIowvL9l+N66196+72XVYR8BBf1Uv1Fgt3bGevJ+sEmxfZzw==
 
-vue@^2.6.11:
+vue@^2.0.0, vue@^2.6.11:
   version "2.6.14"
   resolved "https://registry.yarnpkg.com/vue/-/vue-2.6.14.tgz#e51aa5250250d569a3fbad3a8a5a687d6036e235"
   integrity sha512-x2284lgYvjOMj3Za7kqzRcUSxBboHqtgRE2zlos1qWaOye5yUmHn42LB1250NJBLRwEcdrB0JRwyPTEPhfQjiQ==
