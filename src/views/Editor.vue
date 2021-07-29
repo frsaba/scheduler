@@ -3,9 +3,10 @@ import Vue from 'vue'
 import { Splitpanes, Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 import Monthly from "@/views/Monthly.vue"
+import GlobalCounters from "@/components/GlobalCounters.vue"
 export default Vue.extend({
 	name: "Editor",
-	components: { Splitpanes, Pane, Monthly },
+	components: { Splitpanes, Pane, Monthly, GlobalCounters },
 })
 </script>
 
@@ -15,13 +16,12 @@ export default Vue.extend({
 			<monthly />
 		</pane>
 		<pane>
-
-			<splitpanes class="default-theme" horizontal>
+			<splitpanes horizontal>
 				<pane>
-					<div>Warnings and errors</div>
+					<global-counters/>
 				</pane>
 				<pane>
-					<div>Global aggregates</div>
+					<div>Warnings and errors</div>
 				</pane>
 			</splitpanes>
 		</pane>

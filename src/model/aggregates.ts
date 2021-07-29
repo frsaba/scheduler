@@ -109,3 +109,34 @@ export const assertions = [
 export const global_assertions = [
 
 ]
+
+export class StartTimeCount {
+    counts: number[];
+    constructor(public hour: number, length: number) {
+        this.counts = new Array(length).fill(0)
+    }
+}
+
+export function CountStartingTimes(sheet: Sheet): Array<StartTimeCount> {
+    let result = new Array<StartTimeCount>()
+
+    sheet.schedule.forEach(row => {
+        for (let i = 0; i < sheet.month_length; i++) {
+            let day = row.GetDay(i + 1);
+
+            if (day.type == DayType.shift) {
+                let start = day.start;
+                let counter_row = result.find(e => e.hour == start)
+
+                if (!counter_row) {
+                    counter_row = new StartTimeCount(start, sheet.month_length)
+                    result.push(counter_row)
+                }
+
+                counter_row.counts[i] += 1
+            }
+        }
+    })
+
+    return result.sort((a, b) => a.hour - b.hour);
+}
