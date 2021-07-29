@@ -5,7 +5,7 @@ import { Sheet } from '@/model/schedule-sheet'
 export default Vue.extend({
 	name: "GlobalCounters",
 	computed: {
-		start_times(): any[] {
+		start_times(): Map<number, number[]> {
 			return CountStartingTimes(this.sheet)
 		},
 		sheet(): Sheet {
@@ -23,9 +23,9 @@ export default Vue.extend({
 				<th v-for="day in sheet.month_length" :key="day">{{day}}</th>
 			</thead>
 			<tbody>
-				<tr v-for="row in start_times" :key="row.hour">
-					<th>{{row.hour}} órakor kezd</th>
-					<td v-for="day in sheet.month_length" :key="day">{{row.counts[day-1]}}</td>
+				<tr v-for="[k,v] in start_times" :key="k">
+					<th>{{k}} órakor kezd</th>
+					<td v-for="day in sheet.month_length" :key="day">{{v[day-1]}}</td>
 				</tr>
 			</tbody>
 		</table>
@@ -34,11 +34,11 @@ export default Vue.extend({
 
 <style scoped>
 td {
-	width: 100vw;
 	text-align: center;
 	height: 2.5em;
 }
 th {
+	width: 100vw;
 	min-width: 1.5em;
 	height: 2.5em;
 }
