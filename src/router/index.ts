@@ -1,9 +1,11 @@
 import Vue from "vue";
+import VueCompositionApi from "@vue/composition-api";
 import VueRouter, { RouteConfig } from "vue-router";
 import Home from "@/views/Home.vue";
 import Editor from "@/views/Editor.vue"
 
 Vue.use(VueRouter);
+Vue.use(VueCompositionApi);
 
 const routes: Array<RouteConfig> = [
   {

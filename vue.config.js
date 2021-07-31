@@ -1,5 +1,5 @@
 module.exports = {
-  transpileDependencies: ["vuetify"],
+  transpileDependencies: ["vuetify", "vuex-composition-helpers"],
   lintOnSave: false,
   pluginOptions: {
     electronBuilder: {

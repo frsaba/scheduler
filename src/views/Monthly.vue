@@ -10,8 +10,11 @@ import { FontColorFromBackground } from "@/utils/color-helpers"
 import { isWeekend } from "@/utils/date-helpers"
 import { clamp, throttle } from "lodash";
 import staff, { Employee } from "@/model/staff"
+import { useActions, useState } from "vuex-composition-helpers";
+import { Sheet } from "@/model/schedule-sheet";
+import { computed, defineComponent, onMounted, onUnmounted, reactive, Ref, ref } from "@vue/composition-api";
 
-export default Vue.extend({
+export default defineComponent({
 	name: "Monthly",
 	components: {
 		MonthlyRow,
@@ -19,49 +22,75 @@ export default Vue.extend({
 	},
 	data() {
 		return {
-			sheet: this.$store.state.sheets.sheet,
 			x: 4,
-			drag: false,
-			drag_employee_index: -1,
-			drag_start: 0,
-			drag_end: 0,
-			popover: false,
-			selection_start_rect: new DOMRect(),
-			selection_end_rect: new DOMRect(),
-			scroll: function () { },
-			keydown: function (e: KeyboardEvent) { },
 		};
 	},
-	created() {
-		//Without throttling, holding down arrow keys makes the cursor move unreasonably fast,
-		//but scrolling unreasonably slow (when combined with smooth scrolling)
-		this.keydown = throttle(this.arrowKeys, 100);
-		this.scroll = debounce(this.updateSelectRects, 50);
+    setup(props, context) {
+        // Sheet
+        const sheet: Sheet = useState(["sheets"]).sheets.value.sheet;
 
-		window.addEventListener("mouseup", this.dragEndEmpty);
-		window.addEventListener('keydown', this.keydown);
+        // Drag
+        const popover = ref(false);
+        const drag = reactive({
+            start: 0, end: 0, employee_index: -1, dragging: false
+        });
 
-        ipcRenderer.on("zoom", () => {
-            this.updateSelectRects();
-        })
+        const drag_employee = computed((): Employee | undefined => {
+			try {
+				return sheet.GetRow(drag.employee_index).employee
+			} catch {
+				return undefined
+			}
+		})
 
-		if (this.$store.getters['staff/count'] < 1) {
-			this.$store.commit("staff/add_employee", "Példa János_Lusta");
-			this.$store.commit("staff/add_employee", "Példa János_Lusta2");
-			this.$store.dispatch("staff/add", "Példa János");
-			this.$store.dispatch("staff/add", "Példa János2");
-			this.$store.dispatch("staff/add", "Példa János3");
+        const dragStart = (index: number, day: number) => {
+			drag.dragging = true;
+			drag.employee_index = index;
+			drag.start = day;
+			drag.end = day;
+			popover.value = false;
 		}
+		const dragEnter = (index: number, day: number) => {
+			if (drag.dragging) {
+				drag.end = day;
+			}
+		}
+		const dragEnd = (index: number, day: number) => {
+			if (drag.dragging) {
+				drag.end = day;
+				popover.value = true;
+			}
+			updateSelectedRects();
+			drag.dragging = false;
+		}
+		const dragEndEmpty = () => {
+			dragEnd(drag.employee_index, drag.end);
+		}
+		const deselect = () => {
+			drag.employee_index = -1;
+			drag.start = 0;
+			drag.end = 0;
+			popover.value = false;
+		}
+        window.addEventListener("mouseup", dragEndEmpty);
+        onUnmounted(() => window.removeEventListener("mouseup", dragEndEmpty))
 
-	},
-	destroyed() {
-		window.removeEventListener("mouseup", this.dragEndEmpty);
-		window.removeEventListener('keydown', this.keydown);
-	},
-	methods: {
-		getDayElement(index: number, day: number): Element {
-			let name = this.sheet.GetRow(index).employee.name
-			let row = this.$refs[name] as Vue[];
+        // Selection
+        const selection_rects = reactive({
+            start: new DOMRect(),
+            end: new DOMRect()
+        });
+        const selection_start = computed(() => Math.min(drag.start, drag.end))
+        const selection_end = computed(() => Math.max(drag.start, drag.end))
+        const selection = computed((): number[] => {
+			//(selection_start: 5, selection_end: 7) => [5,6,7]
+			if (selection_end.value == 0) return []
+			return Array(selection_end.value - selection_start.value + 1).fill(0).map((x, i) => i + selection_start.value);
+		})
+
+        const getDayElement = (index: number, day: number): Element => {
+			let name = sheet.GetRow(index).employee.name
+			let row = context.refs[name] as Vue[]; // WARNING: refs depracated
 
 			let currDay = row[0].$children.find((e) => {
 				if (!e.$props.day)
@@ -72,151 +101,146 @@ export default Vue.extend({
 			if (!currDay) throw `Nem sikerült megtalálni ${day}. oszlopot.`;
 
 			return currDay.$el;
-		},
-		getBounds(day: number, id = -1): DOMRect {
-			if (id < 0) id = this.drag_employee_index;
-			return this.getDayElement(id, day).getBoundingClientRect();
-		},
-		add() {
-			this.$store.dispatch("staff/add", "Példa János" + this.x);
-			this.x++;
-		},
-		setTableScroll(left: number, top: number) {
-			let table = this.$refs.table as Element
-			table.scrollLeft += left
-			table.scrollTop += top
-		},
-		shift(name: string, day: number) {
-			this.$store.dispatch('undo')
-			// let d = this.sheet.GetRow(name).GetDay(day);
-			// if (d.type == DayType.empty) {
-			// 	this.$store.commit('set_shift', { name, day, start: 10, duration: 8 })
-			// } else {
-			// 	this.$store.commit("delete_shift", { name, day });
-			// }
-		},
-		setShift({ start, duration }: { start: number, duration: number }) {
-			for (let i of this.selection) {
-				this.$store.dispatch('set_shift', { index: this.drag_employee_index, day: i, start, duration })
-			}
-		},
-		setType(type: DayType) {
-			for (let i of this.selection) {
-				this.$store.dispatch('set_type', { index: this.drag_employee_index, day: i, type })
-			}
-		},
-		arrowKeys(e: KeyboardEvent) {
-			if(e.ctrlKey){
-				if(e.key == "z"){
-					this.undo();
-				}
-				if(e.key == "y"){
-					this.redo();
-				}
-			}
+		}
 
-			const bindings = {
-				"ArrowRight": [1, 0],
-				"ArrowLeft": [-1, 0],
-				"ArrowUp": [0, -1],
-				"ArrowDown": [0, 1]
-			}
-			const bind = Object.entries(bindings).find(b => b[0] == e.key)
-			if (bind) {
-				const [dx, dy] = bind[1] as [number, number]
-				if (e.ctrlKey) {
-					this.setTableScroll(dx * 40, dy * 40)
-				} else {
+		const getBounds = (day: number, id = -1): DOMRect => {
+			if (id < 0) id = drag.employee_index;
+			return getDayElement(id, day).getBoundingClientRect();
+		}
 
-					this.drag_end = clamp(this.drag_end + dx, 1, this.sheet.month_length)
-					if (e.shiftKey == false)
-						this.drag_start = this.drag_end;
+        const updateSelectedRects = () => {
+			if (drag.employee_index === -1) return;
+			selection_rects.start = getBounds(selection_start.value);
+			selection_rects.end = getBounds(selection_end.value);
+        }
 
-					this.drag_employee_index = clamp(this.drag_employee_index + dy, 0, this.sheet.schedule.length - 1)
-					this.updateSelectRects()
-				}
-			}
+        ipcRenderer.on("zoom", () => {
+            updateSelectedRects();
+        })
 
-		},
-		undo(){
-			this.$store.dispatch('undo')
-		},
-		redo(){
-			this.$store.dispatch('redo')
-		},
-		dragStart(index: number, day: number) {
-			this.drag = true;
-			this.drag_employee_index = index;
-			this.drag_start = day;
-			this.drag_end = day;
-			this.popover = false;
-		},
-		dragEnter(index: number, day: number) {
-			if (this.drag) {
-				this.drag_end = day;
-			}
-		},
-		dragEnd(index: number, day: number) {
-			if (this.drag) {
-				this.drag_end = day;
-				this.popover = true;
-			}
-			this.updateSelectRects();
-			this.drag = false;
-		},
-		dragEndEmpty() {
-			this.dragEnd(this.drag_employee_index, this.drag_end);
-		},
-		deselect() {
-			this.drag_employee_index = -1;
-			this.drag_start = 0;
-			this.drag_end = 0;
-			this.popover = false;
-		},
-		updateSelectRects(): void {
-			//computed properties update immediately which lead to popover moving as it fades out
-			if (!this.drag_employee) return;
-			this.selection_start_rect = this.getBounds(this.selection_start);
-			this.selection_end_rect = this.getBounds(this.selection_end);
-		},
+        // Move with arrows
+        const table = ref<Element>(); // <div ref="table">
 
-	},
-	computed: {
-		drag_employee(): Employee | undefined {
-			try {
-				return this.sheet.GetRow(this.drag_employee_index).employee
-			} catch {
-				return undefined
+        const setTableScroll = (left: number, top: number): void => {
+            if (table.value) {
+                table.value.scrollLeft += left
+                table.value.scrollTop += top
+            }
+        }
+
+        const arrowKeyDown = (e: KeyboardEvent): void => {
+        	const bindings = {
+        		"ArrowRight": [1, 0],
+        		"ArrowLeft": [-1, 0],
+        		"ArrowUp": [0, -1],
+        		"ArrowDown": [0, 1]
+        	}
+        	const bind = Object.entries(bindings).find(b => b[0] == e.key)
+        	if (bind) {
+        		const [dx, dy] = bind[1] as [number, number]
+        		if (e.ctrlKey) {
+        			setTableScroll(dx * 40, dy * 40)
+        		} else {
+
+        			drag.end = clamp(drag.end + dx, 1, sheet.month_length)
+        			if (e.shiftKey == false)
+        				drag.start = drag.end;
+
+        			drag.employee_index = clamp(drag.employee_index + dy, 0, sheet.schedule.length - 1)
+        			updateSelectedRects()
+        		}
+        	}
+        }
+
+        // Undo - redo
+
+        const undo = useActions(["undo"]).undo
+        const redo = useActions(["redo"]).redo
+        const undoRedoKeydown = (e: KeyboardEvent): void => {
+            if(e.ctrlKey){
+				if(e.key == "z") undo(); // CTRL + Z
+				if(e.key == "y") redo(); // CTRL + Y
 			}
-		},
-		selection_start(): number {
-			return Math.min(this.drag_start, this.drag_end);
-		},
-		selection_end(): number {
-			return Math.max(this.drag_start, this.drag_end);
-		},
-		selection(): number[] {
-			//(selection_start: 5, selection_end: 7) => [5,6,7]
-			if (this.selection_end == 0) return []
-			return Array(this.selection_end - this.selection_start + 1).fill(0).map((x, i) => i + this.selection_start);
-		},
-		right_side_headers(): string[] {
+        }
+        // Without throttling, holding down arrow keys makes the cursor move unreasonably fast,
+		// but scrolling unreasonably slow (when combined with smooth scrolling)
+        const keydown = throttle((e: KeyboardEvent): void => {
+			undoRedoKeydown(e);
+            arrowKeyDown(e);
+		}, 100)
+        window.addEventListener("keydown", keydown);
+        onUnmounted(() => window.removeEventListener("keydown", keydown))
+
+        const scroll = debounce(updateSelectedRects, 50);
+
+        // Styling
+
+        const right_side_headers = computed((): string[] => {
 			return accumulators.map(a => a.label)
-		},
+		})
 		//Having this as computed so it's cached and doesn't run on every render
-		header_styles(): Array<any> {
+		const header_styles = computed((): Array<any> => {
 			return accumulators.map((a, i) => ({
 				backgroundColor: a.header_color,
 				color: FontColorFromBackground(a.header_color),
 				right: (accumulators.length - 1 - i) * 3 + "em" //right side sticky columns
 			}))
-		},
-		day_header_style(): Array<any> {
-			return new Array(this.sheet.month_length).fill(1).map((a, i) => ({
-				backgroundColor: isWeekend(new Date(this.sheet.year, this.sheet.month, i + 1)) ?
+		})
+		const day_header_style = computed((): Array<any> => {
+			return new Array(sheet.month_length).fill(1).map((a, i) => ({
+				backgroundColor: isWeekend(new Date(sheet.year, sheet.month, i + 1)) ?
 					"var(--v-header-weekend-base)" : "var(--v-header-weekday-base)",
 			}))
+		})
+
+        return {
+            sheet,
+            popover,
+            drag,
+            drag_employee,
+            dragStart,
+            dragEnter,
+            dragEnd,
+            dragEndEmpty,
+            deselect,
+            selection_rects,
+            selection_start,
+            selection_end,
+            selection,
+            updateSelectedRects,
+            scroll,
+            undo,
+            redo,
+            right_side_headers,
+            header_styles,
+            day_header_style,
+            table,
+        }
+    },
+	created() {
+		if (this.$store.getters['staff/count'] < 1) {
+			this.$store.commit("staff/add_employee", "Példa János_Lusta");
+			this.$store.commit("staff/add_employee", "Példa János_Lusta2");
+			this.$store.dispatch("staff/add", "Példa János");
+			this.$store.dispatch("staff/add", "Példa János2");
+			this.$store.dispatch("staff/add", "Példa János3");
 		}
+	},
+	methods: {
+		add() {
+			this.$store.dispatch("staff/add", "Példa János" + this.x);
+			this.x++;
+		},
+		setShift({ start, duration }: { start: number, duration: number }) {
+			for (let i of this.selection) {
+				this.$store.dispatch('set_shift', { index: this.drag.employee_index, day: i, start, duration })
+			}
+		},
+		setType(type: DayType) {
+			for (let i of this.selection) {
+				this.$store.dispatch('set_type', { index: this.drag.employee_index, day: i, type })
+			}
+		},
 	},
 });
 </script>
@@ -231,8 +255,8 @@ export default Vue.extend({
 			@close="deselect"
 			@set-shift="setShift"
 			@set-type="setType"
-			:selected_start="selection_start_rect"
-			:selected_end="selection_end_rect"></popover>
+			:selected_start="selection_rects.start"
+			:selected_end="selection_rects.end"></popover>
 		<div class="table-wrapper" @scroll="scroll" ref="table">
 			<table fixed-header class="table">
 				<thead>
@@ -247,11 +271,11 @@ export default Vue.extend({
 				</thead>
 				<tbody>
 					<monthly-row
-						v-for="(row, i) in this.sheet.schedule"
+						v-for="(row, i) in sheet.schedule"
 						:key="row.employee.name"
 						:employee_name="row.employee.name"
 						:days="row.days"
-						:selection="i == drag_employee_index ? selection: []"
+						:selection="i == drag.employee_index ? selection: []"
 						:ref="row.employee.name"
 						@day-mouse-down="dragStart(i, $event)"
 						@day-mouse-up="dragEnd(i, $event)"
