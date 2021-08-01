@@ -15,7 +15,7 @@ interface Operation {
     payload: { index: number, day: number, [x: string]: any }
 }
 
-const staff: Module<State, {}> = {
+const sheets: Module<State, {}> = {
     state: new State,
     mutations: {
         add_row(state, payload) {
@@ -135,4 +135,4 @@ const staff: Module<State, {}> = {
         },
     }
 }
-export default staff
+export default sheets

@@ -1,18 +1,18 @@
 <script lang="ts">
 import Vue from "vue";
-import { ipcRenderer } from "electron";
-import { DayType } from "@/model/day-types";
+import { computed, defineComponent, onUnmounted, ref } from "@vue/composition-api";
+import { useActions, useState } from "vuex-composition-helpers";
+
+import { throttle, debounce } from "lodash";
+
 import MonthlyRow from "@/components/MonthlyRow.vue";
 import Popover from "@/components/Popover.vue";
-import debounce from "lodash/debounce";
+import { DayType } from "@/model/day-types";
 import { accumulators } from "@/model/aggregates"
+import { Sheet } from "@/model/schedule-sheet";
 import { FontColorFromBackground } from "@/utils/color-helpers"
 import { isWeekend } from "@/utils/date-helpers"
-import { clamp, throttle } from "lodash";
-import staff, { Employee } from "@/model/staff"
-import { useActions, useState } from "vuex-composition-helpers";
-import { Sheet } from "@/model/schedule-sheet";
-import { computed, defineComponent, onMounted, onUnmounted, reactive, Ref, ref } from "@vue/composition-api";
+import compSelection from "@/composables/selection"
 
 export default defineComponent({
 	name: "Monthly",
@@ -20,75 +20,10 @@ export default defineComponent({
 		MonthlyRow,
 		Popover,
 	},
-	data() {
-		return {
-			x: 4,
-		};
-	},
-    setup(props, context) {
-        // Sheet
-        const sheet: Sheet = useState(["sheets"]).sheets.value.sheet;
+	setup(props, context) {
+		const sheet: Sheet = useState(["sheets"]).sheets.value.sheet;
 
-        // Drag
-        const popover = ref(false);
-        const drag = reactive({
-            start: 0, end: 0, employee_index: -1, dragging: false
-        });
-
-        const drag_employee = computed((): Employee | undefined => {
-			try {
-				return sheet.GetRow(drag.employee_index).employee
-			} catch {
-				return undefined
-			}
-		})
-
-        const dragStart = (index: number, day: number) => {
-			drag.dragging = true;
-			drag.employee_index = index;
-			drag.start = day;
-			drag.end = day;
-			popover.value = false;
-		}
-		const dragEnter = (index: number, day: number) => {
-			if (drag.dragging) {
-				drag.end = day;
-			}
-		}
-		const dragEnd = (index: number, day: number) => {
-			if (drag.dragging) {
-				drag.end = day;
-				popover.value = true;
-			}
-			updateSelectedRects();
-			drag.dragging = false;
-		}
-		const dragEndEmpty = () => {
-			dragEnd(drag.employee_index, drag.end);
-		}
-		const deselect = () => {
-			drag.employee_index = -1;
-			drag.start = 0;
-			drag.end = 0;
-			popover.value = false;
-		}
-        window.addEventListener("mouseup", dragEndEmpty);
-        onUnmounted(() => window.removeEventListener("mouseup", dragEndEmpty))
-
-        // Selection
-        const selection_rects = reactive({
-            start: new DOMRect(),
-            end: new DOMRect()
-        });
-        const selection_start = computed(() => Math.min(drag.start, drag.end))
-        const selection_end = computed(() => Math.max(drag.start, drag.end))
-        const selection = computed((): number[] => {
-			//(selection_start: 5, selection_end: 7) => [5,6,7]
-			if (selection_end.value == 0) return []
-			return Array(selection_end.value - selection_start.value + 1).fill(0).map((x, i) => i + selection_start.value);
-		})
-
-        const getDayElement = (index: number, day: number): Element => {
+		const getDayElement = (index: number, day: number): Element => {
 			let name = sheet.GetRow(index).employee.name
 			let row = context.refs[name] as Vue[]; // WARNING: refs depracated
 
@@ -108,76 +43,58 @@ export default defineComponent({
 			return getDayElement(id, day).getBoundingClientRect();
 		}
 
-        const updateSelectedRects = () => {
-			if (drag.employee_index === -1) return;
-			selection_rects.start = getBounds(selection_start.value);
-			selection_rects.end = getBounds(selection_end.value);
-        }
+		// Selection
+		const popover = ref(false)
+		const selectionObj = compSelection(sheet, popover, getBounds);
+		const {drag, dragEndEmpty, moveSelection, updateRects} = selectionObj;
 
-        ipcRenderer.on("zoom", () => {
-            updateSelectedRects();
-        })
+		const undo = useActions(["undo"]).undo
+		const redo = useActions(["redo"]).redo
 
-        // Move with arrows
-        const table = ref<Element>(); // <div ref="table">
-
-        const setTableScroll = (left: number, top: number): void => {
-            if (table.value) {
-                table.value.scrollLeft += left
-                table.value.scrollTop += top
-            }
-        }
-
-        const arrowKeyDown = (e: KeyboardEvent): void => {
-        	const bindings = {
-        		"ArrowRight": [1, 0],
-        		"ArrowLeft": [-1, 0],
-        		"ArrowUp": [0, -1],
-        		"ArrowDown": [0, 1]
-        	}
-        	const bind = Object.entries(bindings).find(b => b[0] == e.key)
-        	if (bind) {
-        		const [dx, dy] = bind[1] as [number, number]
-        		if (e.ctrlKey) {
-        			setTableScroll(dx * 40, dy * 40)
-        		} else {
-
-        			drag.end = clamp(drag.end + dx, 1, sheet.month_length)
-        			if (e.shiftKey == false)
-        				drag.start = drag.end;
-
-        			drag.employee_index = clamp(drag.employee_index + dy, 0, sheet.schedule.length - 1)
-        			updateSelectedRects()
-        		}
-        	}
-        }
-
-        // Undo - redo
-
-        const undo = useActions(["undo"]).undo
-        const redo = useActions(["redo"]).redo
-        const undoRedoKeydown = (e: KeyboardEvent): void => {
-            if(e.ctrlKey){
-				if(e.key == "z") undo(); // CTRL + Z
-				if(e.key == "y") redo(); // CTRL + Y
+		const keydown = (e: KeyboardEvent): void => {
+			const bindings = {
+				"ArrowRight": [1, 0],
+				"ArrowLeft": [-1, 0],
+				"ArrowUp": [0, -1],
+				"ArrowDown": [0, 1]
 			}
-        }
-        // Without throttling, holding down arrow keys makes the cursor move unreasonably fast,
+			if (e.ctrlKey) {
+				if (e.key == "z") undo(); // CTRL + Z
+				if (e.key == "y") redo(); // CTRL + Y
+			}
+			const bind = Object.entries(bindings).find(b => b[0] == e.key)
+			if (bind) {
+				const [dx, dy] = bind[1] as [number, number]
+				if (e.ctrlKey) {
+					setTableScroll(dx * 40, dy * 40)
+				} else {
+					moveSelection(dx, dy, e)
+				}
+			}
+		}
+		// Without throttling, holding down arrow keys makes the cursor move unreasonably fast,
 		// but scrolling unreasonably slow (when combined with smooth scrolling)
-        const keydown = throttle((e: KeyboardEvent): void => {
-			undoRedoKeydown(e);
-            arrowKeyDown(e);
-		}, 100)
-        window.addEventListener("keydown", keydown);
-        onUnmounted(() => window.removeEventListener("keydown", keydown))
+		let keydownThrottled = throttle(keydown, 100);
+		window.addEventListener("keydown", keydownThrottled);
+		onUnmounted(() => window.removeEventListener("keydown", keydownThrottled))
 
-        const scroll = debounce(updateSelectedRects, 50);
+		window.addEventListener("mouseup", dragEndEmpty);
+		onUnmounted(() => window.removeEventListener("mouseup", dragEndEmpty))
 
-        // Styling
+		const table_wrapper = ref<Element>(); // <div ref="table">
+		const setTableScroll = (left: number, top: number): void => {
+			if (table_wrapper.value) {
+				table_wrapper.value.scrollLeft += left
+				table_wrapper.value.scrollTop += top
+			}
+		}
+		const scroll = debounce(updateRects, 50);
 
-        const right_side_headers = computed((): string[] => {
+		// Styling
+		const right_side_headers = computed((): string[] => {
 			return accumulators.map(a => a.label)
 		})
+		
 		//Having this as computed so it's cached and doesn't run on every render
 		const header_styles = computed((): Array<any> => {
 			return accumulators.map((a, i) => ({
@@ -186,6 +103,7 @@ export default defineComponent({
 				right: (accumulators.length - 1 - i) * 3 + "em" //right side sticky columns
 			}))
 		})
+
 		const day_header_style = computed((): Array<any> => {
 			return new Array(sheet.month_length).fill(1).map((a, i) => ({
 				backgroundColor: isWeekend(new Date(sheet.year, sheet.month, i + 1)) ?
@@ -193,43 +111,30 @@ export default defineComponent({
 			}))
 		})
 
-        return {
-            sheet,
-            popover,
-            drag,
-            drag_employee,
-            dragStart,
-            dragEnter,
-            dragEnd,
-            dragEndEmpty,
-            deselect,
-            selection_rects,
-            selection_start,
-            selection_end,
-            selection,
-            updateSelectedRects,
-            scroll,
-            undo,
-            redo,
-            right_side_headers,
-            header_styles,
-            day_header_style,
-            table,
-        }
-    },
+		return {
+			staffCount: ref(4),
+			sheet,
+			popover,
+			...selectionObj,
+			scroll,
+			undo, redo,
+			right_side_headers, header_styles, day_header_style,
+			table_wrapper,
+		}
+	},
 	created() {
 		if (this.$store.getters['staff/count'] < 1) {
 			this.$store.commit("staff/add_employee", "Példa János_Lusta");
-			this.$store.commit("staff/add_employee", "Példa János_Lusta2");
 			this.$store.dispatch("staff/add", "Példa János");
 			this.$store.dispatch("staff/add", "Példa János2");
 			this.$store.dispatch("staff/add", "Példa János3");
 		}
+		this.staffCount = this.$store.getters['staff/count'];
 	},
 	methods: {
 		add() {
-			this.$store.dispatch("staff/add", "Példa János" + this.x);
-			this.x++;
+			this.$store.dispatch("staff/add", "Példa János" + this.staffCount);
+			this.staffCount++;
 		},
 		setShift({ start, duration }: { start: number, duration: number }) {
 			for (let i of this.selection) {
@@ -257,7 +162,7 @@ export default defineComponent({
 			@set-type="setType"
 			:selected_start="selection_rects.start"
 			:selected_end="selection_rects.end"></popover>
-		<div class="table-wrapper" @scroll="scroll" ref="table">
+		<div class="table-wrapper" @scroll="scroll" ref="table_wrapper">
 			<table fixed-header class="table">
 				<thead>
 					<tr>
