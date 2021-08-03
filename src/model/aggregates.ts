@@ -117,35 +117,10 @@ export class StartTimeCount {
     }
 }
 
-// export function CountStartingTimes(sheet: Sheet): Array<StartTimeCount> {
-//     let result = new Array<StartTimeCount>()
-
-//     sheet.schedule.forEach(row => {
-//         for (let i = 0; i < sheet.month_length; i++) {
-//             let day = row.GetDay(i + 1);
-
-//             if (day.type == DayType.shift) {
-//                 let start = day.start;
-//                 let counter_row = result.find(e => e.hour == start)
-
-//                 if (!counter_row) {
-//                     counter_row = new StartTimeCount(start, sheet.month_length)
-//                     result.push(counter_row)
-//                 }
-
-//                 counter_row.counts[i] += 1
-//             }
-//         }
-//     })
-
-//     return result.sort((a, b) => a.hour - b.hour);
-// }
-
-
 export function CountStartingTimes(sheet: Sheet): Map<number, number[]> {
     let counter = new Map<number, number[]>()
 
-    sheet.schedule.forEach(row => {
+    for (const row of sheet.schedule) {
         for (let i = 0; i < sheet.month_length; i++) {
             let day = row.GetDay(i + 1);
             if (day.type != DayType.shift) continue;
@@ -154,7 +129,7 @@ export function CountStartingTimes(sheet: Sheet): Map<number, number[]> {
             if (!counter.has(start)) counter.set(start, new Array(sheet.month_length).fill(0))
             counter.get(start)![i] += 1
         }
-    })
+    }
 
     return new Map([...counter].sort((a, b) => a[0] - b[0])); //Sort ascending by hour
 }

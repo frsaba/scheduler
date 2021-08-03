@@ -1,6 +1,6 @@
 <script lang="ts">
 import Vue from "vue";
-import { computed, defineComponent, onUnmounted, ref } from "@vue/composition-api";
+import { computed, defineComponent, onUnmounted, ref, watch } from "@vue/composition-api";
 import { useActions, useState } from "vuex-composition-helpers";
 
 import { throttle, debounce } from "lodash";
@@ -12,7 +12,9 @@ import { accumulators } from "@/model/aggregates"
 import { Sheet } from "@/model/schedule-sheet";
 import { FontColorFromBackground } from "@/utils/color-helpers"
 import { isWeekend } from "@/utils/date-helpers"
+import { getCenter, getDistance } from "@/utils/rect-helpers"
 import compSelection from "@/composables/selection"
+import visibilityTracker from "@/composables/visibility-tracker"
 
 export default defineComponent({
 	name: "Monthly",
@@ -46,12 +48,21 @@ export default defineComponent({
 		// Selection
 		const popover = ref(false)
 		const selectionObj = compSelection(sheet, popover, getBounds);
-		const {drag, dragEndEmpty, moveSelection, updateRects} = selectionObj;
+		const { drag, dragEndEmpty, moveSelection, updateRects, selection } = selectionObj;
+
+		const selection_elements = computed(() => selection.value.map(e => getDayElement(drag.employee_index, e)))
+		const cursor = computed(() => (drag.end > 0) ? [getDayElement(drag.employee_index, drag.end)] : [])
+
+		const selection_tracker = visibilityTracker(selection_elements)
+		const cursor_tracker = visibilityTracker(cursor)
+		watch(selection_tracker.anyVisible, (fresh, stale) => {
+			popover.value = fresh
+		})
 
 		const undo = useActions(["undo"]).undo
 		const redo = useActions(["redo"]).redo
 
-		const keydown = (e: KeyboardEvent): void => {
+		const keydown = (e: KeyboardEvent) => {
 			const bindings = {
 				"ArrowRight": [1, 0],
 				"ArrowLeft": [-1, 0],
@@ -68,7 +79,14 @@ export default defineComponent({
 				if (e.ctrlKey) {
 					setTableScroll(dx * 40, dy * 40)
 				} else {
+					const old_distance = getDistance(cursor_tracker.bounds.value, cursor.value[0])
 					moveSelection(dx, dy, e)
+					// console.log(cursor.value[0])
+					const new_distance = getDistance(cursor_tracker.bounds.value, cursor.value[0])
+					
+					if (cursor_tracker.isVisible(cursor.value[0]) == false && new_distance > old_distance) {
+						setTableScroll(dx * 48, dy * 56)
+					}
 				}
 			}
 		}
@@ -82,10 +100,15 @@ export default defineComponent({
 		onUnmounted(() => window.removeEventListener("mouseup", dragEndEmpty))
 
 		const table_wrapper = ref<Element>(); // <div ref="table">
+		const targetscrollTop = ref(0)
+		const targetscrollLeft = ref(0)
 		const setTableScroll = (left: number, top: number): void => {
 			if (table_wrapper.value) {
-				table_wrapper.value.scrollLeft += left
-				table_wrapper.value.scrollTop += top
+				targetscrollTop.value += top
+				table_wrapper.value.scrollTop = targetscrollTop.value
+
+				targetscrollLeft.value += left
+				table_wrapper.value.scrollLeft = targetscrollLeft.value
 			}
 		}
 		const scroll = debounce(updateRects, 50);
@@ -94,7 +117,7 @@ export default defineComponent({
 		const right_side_headers = computed((): string[] => {
 			return accumulators.map(a => a.label)
 		})
-		
+
 		//Having this as computed so it's cached and doesn't run on every render
 		const header_styles = computed((): Array<any> => {
 			return accumulators.map((a, i) => ({
@@ -120,9 +143,14 @@ export default defineComponent({
 			undo, redo,
 			right_side_headers, header_styles, day_header_style,
 			table_wrapper,
+			selection_tracker,
+			cursor,
+			cursor_tracker,
+			targetscrollTop,
+			targetscrollLeft
 		}
 	},
-	created() {
+	mounted() {
 		if (this.$store.getters['staff/count'] < 1) {
 			this.$store.commit("staff/add_employee", "Példa János_Lusta");
 			this.$store.dispatch("staff/add", "Példa János");
@@ -130,6 +158,11 @@ export default defineComponent({
 			this.$store.dispatch("staff/add", "Példa János3");
 		}
 		this.staffCount = this.$store.getters['staff/count'];
+
+		const root = this.$refs.table_wrapper as Element
+		this.selection_tracker.createObserver(root, `-48px -${48 * 6}px 0px  -160px`)
+		this.cursor_tracker.createObserver(root, `-120px -${48 * 6 + 72}px -72px  -232px`, 0.95)
+
 	},
 	methods: {
 		add() {
@@ -161,17 +194,29 @@ export default defineComponent({
 			@set-shift="setShift"
 			@set-type="setType"
 			:selected_start="selection_rects.start"
-			:selected_end="selection_rects.end"></popover>
+			:selected_end="selection_rects.end"
+		></popover>
 		<div class="table-wrapper" @scroll="scroll" ref="table_wrapper">
 			<table fixed-header class="table">
 				<thead>
 					<tr>
 						<th class="text-center nametag">Név</th>
-						<th class="text-center" :style="day_header_style[n - 1]" v-for="n in sheet.month_length" :key="n">
+						<th
+							class="text-center"
+							:style="day_header_style[n - 1]"
+							v-for="n in sheet.month_length"
+							:key="n"
+						>
 							{{ n }}
 						</th>
-						<th class="header-sticky-right acc-header" v-for="(acc, i) in right_side_headers" :key="acc"
-							:style="header_styles[i]">{{acc}}</th>
+						<th
+							class="header-sticky-right acc-header"
+							v-for="(acc, i) in right_side_headers"
+							:key="acc"
+							:style="header_styles[i]"
+						>
+							{{ acc }}
+						</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -180,14 +225,16 @@ export default defineComponent({
 						:key="row.employee.name"
 						:employee_name="row.employee.name"
 						:days="row.days"
-						:selection="i == drag.employee_index ? selection: []"
+						:selection="i == drag.employee_index ? selection : []"
 						:ref="row.employee.name"
 						@day-mouse-down="dragStart(i, $event)"
 						@day-mouse-up="dragEnd(i, $event)"
-						@day-mouse-enter="dragEnter(i, $event)" />
+						@day-mouse-enter="dragEnter(i, $event)"
+					/>
 				</tbody>
 			</table>
 		</div>
+		{{ cursor_tracker.anyVisible }}
 	</div>
 </template>
 

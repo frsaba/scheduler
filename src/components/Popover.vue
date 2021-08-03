@@ -106,10 +106,12 @@ export default Vue.extend({
 		},
 		transition() {
 			//transitions are not normally applied when popover is moved, so visibility is toggled
-			this.$emit('input', false);
-			this.$nextTick(() => {
-				this.$emit('input', true);
-			});
+			if(this.value){
+				this.$emit('input', false);
+				this.$nextTick(() => {
+					this.$emit('input', true);
+				});
+			}
 		},
 	},
 	watch: {
