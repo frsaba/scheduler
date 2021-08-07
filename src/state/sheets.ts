@@ -10,7 +10,7 @@ class State {
     redoStack = new Array<Array<Operation>>();
 }
 
-interface Operation {
+export interface Operation {
     action: string,
     payload: { index: number, day: number, [x: string]: any }
 }
@@ -93,6 +93,7 @@ const sheets: Module<State, {}> = {
 
             }
             dispatch('new_batch') //If a new batch was already started before the undo, we need to restore it
+            return last_batch
 
         },
         redo({ state, dispatch }) {
@@ -103,6 +104,7 @@ const sheets: Module<State, {}> = {
                     dispatch(op.action, { ...op.payload, redo: true })
                 }
             }
+            return batch
 
 
         },

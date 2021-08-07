@@ -43,6 +43,14 @@ export default function (
 		updateRects()
 	}
 
+	const setSelection = (start: number, end: number, employee_index : number): void => {
+		drag.start = clamp(start, 1, sheet.month_length)
+		drag.end = clamp(end, 1, sheet.month_length)
+
+		drag.employee_index = clamp(employee_index, 0, sheet.schedule.length - 1)
+		updateRects()
+	}
+
 	const deselect = () => {
 		drag.employee_index = -1;
 		drag.start = 0;
@@ -57,6 +65,7 @@ export default function (
 		selection_end,
 		selection,
 		selection_rects,
+		setSelection,
 		moveSelection,
 		updateRects
 	}

@@ -3,13 +3,14 @@ import Vue from "vue";
 import { computed, defineComponent, onMounted, onUnmounted, Ref, ref, watch } from "@vue/composition-api";
 import { useActions, useState } from "vuex-composition-helpers";
 
-import { throttle, debounce } from "lodash";
+import { throttle, debounce, last } from "lodash";
 
 import MonthlyRow from "@/components/MonthlyRow.vue";
 import Popover from "@/components/Popover.vue";
 import { DayType } from "@/model/day-types";
 import { accumulators } from "@/model/aggregates"
 import { Sheet } from "@/model/schedule-sheet";
+import { Operation } from "@/state/sheets"
 import { FontColorFromBackground } from "@/utils/color-helpers"
 import { isWeekend } from "@/utils/date-helpers"
 import compSelection from "@/composables/selection"
@@ -47,20 +48,30 @@ export default defineComponent({
 		// Selection
 		const popover = ref(false)
 		const selectionObj = compSelection(sheet, popover, getBounds);
-		const { drag, dragEndEmpty, moveSelection, updateRects, selection } = selectionObj;
+		const { drag, dragEndEmpty, moveSelection, setSelection, deselect, updateRects, selection } = selectionObj;
 
 		const selection_elements = computed(() => selection.value.map(e => getDayElement(drag.employee_index, e)))
 		const cursor_element = computed(() => (drag.end > 0) ? getDayElement(drag.employee_index, drag.end) : null)
 
 		const selection_tracker = visibilityTracker(selection_elements)
-		watch(selection_tracker.anyVisible, (fresh, stale) => {
-			popover.value = fresh
+		watch(selection_tracker.anyVisible, async (fresh, stale) => {
+			popover.value = await fresh
 		})
 
 		const undo = useActions(["undo"]).undo
 		const redo = useActions(["redo"]).redo
 
-		const keydown = (e: KeyboardEvent) => {
+		function scrollBatchIntoView(batch: Operation[]) {
+			if (batch?.length > 0) {
+				deselect()
+				setSelection(batch[0].payload.day, last(batch)!.payload.day, batch[0].payload.index)
+				const affected = batch.map(({ payload }) => getDayElement(payload.index, payload.day))
+
+				context.root.$nextTick(() => selection_tracker.scrollIntoView(affected, setTableScroll.value));
+			}
+		}
+
+		const keydown = async (e: KeyboardEvent) => {
 			const bindings = {
 				"ArrowRight": [1, 0],
 				"ArrowLeft": [-1, 0],
@@ -68,8 +79,14 @@ export default defineComponent({
 				"ArrowDown": [0, 1]
 			}
 			if (e.ctrlKey) {
-				if (e.key == "z") undo(); // CTRL + Z
-				if (e.key == "y") redo(); // CTRL + Y
+				if (e.key.toLowerCase() == "z") {
+					const batch: Operation[] = await undo(); // CTRL + Z
+					scrollBatchIntoView(batch)
+				}
+				if (e.key.toLowerCase()  == "y") {
+					const batch: Operation[] = await redo(); // CTRL + Y
+					scrollBatchIntoView(batch)
+				}
 			}
 			const bind = Object.entries(bindings).find(b => b[0] == e.key)
 			if (bind) {
@@ -78,7 +95,8 @@ export default defineComponent({
 					setTableScroll.value(dx * 40, dy * 40)
 				} else {
 					moveSelection(dx, dy, e)
-					selection_tracker.scrollIntoView(cursor_element.value!, setTableScroll.value)
+					context.root.$nextTick(() => selection_tracker.scrollIntoView(selection_elements.value, setTableScroll.value));
+					
 				}
 			}
 		}
@@ -92,7 +110,7 @@ export default defineComponent({
 		onUnmounted(() => window.removeEventListener("mouseup", dragEndEmpty))
 
 		// const table_wrapper = ref<Element>(); // <div ref="table">
-		let setTableScroll = ref((dx: number, dy: number) => {})
+		let setTableScroll = ref((dx: number, dy: number) => { })
 		const scroll = debounce(updateRects, 50);
 
 		// Styling
