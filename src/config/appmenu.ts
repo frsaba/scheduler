@@ -1,13 +1,10 @@
 import { Menu } from "electron"
-import { ImportSheet, ExportSheet } from "./sheet-io"
+import { ExportSheet } from "./sheet-io"
 
 const template: Electron.MenuItemConstructorOptions[] = [
     {
         label: "File",
         submenu: [{
-            label: "Import",
-            click: ImportSheet
-        }, {
             label: "Export",
             click: ExportSheet
         }]
