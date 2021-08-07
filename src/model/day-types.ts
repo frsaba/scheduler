@@ -1,14 +1,14 @@
-import vuetify from "@/plugins/vuetify";
+import colors from 'vuetify/lib/util/colors'
 
 export enum DayType {
-    shift,
-    paid,
-    unpaid,
-    holiday,
-    weekend,
-    rest,
-    sick,
-    empty
+	shift,
+	paid,
+	unpaid,
+	holiday,
+	weekend,
+	rest,
+	sick,
+	empty
 }
 
 export interface DayTypeDescription {
@@ -18,15 +18,13 @@ export interface DayTypeDescription {
 	label: string
 }
 
-let theme = vuetify.userPreset.theme?.themes?.light
-
 export const DayTypeDescriptions = [
-    { type: "shift", 	color: theme?.shift,         desc: "Műszak",             	label: "M"},
-    { type: "paid", 	color: theme?.paid,          desc: "Fizetett szabadság", 	label: "FSZ"  },
-    { type: "unpaid", 	color: theme?.unpaid,        desc: "Szabadnap", 	        label: "SZ/P" },
-    { type: "holiday", 	color: theme?.holiday,       desc: "Fizetett ünnep",     	label: "FÜ"   },
-    { type: "weekend", 	color: theme?.free_weekend,  desc: "Szabad hétvége",     	label: "SZH"  },
-    { type: "rest", 	color: theme?.rest,          desc: "Pihenőnap", 	        label: "*"    },
-    { type: "sick", 	color: theme?.sick, 	     desc: "Táppénz", 				label: "TP"   },
-    { type: "empty", 	color: theme?.empty,         desc: "Üres", 			    	label: "-"    }
+	{ type: "shift",		color: "#FFFFFF",			desc: "Műszak",				label: "M"		},
+	{ type: "paid",			color: "#FFC107",			desc: "Fizetett szabadság",	label: "FSZ"	},
+	{ type: "unpaid",		color: colors.green.base,	desc: "Szabadnap",			label: "SZ/P"	},
+	{ type: "holiday",		color: colors.purple.base,	desc: "Fizetett ünnep",		label: "FÜ"		},
+	{ type: "free_weekend", color: "#007BFF",			desc: "Szabad hétvége",		label: "SZH"	},
+	{ type: "rest",			color: colors.indigo.base,	desc: "Pihenőnap",			label: "*"		},
+	{ type: "sick",			color: colors.pink.base,	desc: "Táppénz",			label: "TP"		},
+	{ type: "empty",		color: "#FFFFFF",			desc: "Üres", 				label: "-"		}
 ] as DayTypeDescription[]
