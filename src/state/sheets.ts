@@ -18,18 +18,22 @@ export interface Operation {
 const sheets: Module<State, {}> = {
     state: new State,
     mutations: {
-        add_row(state, payload) {
-            state.sheet.AddRow(payload)
+        add_row({ sheet }, payload) {
+            sheet.AddRow(payload)
         },
-        set_shift(context, { index, day, start, duration }) {
-            context.sheet.GetRow(index).SetShift(day, start, duration);
+        set_shift({ sheet }, { index, day, start, duration }) {
+            sheet.GetRow(index).SetShift(day, start, duration);
         },
-        delete_shift(context, { index, day }) {
-            context.sheet.GetRow(index).DeleteShift(day);
+        delete_shift({ sheet }, { index, day }) {
+            sheet.GetRow(index).DeleteShift(day);
         },
-        set_type(context, { index, day, type }) {
-            context.sheet.GetRow(index).GetDay(day).SetType(type);
+        set_type({ sheet }, { index, day, type }) {
+            sheet.GetRow(index).GetDay(day).SetType(type);
         },
+        remove_employee({ sheet }, payload) {
+            let i = sheet.schedule.findIndex(r => r.employee.name == payload)
+            sheet.schedule.splice(i,1)
+        }
     },
     actions: {
         add(context, payload): void {

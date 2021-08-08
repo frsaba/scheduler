@@ -1,4 +1,4 @@
-class Staff {
+export class Staff {
     employees: Array<Employee> = new Array()
     Add(name: string) {
         this.employees.push(new Employee(name, this.employees.length))
