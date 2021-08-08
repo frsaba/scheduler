@@ -3,6 +3,7 @@ import { DayType, DayTypeDescription, DayTypeDescriptions } from "@/model/day-ty
 import { Lighten } from "@/utils/color-helpers"
 
 export interface Aggregate {
+	name: string,
     label: string,
     header_color: string,
     background_color: string,
@@ -14,11 +15,13 @@ export class DayTypeCounter implements Aggregate {
     desc: DayTypeDescription
     constructor(
         types: DayType | DayType[],
+		public name: string = '',
         public label: string = '',
         public header_color: string = '',
         public background_color: string = ''
     ) {
         this.types = ([] as DayType[]).concat(types)
+		this.name = DayTypeDescriptions[this.types[0]].type
         this.desc = DayTypeDescriptions[this.types[0]]
         this.background_color = background_color || Lighten(this.desc.color, 175)
         this.label = label || this.desc.label
@@ -35,6 +38,7 @@ export class DayTypeCounter implements Aggregate {
 export class TotalHours implements Aggregate {
     desc = DayTypeDescriptions[DayType.shift]
     constructor(
+		public name: string,
         public label: string,
         public header_color: string,
         public background_color: string,
@@ -54,6 +58,7 @@ export class TotalHours implements Aggregate {
 export class ShiftVariety implements Aggregate {
     static differencePercentage: number = 33;
     constructor(
+		public name: string,
         public label: string,
         public header_color: string,
         public background_color: string,
@@ -75,6 +80,7 @@ export class ShiftVariety implements Aggregate {
 class SomeShortShifts implements Aggregate {
     desc = DayTypeDescriptions[DayType.shift]
     constructor(
+		public name: string,
         public label: string,
         public header_color: string,
         public background_color: string,
@@ -96,9 +102,9 @@ interface GlobalAssertion {
 }
 
 export const accumulators: Array<Aggregate> = [
-    new TotalHours("Össz. óra", "#FFFFFF", "#FFFFFF"),
-    new ShiftVariety("33%", "#FFFFFF", "#FFFFFF"),
-    new SomeShortShifts("2x8", "#FFFFFF", "#FFFFFF"),
+    new TotalHours("totalHours", "Össz. óra", "#FFFFFF", "#FFFFFF"),
+    new ShiftVariety("shiftVariety", "33%", "#FFFFFF", "#FFFFFF"),
+    new SomeShortShifts("someShortShifts", "2x8", "#FFFFFF", "#FFFFFF"),
     ...[DayType.paid, DayType.sick, [DayType.unpaid, DayType.weekend]].map(t => new DayTypeCounter(t)),
 ]
 

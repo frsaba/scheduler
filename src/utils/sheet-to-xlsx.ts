@@ -1,7 +1,7 @@
 import Excel from 'exceljs';
 import { Sheet } from "@/model/schedule-sheet";
 import _ from "lodash"
-import { CountStartingTimes } from "@/model/aggregates"
+import { accumulators, CountStartingTimes } from "@/model/aggregates"
 import { DayType, DayTypeDescriptions } from '@/model/day-types';
 
 type BindingMap = Map<string, (...args: any[]) => Excel.CellValue>
@@ -102,6 +102,9 @@ export default async function replaceTemplate(template: Excel.Worksheet, sheet: 
 			else
 				return ""
 		}],
+		...accumulators.map(x =>
+			[x.name, () => x.evaluate(sheet.GetRow(currentScheduleRow).days)]
+		) as [string, (...args: any[]) => Excel.CellValue][],
 	])
 
 	template.eachRow((row, i) => {
@@ -134,6 +137,8 @@ function replaceTemplateCell(cell: Excel.Cell, bindings: BindingMap) {
 			if (func) {
 				let retVal = func(cell, ...obj[key]);
 				if (retVal == null) retVal = ""
+				if (typeof retVal === "boolean")
+					retVal = retVal ? 'OK' : '!'
 
 				// If the template is the only thing in the string keep the return type
 				if (cell.value.length === match.length + 1)
