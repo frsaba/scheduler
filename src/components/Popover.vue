@@ -74,13 +74,13 @@ export default Vue.extend({
 		},
 		//if user changes the start, keep duration the same and set shift_end accordingly
 		inputStart() {
-			this.shift_start = Math.abs(this.shift_start + 24) % 24;
+			this.shift_start = Math.round(Math.abs(this.shift_start + 24)) % 24;
 			this.shift_end = (this.shift_duration + this.shift_start) % 24;
 			this.setShift(false);
 		},
 		//if user changes end, decrease duration and keep shift_start the same
 		inputEnd() {
-			this.shift_end = Math.abs(this.shift_end + 24) % 24;
+			this.shift_end = Math.round(Math.abs(this.shift_end + 24)) % 24;
 			this.shift_duration = (this.shift_start < this.shift_end ? 0 : 24) + this.shift_end - this.shift_start;
 			this.setShift(false)
 		},

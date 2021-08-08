@@ -34,7 +34,7 @@ export default Vue.extend({
 			this.$emit('click', this.type)
 		},
 		keydown(e: KeyboardEvent) {
-			if (e.key == this.accelerator) {
+			if (e.key.toLowerCase() == this.accelerator.toLowerCase()) {
 				this.click();
 			}
 		}

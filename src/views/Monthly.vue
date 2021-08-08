@@ -54,9 +54,9 @@ export default defineComponent({
 		const cursor_element = computed(() => (drag.end > 0) ? getDayElement(drag.employee_index, drag.end) : null)
 
 		const selection_tracker = visibilityTracker(selection_elements)
-		watch(selection_tracker.anyVisible, async (fresh, stale) => {
-			popover.value = await fresh
-		})
+		// watch(selection_tracker.anyVisible, async (fresh, stale) => {
+		// 	popover.value = await fresh
+		// })
 
 		const undo = useActions(["undo"]).undo
 		const redo = useActions(["redo"]).redo
