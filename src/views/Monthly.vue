@@ -7,6 +7,7 @@ import { throttle, debounce, last } from "lodash";
 
 import MonthlyRow from "@/components/MonthlyRow.vue";
 import Popover from "@/components/Popover.vue";
+import BasePopover from "@/components/BasePopover.vue";
 import { DayType } from "@/model/day-types";
 import { accumulators } from "@/model/aggregates"
 import { Sheet } from "@/model/schedule-sheet";
@@ -21,6 +22,7 @@ export default defineComponent({
 	components: {
 		MonthlyRow,
 		Popover,
+		BasePopover,
 	},
 	setup(props, context) {
 		const sheet: Sheet = useState(["sheets"]).sheets.value.sheet;
@@ -40,15 +42,10 @@ export default defineComponent({
 			return currDay.$el;
 		}
 
-		const getBounds = (day: number, id = -1): DOMRect => {
-			if (id < 0) id = drag.employee_index;
-			return getDayElement(id, day).getBoundingClientRect();
-		}
-
 		// Selection
 		const popover = ref(false)
-		const selectionObj = compSelection(sheet, popover, getBounds);
-		const { drag, dragEndEmpty, moveSelection, setSelection, deselect, updateRects, selection } = selectionObj;
+		const selectionObj = compSelection(sheet, popover);
+		const { drag, dragEndEmpty, moveSelection, setSelection, deselect, selection } = selectionObj;
 
 		const selection_elements = computed(() => selection.value.map(e => getDayElement(drag.employee_index, e)))
 		const cursor_element = computed(() => (drag.end > 0) ? getDayElement(drag.employee_index, drag.end) : null)
@@ -83,7 +80,7 @@ export default defineComponent({
 					const batch: Operation[] = await undo(); // CTRL + Z
 					scrollBatchIntoView(batch)
 				}
-				if (e.key.toLowerCase()  == "y") {
+				if (e.key.toLowerCase() == "y") {
 					const batch: Operation[] = await redo(); // CTRL + Y
 					scrollBatchIntoView(batch)
 				}
@@ -96,7 +93,7 @@ export default defineComponent({
 				} else {
 					moveSelection(dx, dy, e)
 					context.root.$nextTick(() => selection_tracker.scrollIntoView(selection_elements.value, setTableScroll.value));
-					
+
 				}
 			}
 		}
@@ -111,7 +108,8 @@ export default defineComponent({
 
 		// const table_wrapper = ref<Element>(); // <div ref="table">
 		let setTableScroll = ref((dx: number, dy: number) => { })
-		const scroll = debounce(updateRects, 50);
+		// @ts-ignore
+		const scroll = throttle(() => { context.refs.base.updateRects() }, 50);
 
 		// Styling
 		const right_side_headers = computed((): string[] => {
@@ -136,7 +134,7 @@ export default defineComponent({
 				else
 					backgroundColor = `var(--v-header-${isWeekend(date) ? "weekend" : "weekday"}-base)`
 
-				return {backgroundColor}
+				return { backgroundColor }
 			})
 		})
 
@@ -149,6 +147,7 @@ export default defineComponent({
 			undo, redo,
 			right_side_headers, header_styles, day_header_style,
 			selection_tracker,
+			selection_elements,
 			cursor_element,
 			setTableScroll
 		}
@@ -165,7 +164,6 @@ export default defineComponent({
 		const root = this.$refs.table_wrapper as Element
 		this.setTableScroll = root.scrollBy.bind(root)
 		this.selection_tracker.createObserver(root, `-48px -${48 * 6}px 0px  -160px`)
-
 	},
 	methods: {
 		add() {
@@ -196,9 +194,8 @@ export default defineComponent({
 			@close="deselect"
 			@set-shift="setShift"
 			@set-type="setType"
-			:selected_start="selection_rects.start"
-			:selected_end="selection_rects.end"
-		></popover>
+			:selection_elements="selection_elements"
+			ref="base"></popover>
 		<div class="table-wrapper" @scroll="scroll" ref="table_wrapper">
 			<table fixed-header class="table">
 				<thead>
@@ -208,16 +205,14 @@ export default defineComponent({
 							class="text-center"
 							:style="day_header_style[n - 1]"
 							v-for="n in sheet.month_length"
-							:key="n"
-						>
+							:key="n">
 							{{ n }}
 						</th>
 						<th
 							class="header-sticky-right acc-header"
 							v-for="(acc, i) in right_side_headers"
 							:key="acc"
-							:style="header_styles[i]"
-						>
+							:style="header_styles[i]">
 							{{ acc }}
 						</th>
 					</tr>
@@ -232,8 +227,7 @@ export default defineComponent({
 						:ref="row.employee.name"
 						@day-mouse-down="dragStart(i, $event)"
 						@day-mouse-up="dragEnd(i, $event)"
-						@day-mouse-enter="dragEnter(i, $event)"
-					/>
+						@day-mouse-enter="dragEnter(i, $event)" />
 				</tbody>
 			</table>
 		</div>

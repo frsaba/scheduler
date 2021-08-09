@@ -2,29 +2,12 @@ import { computed, reactive, ref, Ref } from "@vue/composition-api"
 import dragComp from "./drag"
 import { clamp } from "lodash"
 import { Sheet } from "@/model/schedule-sheet";
-import { ipcRenderer } from "electron";
 
 export default function (
 	sheet: Sheet,
-	popover: Ref<boolean>,
-	bounds: (day: number, id?: number) => DOMRect) 
+	popover: Ref<boolean>) 
 {
-	const selection_rects = reactive({
-		start: new DOMRect(),
-		end: new DOMRect()
-	});
-
-	const updateRects = () => {
-		if (drag.employee_index === -1) return;
-		selection_rects.start = bounds(selection_start.value);
-		selection_rects.end = bounds(selection_end.value);
-	}
-
-	ipcRenderer.on("zoom", () => {
-		updateRects();
-	})
-
-	const dragObj = dragComp(updateRects, popover), {drag} = dragObj;
+	const dragObj = dragComp(popover), {drag} = dragObj;
 
 	const selection_start = computed(() => Math.min(drag.start, drag.end))
 	const selection_end = computed(() => Math.max(drag.start, drag.end))
@@ -40,7 +23,6 @@ export default function (
 			drag.start = drag.end;
 
 		drag.employee_index = clamp(drag.employee_index + dy, 0, sheet.schedule.length - 1)
-		updateRects()
 	}
 
 	const setSelection = (start: number, end: number, employee_index : number): void => {
@@ -48,7 +30,6 @@ export default function (
 		drag.end = clamp(end, 1, sheet.month_length)
 
 		drag.employee_index = clamp(employee_index, 0, sheet.schedule.length - 1)
-		updateRects()
 	}
 
 	const deselect = () => {
@@ -64,9 +45,7 @@ export default function (
 		selection_start,
 		selection_end,
 		selection,
-		selection_rects,
 		setSelection,
-		moveSelection,
-		updateRects
+		moveSelection
 	}
 }

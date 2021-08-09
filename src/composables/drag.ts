@@ -1,6 +1,6 @@
-import {ref, Ref, reactive} from "@vue/composition-api"
+import {Ref, reactive} from "@vue/composition-api"
 
-export default function drag(rectUpdate: Function, popover: Ref<boolean>) {
+export default function drag(popover: Ref<boolean>) {
 	const drag = reactive({
 		start: 0, end: 0, employee_index: -1, dragging: false
 	});
@@ -22,7 +22,6 @@ export default function drag(rectUpdate: Function, popover: Ref<boolean>) {
 			drag.end = day;
 			popover.value = true;
 		}
-		rectUpdate();
 		drag.dragging = false;
 	}
 	const dragEndEmpty = () => {
