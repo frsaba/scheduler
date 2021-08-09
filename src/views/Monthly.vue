@@ -12,7 +12,7 @@ import { accumulators } from "@/model/aggregates"
 import { Sheet } from "@/model/schedule-sheet";
 import { Operation } from "@/state/sheets"
 import { FontColorFromBackground } from "@/utils/color-helpers"
-import { isWeekend } from "@/utils/date-helpers"
+import { isWeekend, isHoliday } from "@/utils/date-helpers"
 import compSelection from "@/composables/selection"
 import visibilityTracker from "@/composables/visibility-tracker"
 
@@ -128,10 +128,16 @@ export default defineComponent({
 		})
 
 		const day_header_style = computed((): Array<any> => {
-			return new Array(sheet.month_length).fill(1).map((a, i) => ({
-				backgroundColor: isWeekend(new Date(sheet.year, sheet.month, i + 1)) ?
-					"var(--v-header-weekend-base)" : "var(--v-header-weekday-base)",
-			}))
+			return new Array(sheet.month_length).fill(1).map((a, i) => {
+				let date = new Date(sheet.year, sheet.month - 1, i + 1)
+				let backgroundColor;
+				if (isHoliday(date))
+					backgroundColor = `var(--v-holiday-base)`
+				else
+					backgroundColor = `var(--v-header-${isWeekend(date) ? "weekend" : "weekday"}-base)`
+
+				return {backgroundColor}
+			})
 		})
 
 		return {

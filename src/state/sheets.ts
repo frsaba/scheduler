@@ -5,7 +5,7 @@ import { isNight } from "@/utils/date-helpers"
 import _, { last } from "lodash";
 
 class State {
-    sheet: Sheet = new Sheet(2021, 2);
+    sheet: Sheet = new Sheet(2021, 3);
     undoStack = new Array<Array<Operation>>();
     redoStack = new Array<Array<Operation>>();
 }

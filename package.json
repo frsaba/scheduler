@@ -16,6 +16,7 @@
     "@mdi/font": "5.9.55",
     "@vue/composition-api": "^1.0.4",
     "core-js": "^3.6.5",
+    "date-holidays": "^3.8.3",
     "exceljs": "^4.2.1",
     "global": "^4.4.0",
     "roboto-fontface": "*",

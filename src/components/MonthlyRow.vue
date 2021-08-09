@@ -1,7 +1,7 @@
 <script lang="ts">
 import Vue from "vue";
 import ScheduleDayComponent from "@/components/ScheduleDay.vue";
-import { accumulators, Aggregate, DayTypeCounter } from "@/model/aggregates"
+import { accumulators, Aggregate } from "@/model/aggregates"
 import { ScheduleDay } from "@/model/schedule-sheet";
 export default Vue.extend({
 	name: "Monthlyrow",
