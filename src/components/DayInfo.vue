@@ -65,10 +65,5 @@ export default defineComponent({
 	padding: 1em;
 	display: flex;
 	flex-direction: column;
-	/* border: 1px solid grey; */
-	transition-property: width, height;
-	transition-duration: 1000ms;
-	/* transition-timing-function: ease-in; */
-	transition-delay: 0ms,
 }
 </style>

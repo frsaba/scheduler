@@ -22,7 +22,7 @@ export default defineComponent({
 			default: 10
 		}
 	},
-	setup(props, context) {
+	setup(props, { root }) {
 		// TODO: (maybe) average x, lowest y
 		let targetStartRect = ref(new DOMRect());
 		let targetEndRect = ref(new DOMRect());
@@ -31,6 +31,15 @@ export default defineComponent({
 			if (props.targets.length === 0) return;
 			targetStartRect.value = _.first(props.targets)!.getBoundingClientRect()
 			targetEndRect.value = _.last(props.targets)!.getBoundingClientRect()
+		}
+
+		const popover = ref() // Template ref to popover
+
+		let updateDimensions = () => {
+			// console.log(popover)
+			let rect = popover.value?.getBoundingClientRect();
+			popoverWidth.value = rect?.width ?? 0;
+			popoverHeight.value = rect?.height ?? 0;
 		}
 
 		ipcRenderer.on("zoom", updateRects)
@@ -69,19 +78,15 @@ export default defineComponent({
 			}
 		})
 
-		watch(() => props.targets, updateRects)
+		watch(() => props.targets, () => { 
+			updateRects()
+			root.$nextTick(updateDimensions)
+		})
 
 		return {
-			x, y, style, popoverWidth, popoverHeight, updateRects
+			x, y, style, popoverWidth, popoverHeight, updateRects, popover
 		}
 	},
-	mounted() {
-		setTimeout(() => {
-			let rect = (this.$refs.popover as Element)?.getBoundingClientRect();
-			this.popoverWidth = rect.width;
-			this.popoverHeight = rect.height;
-		}, 1000)
-	}
 })
 </script>
 
@@ -97,8 +102,6 @@ export default defineComponent({
 	z-index: 1000;
 	transition-property: left, top, visibility, opacity;
 	transition-duration: 300ms;
-	/* transition-timing-function: ease-in; */
 	transition-delay: 0ms, 0ms, 100ms, 100ms;
-	/* transition-timing-function: ease-in-out; */
 }
 </style>
