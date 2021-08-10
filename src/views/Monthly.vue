@@ -8,6 +8,7 @@ import { throttle, debounce, last } from "lodash";
 import MonthlyRow from "@/components/MonthlyRow.vue";
 import Popover from "@/components/Popover.vue";
 import BasePopover from "@/components/BasePopover.vue";
+import DayInfo from "@/components/DayInfo.vue"
 import { DayType } from "@/model/day-types";
 import { accumulators } from "@/model/aggregates"
 import { Sheet } from "@/model/schedule-sheet";
@@ -23,6 +24,7 @@ export default defineComponent({
 		MonthlyRow,
 		Popover,
 		BasePopover,
+		DayInfo
 	},
 	setup(props, context) {
 		const sheet: Sheet = useState(["sheets"]).sheets.value.sheet;
@@ -54,6 +56,9 @@ export default defineComponent({
 		// watch(selection_tracker.anyVisible, async (fresh, stale) => {
 		// 	popover.value = await fresh
 		// })
+
+		const dayinfo = ref(false)
+		const dayinfotarget = ref()
 
 		const undo = useActions(["undo"]).undo
 		const redo = useActions(["redo"]).redo
@@ -142,6 +147,8 @@ export default defineComponent({
 			staffCount: ref(4),
 			sheet,
 			popover,
+			dayinfo,
+			dayinfotarget,
 			...selectionObj,
 			scroll,
 			undo, redo,
@@ -180,6 +187,9 @@ export default defineComponent({
 				this.$store.dispatch('set_type', { index: this.drag.employee_index, day: i, type })
 			}
 		},
+		setDayInfoTarget(e : Event){
+			this.dayinfotarget = [e.target as Element]
+		}
 	},
 });
 </script>
@@ -196,6 +206,8 @@ export default defineComponent({
 			@set-type="setType"
 			:selection_elements="selection_elements"
 			ref="base"></popover>
+
+			<day-info :value="dayinfo" :targets="dayinfotarget" />
 		<div class="table-wrapper" @scroll="scroll" ref="table_wrapper">
 			<table fixed-header class="table">
 				<thead>
@@ -205,7 +217,9 @@ export default defineComponent({
 							class="text-center"
 							:style="day_header_style[n - 1]"
 							v-for="n in sheet.month_length"
-							:key="n">
+							:key="n"
+							@mouseenter="dayinfotarget = [$event.target]; dayinfo = true"
+							@mouseleave="dayinfo = false">
 							{{ n }}
 						</th>
 						<th
@@ -271,6 +285,10 @@ thead th {
 	background: #000;
 	color: #fff;
 	z-index: 1;
+}
+
+thead th:hover {
+	filter:invert(15%)
 }
 
 thead th:first-child {

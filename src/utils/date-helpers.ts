@@ -14,12 +14,18 @@ export function isWeekend(date: Date): boolean {
 let holidayCache = new Map<number, HolidaysTypes.Holiday[]>()
 
 export function isHoliday(date: Date, filter = (x: HolidaysTypes.Holiday) => x.type === "public") {
-	let year = date.getFullYear()
-	if (!holidayCache.has(year))
-		holidayCache.set(year, new Holidays("HU").getHolidays(year).filter(filter))
-	
-	let holidays = holidayCache.get(year)!
-	return holidays.some(x => x.start <= date && x.end > date)
+    return getHoliday(date, filter) != undefined
+}
+
+function getHolidaysFromCache(year: number) {
+    if (!holidayCache.has(year))
+        holidayCache.set(year, new Holidays("HU").getHolidays(year))
+    return holidayCache.get(year)!
+}
+
+export function getHoliday(date: Date, filter = (x: HolidaysTypes.Holiday) => true) {
+    let holidays = getHolidaysFromCache(date.getFullYear())
+    return holidays.filter(filter).find(h => h.start <= date && h.end > date)
 }
 
 export function isDay(date: Date, weekday: number): boolean {
