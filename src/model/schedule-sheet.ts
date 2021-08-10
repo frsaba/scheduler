@@ -10,7 +10,7 @@ export class Sheet {
         this.month_length = daysInMonth(year, month)
     }
     AddRow(employee: string | number) {
-        this.schedule.push(new ScheduleRow(staff.GetEmployee(employee), this.month_length))
+        this.schedule.push(new ScheduleRow(this, staff.GetEmployee(employee), this.month_length))
     }
     GetRow(employee: string | number): ScheduleRow {
         
@@ -28,7 +28,11 @@ export class Sheet {
 export class ScheduleRow {
     // employee_name : string
     days: Array<ScheduleDay>
-    constructor(public employee: Employee, length: number) {
+    constructor(
+		public sheet: Sheet,
+		public employee: Employee, 
+		length: number
+	) {
         // this.employee_name = employee_name
         this.days = [...Array(length).keys()].map(d => new ScheduleDay())
     }

@@ -15,7 +15,7 @@ export default Vue.extend({
 		<pane min-size="50">
 			<monthly />
 		</pane>
-		<pane>
+		<pane size="20">
 			<splitpanes horizontal>
 				<pane>
 					<global-counters/>

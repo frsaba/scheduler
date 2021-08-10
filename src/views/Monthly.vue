@@ -31,7 +31,7 @@ export default defineComponent({
 
 		const getDayElement = (index: number, day: number): Element => {
 			let name = sheet.GetRow(index).employee.name
-			let row = context.refs[name] as Vue[]; // WARNING: refs depracated
+			let row = context.refs[name] as Vue[];
 
 			let currDay = row[0].$children.find((e) => {
 				if (!e.$props.day)
@@ -235,8 +235,7 @@ export default defineComponent({
 					<monthly-row
 						v-for="(row, i) in sheet.schedule"
 						:key="row.employee.name"
-						:employee_name="row.employee.name"
-						:days="row.days"
+						:row="row"
 						:selection="i == drag.employee_index ? selection : []"
 						:ref="row.employee.name"
 						@day-mouse-down="dragStart(i, $event)"

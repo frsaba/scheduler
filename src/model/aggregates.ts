@@ -91,29 +91,11 @@ class SomeShortShifts implements Aggregate {
 
 }
 
-interface RowAssertion {
-    label: string,
-    assert: (row: ScheduleRow) => boolean
-}
-
-interface GlobalAssertion {
-    label: string,
-    assert: (sheet: Sheet) => boolean
-}
-
 export const accumulators: Array<Aggregate> = [
     new TotalHours("totalHours", "Össz. óra", "#FFFFFF", "#FFFFFF"),
     new ShiftVariety("shiftVariety", "33%", "#FFFFFF", "#FFFFFF"),
     new SomeShortShifts("someShortShifts", "2x8", "#FFFFFF", "#FFFFFF"),
     ...[DayType.paid, DayType.sick, [DayType.unpaid, DayType.weekend]].map(t => new DayTypeCounter(t)),
-]
-
-export const assertions = [
-
-]
-
-export const global_assertions = [
-
 ]
 
 export class StartTimeCount {

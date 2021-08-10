@@ -2,15 +2,15 @@
 import Vue from "vue";
 import ScheduleDayComponent from "@/components/ScheduleDay.vue";
 import { accumulators, Aggregate } from "@/model/aggregates"
-import { ScheduleDay } from "@/model/schedule-sheet";
+import { ScheduleDay, ScheduleRow } from "@/model/schedule-sheet";
+import { assertions } from "@/model/assertions"
 export default Vue.extend({
 	name: "Monthlyrow",
 	components: {
 		ScheduleDayComponent,
 	},
 	props: {
-		employee_name: String,
-		days: Array,
+		row: ScheduleRow,
 		selection: []
 	},
 	methods: {
@@ -28,7 +28,16 @@ export default Vue.extend({
 		accumulators(): Aggregate[] {
 			return accumulators
 		},
-		//Having this as computed means it only updates when this.days changes
+		days() {
+			return this.row.days
+		},
+		employee_name() {
+			return this.row.employee.name
+		},
+		error_groups() {
+			return assertions.map(x => x.evaluate(this.row)).flat()
+		},
+		//Ha,ving this as computed means it only updates when this.days changes
 		accumulator_values(): (number | boolean)[] {
 			return this.accumulators.map(a => a.evaluate(this.days as ScheduleDay[]));
 		},
@@ -51,6 +60,7 @@ export default Vue.extend({
 			v-for="(data, index) in days"
 			:key="index"
 			:day="index + 1"
+			:error_groups="error_groups.filter(x => x.days.includes(index))"
 			:type="data.type"
 			:duration="data.duration"
 			:start="data.start"
