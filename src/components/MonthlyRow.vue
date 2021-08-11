@@ -3,7 +3,7 @@ import Vue from "vue";
 import ScheduleDayComponent from "@/components/ScheduleDay.vue";
 import { accumulators, Aggregate } from "@/model/aggregates"
 import { ScheduleDay, ScheduleRow } from "@/model/schedule-sheet";
-import { assertions } from "@/model/assertions"
+import { assertions, ErrorGroup } from "@/model/assertions"
 export default Vue.extend({
 	name: "Monthlyrow",
 	components: {
@@ -11,7 +11,8 @@ export default Vue.extend({
 	},
 	props: {
 		row: ScheduleRow,
-		selection: []
+		selection: [],
+		error_groups :  Array as () =>Array<ErrorGroup>
 	},
 	methods: {
 		down(i: number) {
@@ -33,9 +34,6 @@ export default Vue.extend({
 		},
 		employee_name() {
 			return this.row.employee.name
-		},
-		error_groups() {
-			return assertions.map(x => x.evaluate(this.row)).flat()
 		},
 		//Ha,ving this as computed means it only updates when this.days changes
 		accumulator_values(): (number | boolean)[] {

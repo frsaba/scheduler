@@ -17,6 +17,7 @@ import { FontColorFromBackground } from "@/utils/color-helpers"
 import { isWeekend, isHoliday } from "@/utils/date-helpers"
 import compSelection from "@/composables/selection"
 import visibilityTracker from "@/composables/visibility-tracker"
+import { ErrorGroup } from "@/model/assertions";
 
 export default defineComponent({
 	name: "Monthly",
@@ -25,6 +26,10 @@ export default defineComponent({
 		Popover,
 		BasePopover,
 		DayInfo
+	},
+	props:{
+		error_groups: Array as () => Array<Array<ErrorGroup>>,
+		start_times: Array as () => [number, number[]][]
 	},
 	setup(props, context) {
 		const sheet: Sheet = useState(["sheets"]).sheets.value.sheet;
@@ -207,7 +212,7 @@ export default defineComponent({
 			:selection_elements="selection_elements"
 			ref="base"></popover>
 
-			<day-info :value="dayinfo" :targets="dayinfotarget" />
+			<day-info :value="dayinfo" :targets="dayinfotarget" :start_times_cache="start_times" />
 		<div class="table-wrapper" @scroll="scroll" ref="table_wrapper">
 			<table fixed-header class="table">
 				<thead>
@@ -237,6 +242,7 @@ export default defineComponent({
 						:key="row.employee.name"
 						:row="row"
 						:selection="i == drag.employee_index ? selection : []"
+						:error_groups="error_groups[i]"
 						:ref="row.employee.name"
 						@day-mouse-down="dragStart(i, $event)"
 						@day-mouse-up="dragEnd(i, $event)"

@@ -4,7 +4,6 @@ import { useState } from "vuex-composition-helpers"
 import BasePopover from "@/components/BasePopover.vue";
 import { Sheet } from '@/model/schedule-sheet';
 import { getHoliday } from "@/utils/date-helpers";
-import { CountStartingTimes } from "@/model/aggregates"
 
 export default defineComponent({
 	components: {
@@ -16,6 +15,7 @@ export default defineComponent({
 			type: Array as () => Array<Element>,
 			default: () => []
 		},
+		start_times_cache: Array as () => [number, number[]][]
 	},
 	setup(props) {
 		const day = computed(() => Number(props.targets[0]?.innerHTML))
@@ -28,9 +28,8 @@ export default defineComponent({
 
 		const holiday = computed(() => getHoliday(date.value)?.name)
 
-		const startTimesCache = computed(() => CountStartingTimes(sheet))
 		const startTimes = computed(() =>
-			Array.from(startTimesCache.value, ([hour, counts]) => [hour, counts[day.value - 1]]))
+			Array.from(props.start_times_cache!, ([hour, counts]) => [hour, counts[day.value - 1]]))
 
 		return {
 			day,
