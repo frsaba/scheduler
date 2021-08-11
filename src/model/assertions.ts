@@ -4,10 +4,12 @@ import { ScheduleDay, ScheduleRow } from "@/model/schedule-sheet";
 import { groupByWeek, getShiftStartDate, getShiftEndDate } from "@/utils/date-helpers"
 import _ from "lodash"
 import moment from "moment";
+import { Employee } from "./staff";
 
 export class ErrorGroup {
 	constructor(
 		public description: string,
+		public employee: Employee,
 		public days: number[],
 		public fatal: boolean,
 	) { }
@@ -32,6 +34,7 @@ export class RestAssertion implements Assertion {
 			if (isNight(previous) && current.type !== DayType.rest && !isNight(current)) {
 				result.push(new ErrorGroup(
 					this.description,
+					row.employee,
 					[i - 1, i],
 					this.fatal
 				))
@@ -54,6 +57,7 @@ export class FreeWeekendPlacementAssertion implements Assertion {
 				if (!isWeekend(current.date))
 					result.push(new ErrorGroup(
 						this.description,
+						row.employee,
 						[i],
 						this.fatal
 					))
@@ -80,6 +84,7 @@ export class FreeWeekendCountAssertion implements Assertion {
 			if ((current.type === DayType.weekend) !== (next?.type === DayType.weekend)) {
 				result.push(new ErrorGroup(
 					this.description,
+					row.employee,
 					[i, i + (isDay(current.date, 6) ? 1 : -1)],
 					this.fatal
 				))
@@ -105,7 +110,7 @@ export class MaxHoursPerWeek implements Assertion {
 		return weeks.reduce((errors: ErrorGroup[], week) => {
 			const hours = week.reduce((total, day) => total += day.duration, 0);
 			if (hours > this.maxHours)
-				errors.push(new ErrorGroup(this.description, week.map((d) => d.day - 1), this.fatal));
+				errors.push(new ErrorGroup(this.description, row.employee, week.map((d) => d.day - 1), this.fatal));
 			return errors
 		}, [])
 	}
@@ -127,18 +132,18 @@ export class MinRestPerWeek implements Assertion {
 			let weekendDate = moment(new Date(_.last(week)!.date)).add(1, 'd');
 
 			const rests = [] as number[]
-			if(week.length < 7) return errors //only check full weeks
+			if (week.length < 7) return errors //only check full weeks
 
 			for (let index = 0; index < week.length; index++) {
 				let remaining = week.slice(index)
 				let nextWorkingDayIndex = remaining.findIndex(d => d.type == DayType.shift)
 				let nextWorkingDay = remaining[nextWorkingDayIndex]
-				
+
 				//skip ahead beyond the next working day we found
-				if(nextWorkingDayIndex >= 0) index += nextWorkingDayIndex
+				if (nextWorkingDayIndex >= 0) index += nextWorkingDayIndex
 
 				let restEnd = nextWorkingDay ? moment(getShiftStartDate(nextWorkingDay)) : weekendDate
-				
+
 				rests.push(restEnd.diff(restStart, 'hours'))
 				// console.log(restStart.toLocaleString(), restEnd.toLocaleString())
 
@@ -147,7 +152,7 @@ export class MinRestPerWeek implements Assertion {
 			}
 			// console.log(rests)
 			if (_.max(rests)! < this.minRest)
-				errors.push(new ErrorGroup(this.description, week.map((d) => d.day - 1), this.fatal))
+				errors.push(new ErrorGroup(this.description, row.employee, week.map((d) => d.day - 1), this.fatal))
 			return errors
 		}, [])
 	}

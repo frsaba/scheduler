@@ -30,6 +30,7 @@ export default function (
 		drag.end = clamp(end, 1, sheet.month_length)
 
 		drag.employee_index = clamp(employee_index, 0, sheet.schedule.length - 1)
+		popover.value = true;
 	}
 
 	const deselect = () => {

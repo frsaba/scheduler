@@ -7,10 +7,11 @@ import GlobalCounters from "@/components/GlobalCounters.vue"
 import { assertions, ErrorGroup } from "@/model/assertions"
 import { Sheet } from '@/model/schedule-sheet'
 import { CountStartingTimes } from '@/model/aggregates'
+import ErrorList from "@/components/ErrorList.vue";
 
 export default Vue.extend({
 	name: "Editor",
-	components: { Splitpanes, Pane, Monthly, GlobalCounters },
+	components: { Splitpanes, Pane, Monthly, GlobalCounters, ErrorList },
 	computed: {
 		error_groups(): ErrorGroup[][] {
 			return this.sheet.schedule.map(row => assertions.map(x => x.evaluate(row)).flat())
@@ -36,7 +37,7 @@ export default Vue.extend({
 					<global-counters :start_times="start_times" />
 				</pane>
 				<pane>
-					<div>Warnings and errors</div>
+					<error-list :error_groups="error_groups"></error-list>
 				</pane>
 			</splitpanes>
 		</pane>
