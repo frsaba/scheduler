@@ -1,6 +1,6 @@
 import { DayType, DayTypeDescriptions } from "./day-types";
 import { daysInMonth } from "@/utils/date-helpers"
-import staff, {Employee} from "@/model/staff"
+import staff, { Employee } from "@/model/staff"
 
 export class Sheet {
     month_length: number
@@ -13,13 +13,13 @@ export class Sheet {
         this.schedule.push(new ScheduleRow(this, staff.GetEmployee(employee), this.month_length))
     }
     GetRow(employee: string | number): ScheduleRow {
-        
-        if(typeof employee == "string"){
+
+        if (typeof employee == "string") {
             let result = this.schedule.find(r => r.employee.name == employee)
-            if(!result) throw new Error( `Nincs '${employee}' nevű dolgozó ezen a munkalapon! ` )
+            if (!result) throw new Error(`Nincs '${employee}' nevű dolgozó ezen a munkalapon! `)
             return result;
         }
-    
+
         return this.schedule[employee];
     }
 
@@ -29,12 +29,13 @@ export class ScheduleRow {
     // employee_name : string
     days: Array<ScheduleDay>
     constructor(
-		public sheet: Sheet,
-		public employee: Employee, 
-		length: number
-	) {
+        public sheet: Sheet,
+        public employee: Employee,
+        length: number
+    ) {
         // this.employee_name = employee_name
-        this.days = [...Array(length).keys()].map(d => new ScheduleDay())
+        this.days = [...Array(length).keys()].map(
+            d => new ScheduleDay(this, d + 1))
     }
 
     SetShift(day: number, start: number, duration = 12) {
@@ -55,12 +56,16 @@ export class ScheduleRow {
 }
 
 export class ScheduleDay {
-
+    date: Date
     constructor(
+        public row: ScheduleRow,
+        public day: number,
         public type: DayType = DayType.empty,
         public start: number = 0,
         public duration = 0,
-    ) { }
+    ) {
+        this.date = new Date(this.row.sheet.year, this.row.sheet.month - 1, this.day)
+    }
 
     Clear() {
         this.SetType(DayType.empty)

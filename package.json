@@ -19,6 +19,7 @@
     "date-holidays": "^3.8.3",
     "exceljs": "^4.2.1",
     "global": "^4.4.0",
+    "moment": "^2.29.1",
     "roboto-fontface": "*",
     "splitpanes": "^2.3.8",
     "strftime": "^0.10.0",

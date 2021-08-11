@@ -2,10 +2,10 @@ import { Module } from "vuex";
 import { Sheet, ScheduleDay } from "@/model/schedule-sheet"
 import { DayType } from "@/model/day-types"
 import { isNight } from "@/utils/date-helpers"
-import _, { last } from "lodash";
+import _ from "lodash";
 
 class State {
-    sheet: Sheet = new Sheet(2021, 3);
+    sheet: Sheet = new Sheet(2021, 12);
     undoStack = new Array<Array<Operation>>();
     redoStack = new Array<Array<Operation>>();
 }

@@ -1,6 +1,8 @@
 import { DayType } from "@/model/day-types";
 import { ScheduleDay } from "@/model/schedule-sheet"
 import Holidays, { HolidaysTypes } from "date-holidays";
+import _ from "lodash";
+import moment from "moment"
 
 export function daysInMonth(year: number, month: number): number {
     return new Date(year, month, 0).getDate(); // Month is 0-indexed
@@ -38,4 +40,26 @@ export function isNight(shift: ScheduleDay): boolean {
 
     return Array(shift.duration).fill(0).map((x, i) => (i + shift.start) % 24) // Includes every started hour in a shift
         .filter(x => x >= 22 || x < 6).length > 1; // Counts the hours that are considered as night (between 22 and 6)
+}
+
+export function groupByWeek(schedule: ScheduleDay[]): ScheduleDay[][] {
+    let groups = _.groupBy(schedule, d => previousMonday(d.date));
+    return Object.entries(groups).map(([monday, week]) => week)
+}
+
+export function previousMonday(date: Date): Date {
+    let weekday: number = date.getDay(); //0 is sunday
+    if (weekday == 0) weekday = 7
+
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate() - weekday + 1)
+}
+
+export function getShiftStartDate(day: ScheduleDay){
+    if(day.type != DayType.shift) return undefined
+    return moment(day.date).add(day.start, 'h').toDate();
+}
+
+export function getShiftEndDate(day: ScheduleDay){
+    if(day.type != DayType.shift) return undefined
+    return moment(day.date).add(day.start + day.duration, 'h').toDate();
 }
