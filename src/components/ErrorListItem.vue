@@ -11,7 +11,7 @@ export default defineComponent({
 		const displayDays = computed(() => {
 			const days = props.group?.days
 			if (days?.length == 1) return days[0]
-			return `${_.first(days)!+1}-${_.last(days)!+1}`
+			return `${_.first(days)! + 1}-${_.last(days)! + 1}`
 
 		})
 		return {
@@ -25,11 +25,13 @@ export default defineComponent({
 
 <template>
 	<v-card class="card">
-		<v-icon :color="fatal ? 'error' : 'warning'" class="icon">
-			{{ fatal ? "mdi-alert-octagon" : "mdi-alert" }}
-		</v-icon>
-		<div class="description">
-			{{ description }}
+		<div class="upper">
+			<v-icon :color="fatal ? 'error' : 'warning'" class="icon">
+				{{ fatal ? "mdi-alert-octagon" : "mdi-alert" }}
+			</v-icon>
+			<div class="description">
+				{{ description }}
+			</div>
 		</div>
 		<div class="origin text-caption">
 			{{ employee.name }}, {{ displayDays }}. nap
@@ -39,27 +41,28 @@ export default defineComponent({
 
 <style scoped>
 .card {
-	display: flex;
-	padding: 0.25em;
 	margin: 0.25em;
+	min-width: 10em;
+}
+.upper {
+	display: flex;
 	flex-wrap: wrap;
-    justify-content: flex-end;
+	align-items: center;
+}
+.upper > * {
+	margin: 10px;
 }
 .icon {
-	padding: 10px;
 	flex-grow: 0;
 	text-align: center;
 }
 .description {
-	padding: 10px;
-	text-align: justify;
-	flex-grow: 1;
+	flex: 1 1;
+	margin-left: 0;
+	font-size: 14px;
 }
 .origin {
-	grid-column: 2;
-	grid-row: 2;
+	margin-right: 5px;
 	text-align: right;
-    align-self: flex-end;
-    /* flex-basis: 100%; */
 }
 </style>
