@@ -99,7 +99,7 @@ export default defineComponent({
 <style scoped>
 .popover {
 	position: fixed;
-	z-index: 1000;
+	z-index: 5;
 	transition-property: left, top, visibility, opacity;
 	transition-duration: 300ms;
 	transition-delay: 0ms, 0ms, 100ms, 100ms;

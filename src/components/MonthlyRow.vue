@@ -12,7 +12,7 @@ export default Vue.extend({
 	props: {
 		row: ScheduleRow,
 		selection: [],
-		error_groups :  Array as () =>Array<ErrorGroup>
+		error_groups: Array as () => Array<ErrorGroup>
 	},
 	methods: {
 		down(i: number) {
@@ -53,7 +53,9 @@ export default Vue.extend({
 
 <template>
 	<tr>
-		<th>{{ employee_name }}</th>
+		<th @contextmenu="$emit('employee-contextmenu', $event)">
+			{{ employee_name }}
+		</th>
 		<schedule-day-component
 			v-for="(data, index) in days"
 			:key="index"
@@ -65,13 +67,22 @@ export default Vue.extend({
 			:selection="selection"
 			@mousedown.native.left.prevent.stop="down(index + 1)"
 			@mouseup.native.left.stop="up(index + 1)"
-			@mouseenter.native="enter(index + 1)" />
-		<td class="sticky-right text-center counter" v-for="(acc,i) in accumulator_values" :style="counter_styles[i]" :key="accumulators[i].label" >
-            <v-icon v-if="typeof acc === 'boolean'" :color="acc ? 'success' : 'warning'">
-                {{acc ? 'mdi-check' : 'mdi-alert'}}
-            </v-icon>
-            <span v-else>{{acc}}</span>
-        </td>
+			@mouseenter.native="enter(index + 1)"
+		/>
+		<td
+			class="sticky-right text-center counter"
+			v-for="(acc, i) in accumulator_values"
+			:style="counter_styles[i]"
+			:key="accumulators[i].label"
+		>
+			<v-icon
+				v-if="typeof acc === 'boolean'"
+				:color="acc ? 'success' : 'warning'"
+			>
+				{{ acc ? "mdi-check" : "mdi-alert" }}
+			</v-icon>
+			<span v-else>{{ acc }}</span>
+		</td>
 	</tr>
 </template>
 
@@ -80,13 +91,14 @@ th {
 	filter: opacity(1);
 	border-right: 4px double #ccc;
 	z-index: 1;
+	outline: none;
 }
 .counter {
 	/* filter: brightness(120%) saturate(50%); */
 	border: 1px solid #ccc;
 	position: sticky;
 	background-color: white;
-	width: 100vw
+	width: 100vw;
 }
 .counter::before {
 	/* content: "asd"; */

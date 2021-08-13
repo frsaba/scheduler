@@ -61,8 +61,8 @@ export default defineComponent({
 		</v-dialog>
 
 		<employee-row
-			v-for="(employee, index) in employees"
-			:key="index"
+			v-for="(employee) in employees"
+			:key="employee.name"
 			:name="employee.name"
 			@rename="rename(employee.name, $event)"
 			@remove="remove"

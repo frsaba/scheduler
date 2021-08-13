@@ -3,6 +3,9 @@ import { Sheet, ScheduleDay } from "@/model/schedule-sheet"
 import { DayType } from "@/model/day-types"
 import { isNight } from "@/utils/date-helpers"
 import _ from "lodash";
+import { Employee } from "@/model/staff";
+import vuetify from "@/plugins/vuetify";
+import Vue from "vue";
 
 class State {
     sheet: Sheet = new Sheet(2021, 12);
@@ -30,16 +33,28 @@ const sheets: Module<State, {}> = {
         set_type({ sheet }, { index, day, type }) {
             sheet.GetRow(index).GetDay(day).SetType(type);
         },
-        remove_employee({ sheet }, payload) {
-            let i = sheet.schedule.findIndex(r => r.employee.name == payload)
-            sheet.schedule.splice(i,1)
+        remove_employee({ sheet }, index: number) {
+            sheet.schedule.splice(index, 1)
+        },
+        delete_undos(state, index: number) {
+            //Removes undo and redo entries belonging to the employee with the given index
+            for (const [name, stack] of Object.entries({ undoStack: state.undoStack, redoStack: state.redoStack })) {
+                Vue.set(state, name, stack //Set using Vue global as it's not reactive otherwise
+                    .filter(batch => batch.every(op => op.payload.index != index))) //Keep all other employees' batches
+                    .map(batch => batch.map(op => op.payload.index += op.payload.index > index ? -1 : 0)) //Shift down indexes that come after the removed row
+            }
         }
     },
     actions: {
         add(context, payload): void {
             context.commit('add_row', payload)
         },
-
+        remove_employee({ commit, getters }, name: string) {
+            const index = getters.index(name)
+            if (index == -1) throw `Törölni kívánt '${name}' dolgozó nincs a beosztásban!`
+            commit("remove_employee", index)
+            commit("delete_undos", index)
+        },
         set_shift(context, { index, day, start, duration, undo = false, redo = false }) {
             //Check if we're actually about to make a change
             let old: ScheduleDay = context.getters.day(index, day);
@@ -139,6 +154,12 @@ const sheets: Module<State, {}> = {
                 return undefined
             }
         },
+        employee: (context) => (name: string): Employee | undefined => {
+            return context.sheet.schedule.find(row => row.employee.name == name)?.employee
+        },
+        index: (context) => (name: string): number => {
+            return context.sheet.schedule.findIndex(row => row.employee.name == name)
+        }
     }
 }
 export default sheets

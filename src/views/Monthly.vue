@@ -1,6 +1,6 @@
 <script lang="ts">
 import Vue from "vue";
-import { computed, defineComponent, onMounted, onUnmounted, Ref, ref, watch } from "@vue/composition-api";
+import { computed, defineComponent, onUnmounted, ref, reactive } from "@vue/composition-api";
 import { useActions, useState } from "vuex-composition-helpers";
 
 import { throttle, debounce, last } from "lodash";
@@ -9,6 +9,7 @@ import MonthlyRow from "@/components/MonthlyRow.vue";
 import Popover from "@/components/Popover.vue";
 import BasePopover from "@/components/BasePopover.vue";
 import DayInfo from "@/components/DayInfo.vue"
+import EmployeeInfo, { EmployeeInfoOptions } from "@/components/EmployeeInfo.vue"
 import { DayType } from "@/model/day-types";
 import { accumulators } from "@/model/aggregates"
 import { Sheet } from "@/model/schedule-sheet";
@@ -18,6 +19,7 @@ import { isWeekend, isHoliday } from "@/utils/date-helpers"
 import compSelection from "@/composables/selection"
 import visibilityTracker from "@/composables/visibility-tracker"
 import { ErrorGroup } from "@/model/assertions";
+import { Employee } from "@/model/staff";
 
 export default defineComponent({
 	name: "Monthly",
@@ -25,7 +27,8 @@ export default defineComponent({
 		MonthlyRow,
 		Popover,
 		BasePopover,
-		DayInfo
+		DayInfo,
+		EmployeeInfo
 	},
 	props:{
 		error_groups: Array as () => Array<Array<ErrorGroup>>,
@@ -64,6 +67,13 @@ export default defineComponent({
 
 		const dayinfo = ref(false)
 		const dayinfotarget = ref()
+
+		const employeeinfo = reactive({
+			show: false,
+			target: null,
+			targetElement: null,
+			event: null
+		} as EmployeeInfoOptions)
 
 		const undo = useActions(["undo"]).undo
 		const redo = useActions(["redo"]).redo
@@ -154,6 +164,7 @@ export default defineComponent({
 			popover,
 			dayinfo,
 			dayinfotarget,
+			employeeinfo,
 			...selectionObj,
 			scroll,
 			undo, redo,
@@ -194,6 +205,12 @@ export default defineComponent({
 		},
 		setDayInfoTarget(e : Event){
 			this.dayinfotarget = [e.target as Element]
+		},
+		employeeContextMenu(e : MouseEvent, employee : Employee){
+			this.deselect()
+			this.employeeinfo.event = e;
+			this.employeeinfo.target = employee; 
+			this.employeeinfo.show = true
 		}
 	},
 });
@@ -213,6 +230,7 @@ export default defineComponent({
 			ref="base"></popover>
 
 			<day-info :value="dayinfo" :targets="dayinfotarget" :start_times_cache="start_times" />
+			<employee-info :options="employeeinfo"/>
 		<div class="table-wrapper" @scroll="scroll" ref="table_wrapper">
 			<table fixed-header class="table">
 				<thead>
@@ -246,7 +264,8 @@ export default defineComponent({
 						:ref="row.employee.name"
 						@day-mouse-down="dragStart(i, $event)"
 						@day-mouse-up="dragEnd(i, $event)"
-						@day-mouse-enter="dragEnter(i, $event)" />
+						@day-mouse-enter="dragEnter(i, $event)"
+						@employee-contextmenu="employeeContextMenu($event, row.employee)"/>
 				</tbody>
 			</table>
 		</div>

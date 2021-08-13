@@ -25,7 +25,7 @@ const module: Module<Staff, {}> = {
         },
         remove({ commit, dispatch }, payload): void {
             commit('remove_employee', payload)
-            commit('remove_employee', payload, { root: true })
+            dispatch('remove_employee', payload, { root: true })
             //Remove from sheet, remove all relevant operations from undo/redostack
         },
         
