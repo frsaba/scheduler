@@ -1,11 +1,14 @@
 "use strict";
 
 import { app, protocol, BrowserWindow } from "electron";
+import { autoUpdater } from "electron-updater"
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer"
 import zoom from "@/config/zoom";
 import "@/config/appmenu"
+
 const isDevelopment = process.env.NODE_ENV !== "production"
+if (isDevelopment) require("dotenv").config()
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
@@ -38,7 +41,10 @@ async function createWindow() {
         win.loadURL("app://./index.html");
     }
 
-    win.webContents.send("hi");
+	win.once("ready-to-show", () => {
+		autoUpdater.checkForUpdatesAndNotify()
+	})
+
     zoom(win);
 }
 
