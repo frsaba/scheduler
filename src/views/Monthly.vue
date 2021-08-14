@@ -235,7 +235,7 @@ export default defineComponent({
 			<table fixed-header class="table">
 				<thead>
 					<tr>
-						<th @click="$router.push('/staff')" class="text-center nametag">Név</th>
+						<th class="text-center nametag">Név</th>
 						<th
 							class="text-center"
 							:style="day_header_style[n - 1]"

@@ -1,44 +1,3 @@
-<template>
-	<v-app>
-        <snackbar :visibility="snackbar">
-            Nagyítás: {{zoomLevel}}%
-        </snackbar>
-		<v-app-bar app color="primary" dark>
-			<div class="d-flex align-center">
-				<v-img
-					alt="Vuetify Logo"
-					class="shrink mr-2"
-					contain
-					src="https://cdn.vuetifyjs.com/images/logos/vuetify-logo-dark.png"
-					transition="scale-transition"
-					width="40" />
-
-				<v-img
-					alt="Vuetify Name"
-					class="shrink mt-1 hidden-sm-and-down"
-					contain
-					min-width="100"
-					src="https://cdn.vuetifyjs.com/images/logos/vuetify-name-dark.png"
-					width="100" />
-			</div>
-
-			<v-spacer></v-spacer>
-
-			<v-btn
-				href="https://github.com/vuetifyjs/vuetify/releases/latest"
-				target="_blank"
-				text>
-				<span class="mr-2">Latest Release</span>
-				<v-icon>mdi-open-in-new</v-icon>
-			</v-btn>
-		</v-app-bar>
-
-		<v-main>
-			<router-view />
-		</v-main>
-	</v-app>
-</template>
-
 <script lang="ts">
 import Vue from "vue";
 import Snackbar from "@/components/Snackbar.vue";
@@ -48,19 +7,23 @@ import replaceTemplate, { bufferToWorkbook } from "@/utils/sheet-to-xlsx"
 
 export default Vue.extend({
 	name: "App",
-    components:{
-        Snackbar
-    },
+	components: {
+		Snackbar
+	},
 	data: () => ({
 		zoomLevel: 100,
 		snackbar: false,
 		timeout: 2000,
-		hide: function () { }
+		hide: function () { },
+		routes:
+			[["Munkalapok", "/setup", "mdi-file-document-multiple"],
+			["Szerkesztő", "/", "mdi-table-edit"],
+			["Dolgozók", "/staff", "mdi-account"]]
 	}),
 	created() {
 		this.hide = debounce(() => { this.snackbar = false }, this.timeout);
 
-        ipcRenderer.on("export-query", async (_, templateBuffer: Buffer) => {
+		ipcRenderer.on("export-query", async (_, templateBuffer: Buffer) => {
 			let workbook = await bufferToWorkbook(templateBuffer)
 			let template = workbook.getWorksheet("Main")
 			await replaceTemplate(template, this.$store.state.sheets.sheet)
@@ -80,6 +43,49 @@ export default Vue.extend({
 });
 </script>
 
-<style scoped>
+<template>
+	<v-app>
+		<snackbar :visibility="snackbar"> Nagyítás: {{ zoomLevel }}% </snackbar>
+		<v-app-bar app color="primary" dark>
+			<div class="d-flex align-center routes">
+				<v-btn
+					v-for="[name, route, icon] in routes"
+					:key="route"
+					outlined
+					@click="$router.push(route)"
+					:disabled="$router.currentRoute.path == route"
+				>
+					<v-icon>{{ icon }}</v-icon>
+					{{ name }}
+				</v-btn>
+			</div>
 
+			<v-spacer></v-spacer>
+
+			<v-btn
+				href="https://github.com/vuetifyjs/vuetify/releases/latest"
+				target="_blank"
+				text
+			>
+				<span class="mr-2">Latest Release</span>
+				<v-icon>mdi-open-in-new</v-icon>
+			</v-btn>
+		</v-app-bar>
+
+		<v-main>
+			<router-view />
+		</v-main>
+	</v-app>
+</template>
+
+
+
+<style scoped>
+.routes {
+	gap: 15px;
+	margin: 10px;
+}
+.v-icon {
+	padding-right: 5px;
+}
 </style>
