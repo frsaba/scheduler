@@ -303,7 +303,7 @@ table {
 	border-spacing: 0;
 }
 
-thead th {
+.table thead th {
 	position: sticky;
 	top: 0;
 	background: #000;
@@ -311,16 +311,16 @@ thead th {
 	z-index: 1;
 }
 
-thead th:hover {
+.table head th:hover {
 	filter:invert(15%)
 }
 
-thead th:first-child {
+.table thead th:first-child {
 	left: 0;
 	z-index: 2;
 }
 
-tbody th {
+.table tbody th {
 	position: sticky;
 	left: 0;
 	background: #fff;

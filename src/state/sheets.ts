@@ -46,6 +46,11 @@ const sheets: Module<State, {}> = {
         }
     },
     actions: {
+        new_sheet(context, {year, month, employees}){
+            Vue.set(context.state, "sheet", new Sheet(year, month, employees));
+            Vue.set(context.state, "undoStack", []);
+            Vue.set(context.state, "redoStack", []);
+        },
         add(context, payload): void {
             context.commit('add_row', payload)
         },

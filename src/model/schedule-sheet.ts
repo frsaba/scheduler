@@ -6,11 +6,15 @@ export class Sheet {
     month_length: number
     schedule: Array<ScheduleRow> = []
 
-    constructor(public year: number, public month: number) {
+    constructor(public year: number, public month: number, employees: Employee[] = []) {
         this.month_length = daysInMonth(year, month)
+        for(const employee of employees){
+            this.AddRow(employee)
+        }
     }
-    AddRow(employee: string | number) {
-        this.schedule.push(new ScheduleRow(this, staff.GetEmployee(employee), this.month_length))
+    AddRow(employee: string | number | Employee) {
+        if(typeof employee == "string" || typeof employee == "number") employee = staff.GetEmployee(employee)
+        this.schedule.push(new ScheduleRow(this, employee, this.month_length))
     }
     GetRow(employee: string | number): ScheduleRow {
 
