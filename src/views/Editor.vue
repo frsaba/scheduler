@@ -27,7 +27,7 @@ export default Vue.extend({
 </script>
 
 <template>
-	<splitpanes class="default-theme">
+	<splitpanes class="default-theme panes">
 		<pane min-size="50">
 			<monthly :error_groups="error_groups" :start_times="start_times"/>
 		</pane>
@@ -43,3 +43,42 @@ export default Vue.extend({
 		</pane>
 	</splitpanes>
 </template>
+
+<style scoped>
+.panes{
+	height: calc(100vh - 64px);
+}
+</style>
+
+<style>
+
+.table {
+	position: relative;
+	border-collapse: separate;
+	table-layout: fixed;
+	user-select: none;
+	border-spacing: 0;
+}
+.table thead th {
+	position: sticky;
+	top: 0;
+	background: #000;
+	color: #fff;
+	z-index: 1;
+}
+.table head th:hover {
+	filter:invert(15%)
+}
+
+.table thead th:first-child {
+	left: 0;
+	z-index: 2;
+}
+
+.table tbody th {
+	position: sticky;
+	left: 0;
+	background: #fff;
+	border: 1px solid #ccc;
+}
+</style>

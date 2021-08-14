@@ -9,15 +9,15 @@ export default defineComponent({
 	name: "SheetSetup",
 	setup(props, context) {
 		const { useState, useMutations, useActions } = createNamespacedHelpers<Staff>(store, "staff");
-		// const { employees } = useState(["employees"]);
+		const { employees } = useState(["employees"]);
 		const newSheetDialog = ref(false)
-		const selection = ref([])
+		const selection = ref(employees.value)
 		const datePicker = ref(new Date().toISOString().substring(0,9))
 
 		const headers = [{ text: 'Dolgozó neve', value: 'name' }]
 
 		return {
-			// employees,
+			employees,
 			headers,
 			newSheetDialog,
 			datePicker,
@@ -31,11 +31,6 @@ export default defineComponent({
 			this.$store.dispatch("new_sheet", { year: date.getFullYear(), month: date.getMonth() + 1, employees: this.selection })
 		}
 	},
-    computed:{
-        employees(){
-            return this.$store.state.staff.employees
-        }
-    }
 })
 </script>
 

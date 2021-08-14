@@ -44,7 +44,7 @@ export default Vue.extend({
 </script>
 
 <template>
-	<v-app>
+	<v-app class="app">
 		<snackbar :visibility="snackbar"> Nagyítás: {{ zoomLevel }}% </snackbar>
 		<v-app-bar app color="primary" dark>
 			<div class="d-flex align-center routes">
@@ -55,7 +55,7 @@ export default Vue.extend({
 					@click="$router.push(route)"
 					:disabled="$router.currentRoute.path == route"
 				>
-					<v-icon>{{ icon }}</v-icon>
+					<v-icon class="navbar-icon">{{ icon }}</v-icon>
 					{{ name }}
 				</v-btn>
 			</div>
@@ -72,20 +72,24 @@ export default Vue.extend({
 			</v-btn>
 		</v-app-bar>
 
-		<v-main>
+		<v-main class="view">
 			<router-view />
 		</v-main>
 	</v-app>
 </template>
-
-
 
 <style scoped>
 .routes {
 	gap: 15px;
 	margin: 10px;
 }
-.v-icon {
+.navbar-icon {
 	padding-right: 5px;
+}
+</style>
+
+<style>
+html, body{
+	overflow: auto !important;
 }
 </style>

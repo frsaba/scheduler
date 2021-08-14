@@ -19,10 +19,12 @@ export default function (
 
 	const moveSelection = (dx: number, dy: number, e: KeyboardEvent): void => {
 		drag.end = clamp(drag.end + dx, 1, sheet.month_length)
+		drag.start = clamp(drag.start, 1, sheet.month_length)
 		if (e.shiftKey == false)
 			drag.start = drag.end;
 
 		drag.employee_index = clamp(drag.employee_index + dy, 0, sheet.schedule.length - 1)
+		popover.value = true;
 	}
 
 	const setSelection = (start: number, end: number, employee_index : number): void => {

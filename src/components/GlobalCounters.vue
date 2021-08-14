@@ -16,7 +16,7 @@ export default Vue.extend({
 
 <template>
 	<div class="table-wrapper">
-		<table>
+		<table class="table">
 			<thead>
 				<th />
 				<th v-for="day in sheet.month_length" :key="day">{{ day }}</th>
@@ -45,5 +45,9 @@ th {
 }
 thead th:first-child {
 	min-width: 10em;
+}
+.table-wrapper{
+	overflow: auto !important;
+	max-height: 100%;
 }
 </style>

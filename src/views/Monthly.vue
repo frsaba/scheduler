@@ -41,7 +41,10 @@ export default defineComponent({
 			let name = sheet.GetRow(index).employee.name
 			let row = context.refs[name] as Vue[];
 
+			// console.log(row[0].$children)
+
 			let currDay = row[0].$children.find((e) => {
+				// console.log(e.$props.day)
 				if (!e.$props.day)
 					throw `Az '${name}' sornak nincsenek leszármazottjai`;
 
@@ -113,7 +116,6 @@ export default defineComponent({
 				} else {
 					moveSelection(dx, dy, e)
 					context.root.$nextTick(() => selection_tracker.scrollIntoView(selection_elements.value, setTableScroll.value));
-
 				}
 			}
 		}
@@ -272,10 +274,7 @@ export default defineComponent({
 	</div>
 </template>
 
-<style>
-.wrapper {
-	max-height: 100%;
-}
+<style scoped>
 .nametag {
 	min-width: 10em;
 	border-right-style: double;
@@ -285,45 +284,13 @@ export default defineComponent({
 }
 .header-sticky-right {
 	position: sticky;
-	/* right: 0; */
 	z-index: 2;
 }
 .table-wrapper {
 	overflow: auto;
 	position: relative;
 	border: 1px solid #eee;
-	max-height: 75vh;
 	scroll-behavior: smooth;
-}
-table {
-	position: relative;
-	border-collapse: separate;
-	table-layout: fixed;
-	user-select: none;
-	border-spacing: 0;
-}
-
-.table thead th {
-	position: sticky;
-	top: 0;
-	background: #000;
-	color: #fff;
-	z-index: 1;
-}
-
-.table head th:hover {
-	filter:invert(15%)
-}
-
-.table thead th:first-child {
-	left: 0;
-	z-index: 2;
-}
-
-.table tbody th {
-	position: sticky;
-	left: 0;
-	background: #fff;
-	border: 1px solid #ccc;
+	max-height: calc(100vh - 100px);
 }
 </style>

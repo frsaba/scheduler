@@ -56,7 +56,7 @@ const sheets: Module<State, {}> = {
         },
         remove_employee({ commit, getters }, name: string) {
             const index = getters.index(name)
-            if (index == -1) throw `Törölni kívánt '${name}' dolgozó nincs a beosztásban!`
+            if (index == -1) return; //throw `Törölni kívánt '${name}' dolgozó nincs a beosztásban!`
             commit("remove_employee", index)
             commit("delete_undos", index)
         },

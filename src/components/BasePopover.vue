@@ -64,7 +64,7 @@ export default defineComponent({
 			// If the popover would cover the target move the popover above it
 			let maxTop = window.innerHeight - popoverHeight.value - margin
 			if (bottom > maxTop)
-				return top - offset - popoverHeight.value
+				return _.clamp(top - offset - popoverHeight.value, margin, maxTop)
 
 			return _.clamp(bottom + offset, margin, maxTop)
 		})
@@ -78,7 +78,7 @@ export default defineComponent({
 			}
 		})
 
-		watch(() => props.targets, () => { 
+		watch(() => props.targets, () => {
 			updateRects()
 			root.$nextTick(updateDimensions)
 		})

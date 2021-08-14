@@ -139,7 +139,6 @@ export default Vue.extend({
 	align-items: center;
 	gap: 10px;
 	justify-content: space-between;
-	flex-wrap: wrap;
 }
 
 /* .absolute {
