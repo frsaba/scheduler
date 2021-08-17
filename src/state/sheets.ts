@@ -164,7 +164,9 @@ const sheets: Module<State, {}> = {
         },
         index: (context) => (name: string): number => {
             return context.sheet.schedule.findIndex(row => row.employee.name == name)
-        }
+        },
+        can_undo: ({undoStack}) => undoStack.some(batch => batch.length > 0),
+        can_redo: ({redoStack}) => redoStack.some(batch => batch.length > 0)
     }
 }
 export default sheets

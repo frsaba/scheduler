@@ -39,7 +39,7 @@ export default defineComponent({
 	<div>
 		<v-btn color="success" @click="$router.go(-1)"> Vissza</v-btn>
 
-		<v-dialog v-model="dialog">
+		<v-dialog v-model="dialog" width="500px">
 			<template v-slot:activator="{ on, attrs }">
 				<v-btn
 					color="success"
@@ -88,5 +88,12 @@ export default defineComponent({
 			:name="employee.name"
 			@remove="remove"
 		></employee-row>
+		<div class="text-center" v-if="employees.length == 0">
+			Nincsenek dolgozók definiálva. <br/>
+			<a @click="dialog = true;">
+				<v-icon color="primary" left>mdi-account-plus</v-icon>
+				<span class="overline">Új dolgozó</span>
+			</a>
+		</div>
 	</div>
 </template>

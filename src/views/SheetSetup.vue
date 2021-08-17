@@ -3,25 +3,25 @@ import { defineComponent, ref } from '@vue/composition-api'
 import { createNamespacedHelpers } from 'vuex-composition-helpers'
 import store from "@/state/store"
 import { Employee, Staff } from "@/model/staff"
-import { } from "@/state/staff"
+import EmployeePicker from "@/components/EmployeePicker.vue"
 
 export default defineComponent({
 	name: "SheetSetup",
+	components: {
+		EmployeePicker
+	},
 	setup(props, context) {
 		const { useState, useMutations, useActions } = createNamespacedHelpers<Staff>(store, "staff");
 		const { employees } = useState(["employees"]);
 		const newSheetDialog = ref(false)
 		const selection = ref(employees.value)
-		const datePicker = ref(new Date().toISOString().substring(0,9))
-
-		const headers = [{ text: 'Dolgozó neve', value: 'name' }]
+		const datePicker = ref(new Date().toISOString().substring(0, 9))
 
 		return {
-			employees,
-			headers,
 			newSheetDialog,
 			datePicker,
-			selection
+			selection,
+			employees
 		}
 	},
 	methods: {
@@ -35,7 +35,7 @@ export default defineComponent({
 </script>
 
 <template>
-	<v-dialog v-model="newSheetDialog" width="unset">
+	<v-dialog v-model="newSheetDialog" width="unset" height="80%">
 		<template v-slot:activator="{ on, attrs }">
 			<v-btn dark v-bind="attrs" v-on="on"> Új beosztás </v-btn>
 		</template>
@@ -53,21 +53,11 @@ export default defineComponent({
 				show-current="false"
 			></v-date-picker>
 			<v-divider></v-divider>
-			<span class="text-overline employees-title">
-				Beosztásban szereplő dolgozók
-			</span>
-			<div class="table-wrapper">
-				<v-data-table
-					:headers="headers"
-					:items="employees"
-					v-model="selection"
-					show-select
-					hide-default-footer
-					item-key="name"
-                    disable-pagination
-				>
-				</v-data-table>
-			</div>
+			<employee-picker v-model="selection" :defaultSelection="employees">
+				<span class="text-overline employees-title">
+					Beosztásban szereplő dolgozók
+				</span>
+			</employee-picker>
 			<v-divider></v-divider>
 			<v-card-actions>
 				<v-spacer></v-spacer>
@@ -88,12 +78,8 @@ export default defineComponent({
 .employees-title {
 	padding: 20px;
 }
-.table-wrapper {
-	overflow: auto;
-    max-height: 300px;
-}
 .dialog {
-	min-width: 350px;
-	max-width: 450px;
+	min-width: 400px;
+	max-width: 600px;
 }
 </style>>

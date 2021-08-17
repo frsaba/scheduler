@@ -29,12 +29,16 @@ export default Vue.extend({
 <template>
 	<splitpanes class="default-theme panes">
 		<pane min-size="50">
-			<monthly :error_groups="error_groups" :start_times="start_times"/>
+			<monthly :error_groups="error_groups" :start_times="start_times" />
 		</pane>
 		<pane size="20">
 			<splitpanes horizontal>
 				<pane>
-					<global-counters :start_times="start_times" />
+					<global-counters :start_times="start_times" v-if="start_times.length > 0"/>
+					<div v-else class="placeholder text-center mt-2 overline">
+						<v-icon>mdi-calendar-clock</v-icon> 
+						Napra lebontás itt fog megjelenni
+					</div>
 				</pane>
 				<pane>
 					<error-list :error_groups="error_groups"></error-list>
@@ -45,13 +49,15 @@ export default Vue.extend({
 </template>
 
 <style scoped>
-.panes{
+.panes {
 	height: calc(100vh - 64px);
+}
+.placeholder{
+	overflow: hidden;
 }
 </style>
 
 <style>
-
 .table {
 	position: relative;
 	border-collapse: separate;
@@ -67,7 +73,7 @@ export default Vue.extend({
 	z-index: 1;
 }
 .table head th:hover {
-	filter:invert(15%)
+	filter: invert(15%);
 }
 
 .table thead th:first-child {
@@ -80,5 +86,8 @@ export default Vue.extend({
 	left: 0;
 	background: #fff;
 	border: 1px solid #ccc;
+}
+a:hover span {
+	text-decoration: underline;
 }
 </style>

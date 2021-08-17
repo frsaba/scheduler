@@ -2,6 +2,7 @@
 import Vue from "vue";
 import { computed, defineComponent, onUnmounted, ref, reactive } from "@vue/composition-api";
 import { useActions, useState } from "vuex-composition-helpers";
+import { mapGetters } from 'vuex'
 
 import { throttle, debounce, last } from "lodash";
 
@@ -10,6 +11,7 @@ import Popover from "@/components/Popover.vue";
 import BasePopover from "@/components/BasePopover.vue";
 import DayInfo from "@/components/DayInfo.vue"
 import EmployeeInfo, { EmployeeInfoOptions } from "@/components/EmployeeInfo.vue"
+import BaseButton from "@/components/BaseButton.vue"
 import { DayType } from "@/model/day-types";
 import { accumulators } from "@/model/aggregates"
 import { Sheet } from "@/model/schedule-sheet";
@@ -28,7 +30,8 @@ export default defineComponent({
 		Popover,
 		BasePopover,
 		DayInfo,
-		EmployeeInfo
+		EmployeeInfo,
+		BaseButton
 	},
 	props:{
 		error_groups: Array as () => Array<Array<ErrorGroup>>,
@@ -215,14 +218,20 @@ export default defineComponent({
 			this.employeeinfo.show = true
 		}
 	},
+	 computed: {
+    ...mapGetters(['can_undo','can_redo'])
+  }
 });
 </script>
 
 <template>
 	<div class="wrapper">
-		<v-btn color="success" @click="add">Új dolgozó</v-btn>
-		<v-btn color="success" @click="undo">Undo</v-btn>
-		<v-btn color="success" @click="redo">Redo</v-btn>
+		<v-toolbar class="toolbar">
+			<base-button color="success" @click="add" icon="mdi-account-multiple-plus" tooltip="Dolgozó hozzáadása"></base-button>
+			<base-button outlined fab small @click="undo" icon="mdi-undo" tooltip="Visszavonás" :disabled="!can_undo"></base-button>
+			<base-button outlined fab small @click="redo" icon="mdi-redo" tooltip="Újra" :disabled="!can_redo"></base-button>
+			
+		</v-toolbar>
 		<popover
 			v-model="popover"
 			@close="deselect"
@@ -233,8 +242,8 @@ export default defineComponent({
 
 			<day-info :value="dayinfo" :targets="dayinfotarget" :start_times_cache="start_times" />
 			<employee-info :options="employeeinfo"/>
-		<div class="table-wrapper" @scroll="scroll" ref="table_wrapper">
-			<table fixed-header class="table">
+		<div class="table-wrapper ma-1" @scroll="scroll" ref="table_wrapper">
+			<table fixed-header class="table" v-if="sheet.schedule.length > 0">
 				<thead>
 					<tr>
 						<th class="text-center nametag">Név</th>
@@ -271,6 +280,13 @@ export default defineComponent({
 				</tbody>
 			</table>
 		</div>
+		<div v-if="sheet.schedule.length == 0" class="text-center mt-3">
+			Ez a beosztás nem tartalmaz dolgozót. <br>
+			<a class="overline">
+				<v-icon left color="primary">mdi-account-plus</v-icon> 
+				<span>Dolgozó hozzáadása</span>
+			</a>
+		</div>
 	</div>
 </template>
 
@@ -292,5 +308,8 @@ export default defineComponent({
 	border: 1px solid #eee;
 	scroll-behavior: smooth;
 	max-height: calc(100vh - 100px);
+}
+.toolbar >>> .v-toolbar__content{
+	gap: 15px;
 }
 </style>
