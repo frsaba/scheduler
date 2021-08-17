@@ -35,12 +35,12 @@ export default defineComponent({
 </script>
 
 <template>
-	<v-dialog v-model="newSheetDialog" width="450">
+	<v-dialog v-model="newSheetDialog" width="unset">
 		<template v-slot:activator="{ on, attrs }">
 			<v-btn dark v-bind="attrs" v-on="on"> Új beosztás </v-btn>
 		</template>
 
-		<v-card class="card">
+		<v-card class="dialog">
 			<v-card-title class="text-h5 grey lighten-2">
 				Új beosztás
 			</v-card-title>
@@ -91,5 +91,9 @@ export default defineComponent({
 .table-wrapper {
 	overflow: auto;
     max-height: 300px;
+}
+.dialog {
+	min-width: 350px;
+	max-width: 450px;
 }
 </style>>
