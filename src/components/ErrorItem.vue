@@ -26,9 +26,9 @@ export default defineComponent({
 <template>
 	<v-card class="card">
 		<div class="upper">
-			<v-icon :color="fatal ? 'error' : 'warning'" class="icon">
+			<!-- <v-icon :color="fatal ? 'error' : 'warning'" class="icon">
 				{{ fatal ? "mdi-alert-octagon" : "mdi-alert" }}
-			</v-icon>
+			</v-icon> -->
 			<div class="description">
 				{{ description }}
 			</div>
@@ -58,7 +58,7 @@ export default defineComponent({
 }
 .description {
 	flex: 1 1;
-	margin-left: 0;
+	/* margin-left: 0; */
 	font-size: 14px;
 }
 .origin {

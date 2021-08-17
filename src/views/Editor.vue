@@ -7,11 +7,11 @@ import GlobalCounters from "@/components/GlobalCounters.vue"
 import { assertions, ErrorGroup } from "@/model/assertions"
 import { Sheet } from '@/model/schedule-sheet'
 import { CountStartingTimes } from '@/model/aggregates'
-import ErrorList from "@/components/ErrorList.vue";
+import ErrorPanel from "@/components/ErrorList.vue";
 
 export default Vue.extend({
 	name: "Editor",
-	components: { Splitpanes, Pane, Monthly, GlobalCounters, ErrorList },
+	components: { Splitpanes, Pane, Monthly, GlobalCounters, ErrorPanel },
 	computed: {
 		error_groups(): ErrorGroup[][] {
 			return this.sheet.schedule.map(row => assertions.map(x => x.evaluate(row)).flat())
@@ -34,14 +34,18 @@ export default Vue.extend({
 		<pane size="20">
 			<splitpanes horizontal>
 				<pane>
-					<global-counters :start_times="start_times" v-if="start_times.length > 0"/>
+					<global-counters
+						:start_times="start_times"
+						v-if="start_times.length > 0"
+					/>
 					<div v-else class="placeholder text-center mt-2 overline">
-						<v-icon>mdi-calendar-clock</v-icon> 
+						<v-icon>mdi-calendar-clock</v-icon>
 						Napra lebontás itt fog megjelenni
 					</div>
 				</pane>
 				<pane>
-					<error-list :error_groups="error_groups"></error-list>
+					<error-panel :error_groups="error_groups"></error-panel>
+					
 				</pane>
 			</splitpanes>
 		</pane>
@@ -52,7 +56,7 @@ export default Vue.extend({
 .panes {
 	height: calc(100vh - 64px);
 }
-.placeholder{
+.placeholder {
 	overflow: hidden;
 }
 </style>

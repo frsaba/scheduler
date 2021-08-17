@@ -1,29 +1,38 @@
 <script lang="ts">
 import { computed, defineComponent } from '@vue/composition-api'
 import { ErrorGroup } from '@/model/assertions'
-import ErrorListItem from '@/components/ErrorListItem.vue'
+import ErrorPanel from '@/components/ErrorPanel.vue'
 
 export default defineComponent({
 	props: {
 		error_groups: Array as () => Array<Array<ErrorGroup>>,
 	},
-	components: { ErrorListItem },
+	components: { ErrorPanel },
 	setup(props) {
-		const errors = computed(() => props.error_groups?.flat())
-		return {errors}
+		const flat = computed(() => props.error_groups!.flat())
+		const errors = computed(() => flat.value.filter(e => e?.fatal));
+		const warnings = computed(() => flat.value.filter(e => !e?.fatal));
+		return { errors, warnings }
 	},
 })
 </script>
 
 <template>
-<div class="wrapper">
-	<error-list-item v-for="group in errors" :key="`${group.employee.name}-${group.days}-${group.description}`" :group="group"> </error-list-item>
-</div>
+	<v-expansion-panels multiple accordion dense class="wrapper">
+		<error-panel
+			v-for="([label, list, icon, color], i) in [
+				['Figyelmeztetések', warnings, 'mdi-alert', 'warning'],
+				['Hibák', errors, 'mdi-alert-octagon', 'error'],
+			]"
+			:key="i"
+			v-bind="{label,list,icon, color}"
+		></error-panel>
+	</v-expansion-panels>
 </template>
 
 <style scoped>
-.wrapper{
-	height: 100%;
-	overflow-y: scroll;
+.wrapper {
+	max-height: 100%;
+	overflow-y: auto;
 }
 </style>
