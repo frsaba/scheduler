@@ -18,7 +18,7 @@ import { accumulators } from "@/model/aggregates"
 import { Sheet } from "@/model/schedule-sheet";
 import { Operation } from "@/state/sheets"
 import { FontColorFromBackground } from "@/utils/color-helpers"
-import { isWeekend, isHoliday } from "@/utils/date-helpers"
+import { isWeekend, isHoliday, isDay } from "@/utils/date-helpers"
 import compSelection from "@/composables/selection"
 import visibilityTracker from "@/composables/visibility-tracker"
 import { ErrorGroup } from "@/model/assertions";
@@ -162,8 +162,9 @@ export default defineComponent({
 					backgroundColor = `var(--v-holiday-base)`
 				else
 					backgroundColor = `var(--v-header-${isWeekend(date) ? "weekend" : "weekday"}-base)`
-
-				return { backgroundColor }
+				
+				let borderLeft = isDay(date, 1) ? '4px double #333' : ''
+				return { backgroundColor, borderLeft }
 			})
 		})
 
@@ -314,7 +315,7 @@ export default defineComponent({
 	position: relative;
 	border: 1px solid #eee;
 	scroll-behavior: smooth;
-	max-height: calc(100vh - 100px);
+	max-height: calc(100vh - 136px);
 }
 .toolbar >>> .v-toolbar__content{
 	gap: 15px;

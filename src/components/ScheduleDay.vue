@@ -33,6 +33,7 @@ export default Vue.extend({
 				'has-error': this.error_groups.some(x => x.fatal),
 				'selected': this.is_selected,
 				'weekend': this.is_weekend || this.is_holiday,
+				'monday': this.is_monday,
 				'last': this.selection[this.selection.length - 1] == this.day,
 				'first': this.selection[0] == this.day
 			}]
@@ -55,6 +56,9 @@ export default Vue.extend({
 		},
 		is_sunday(): boolean {
             return isDay(this.to_date, 0) // 0 = Sunday
+		},
+		is_monday(): boolean {
+            return isDay(this.to_date, 1) // 1 = Monday
 		},
 		style(): unknown {
 			const color = DayTypeDescriptions[this.type].color
@@ -109,6 +113,9 @@ td {
 .weekend {
 	filter: hue-rotate(-20deg);
 	z-index: -1;
+}
+.monday{
+	border-left: 4px double #ddd;
 }
 .weekend:hover {
 	filter: brightness(90%) !important;
