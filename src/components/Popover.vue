@@ -61,6 +61,7 @@ export default Vue.extend({
 			this.$refs.base.updateRects()
 		},
 		ignoreKeys(e: KeyboardEvent) {
+			if(!this.value) return;
 			let k = e.key
 			//Arrow key, Ctrl + *, any single letter, any accelerator
 			if (k.startsWith("Arrow") || e.ctrlKey || (k.length == 1 && k.toLowerCase() != k.toUpperCase()) || this.accelerators.includes(k))

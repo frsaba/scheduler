@@ -3,7 +3,7 @@ import { defineComponent, ref } from '@vue/composition-api'
 import { createNamespacedHelpers } from 'vuex-composition-helpers'
 import store from "@/state/store"
 import { Employee, Staff } from "@/model/staff"
-import EmployeePicker from "@/components/EmployeePicker.vue"
+import EmployeePicker from "@/components/EmployeePickerTable.vue"
 
 export default defineComponent({
 	name: "SheetSetup",
@@ -53,11 +53,7 @@ export default defineComponent({
 				show-current="false"
 			></v-date-picker>
 			<v-divider></v-divider>
-			<employee-picker v-model="selection" :defaultSelection="employees">
-				<span class="text-overline employees-title">
-					Beosztásban szereplő dolgozók
-				</span>
-			</employee-picker>
+			<employee-picker v-model="selection" :defaultSelection="employees"></employee-picker>
 			<v-divider></v-divider>
 			<v-card-actions>
 				<v-spacer></v-spacer>
@@ -75,9 +71,6 @@ export default defineComponent({
 </template>
 
 <style scoped>
-.employees-title {
-	padding: 20px;
-}
 .dialog {
 	min-width: 400px;
 	max-width: 600px;

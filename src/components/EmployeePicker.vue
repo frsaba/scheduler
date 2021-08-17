@@ -1,56 +1,62 @@
-// search
-
 <script lang="ts">
-import { defineComponent, ref, watch } from '@vue/composition-api'
-import { createNamespacedHelpers } from 'vuex-composition-helpers'
-import { Employee, Staff } from "@/model/staff"
+import { defineComponent, ref, Ref, watch } from '@vue/composition-api'
+import EmployeeTable from "@/components/EmployeePickerTable.vue"
+import { Sheet } from '@/model/schedule-sheet';
+import { useActions, useState, useGetters, createNamespacedHelpers } from "vuex-composition-helpers";
+import { Employee, Staff } from '@/model/staff';
 import store from "@/state/store"
 
 export default defineComponent({
 	name: "EmployeePicker",
+	props: {
+		value: Boolean
+	},
+	components: {
+		EmployeeTable
+	},
 	setup(props, context) {
-		const { useState, useMutations, useActions } = createNamespacedHelpers<Staff>(store, "staff");
-		const { employees } = useState(["employees"]);
-		const search = ref("")
-		const headers = [{ text: 'Dolgozó neve', value: 'name' }]
+		const sheet: Sheet = useState(["sheets"]).sheets.value.sheet;
+		const selection = ref([] as Employee[])
+		const { useState: useStaffState } = createNamespacedHelpers<Staff>(store, "staff");
+		const { employees } = useStaffState(["employees"]);
 
-		return {
-			employees, headers, search
+		watch(() => props.value, () => { selection.value = sheet.schedule.map(row => row.employee) })
+
+		function confirm() {
+			const { add, remove_employee } = useActions(store, ["add", "remove_employee"])
+			const isInSheet: (name: string) => boolean = useGetters(store, ["isInSheet"]).isInSheet.value
+			for (let employee of employees.value) {
+				if (!isInSheet(employee.name) && selection.value.includes(employee)) add(employee)
+                if (isInSheet(employee.name) && !selection.value.includes(employee)) remove_employee(employee.name)
+			}
+			close();
+
 		}
+		function close() {
+			context.emit('input', false)
+		}
+
+		return { selection, confirm, close }
 	},
 })
 </script>
 
-
 <template>
-	<div class="wrapper">
-		<div class="title d-flex mx-2">
-			<slot></slot>
-			<v-spacer></v-spacer>
-			<v-text-field
-				v-model="search"
-				prepend-icon="mdi-magnify"
-				label="Keresés"
-				single-line
-				hide-details
-                clearable
-			></v-text-field>
-		</div>
-
-		<v-data-table
-			:headers="headers"
-			:items="employees"
-			v-bind="$attrs"
-			@input="$emit('input', $event)"
-			show-select
-			hide-default-footer
-			item-key="name"
-			disable-pagination
-			fixed-header
-			height="300px"
-			:search="search"
-		>
-			<template v-slot:no-results>Nincs ilyen nevű dolgozó!</template>
-		</v-data-table>
-	</div>
+	<v-dialog v-on="$listeners" :value="value" width="600">
+		<v-card>
+			<employee-table v-model="selection"></employee-table>
+			<v-card-actions>
+				<v-spacer></v-spacer>
+				<v-btn
+					color="primary"
+					text
+					@click="confirm()"
+					:disabled="selection.length < 1"
+				>
+					Alkalmaz
+				</v-btn>
+				<v-btn color="primary" text @click="close"> Mégse </v-btn>
+			</v-card-actions>
+		</v-card>
+	</v-dialog>
 </template>

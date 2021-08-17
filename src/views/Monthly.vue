@@ -12,6 +12,7 @@ import BasePopover from "@/components/BasePopover.vue";
 import DayInfo from "@/components/DayInfo.vue"
 import EmployeeInfo, { EmployeeInfoOptions } from "@/components/EmployeeInfo.vue"
 import BaseButton from "@/components/BaseButton.vue"
+import EmployeePicker from "@/components/EmployeePicker.vue"
 import { DayType } from "@/model/day-types";
 import { accumulators } from "@/model/aggregates"
 import { Sheet } from "@/model/schedule-sheet";
@@ -31,7 +32,8 @@ export default defineComponent({
 		BasePopover,
 		DayInfo,
 		EmployeeInfo,
-		BaseButton
+		BaseButton,
+		EmployeePicker
 	},
 	props:{
 		error_groups: Array as () => Array<Array<ErrorGroup>>,
@@ -80,6 +82,8 @@ export default defineComponent({
 			targetElement: null,
 			event: null
 		} as EmployeeInfoOptions)
+
+		const employeePicker = ref(false)
 
 		const undo = useActions(["undo"]).undo
 		const redo = useActions(["redo"]).redo
@@ -170,6 +174,7 @@ export default defineComponent({
 			dayinfo,
 			dayinfotarget,
 			employeeinfo,
+			employeePicker,
 			...selectionObj,
 			scroll,
 			undo, redo,
@@ -227,21 +232,23 @@ export default defineComponent({
 <template>
 	<div class="wrapper">
 		<v-toolbar class="toolbar">
-			<base-button color="success" @click="add" icon="mdi-account-multiple-plus" tooltip="Dolgozó hozzáadása"></base-button>
+			<base-button color="success" @click="employeePicker = true" icon="mdi-account-multiple-plus" tooltip="Dolgozó hozzáadása"></base-button>
 			<base-button outlined fab small @click="undo" icon="mdi-undo" tooltip="Visszavonás" :disabled="!can_undo"></base-button>
-			<base-button outlined fab small @click="redo" icon="mdi-redo" tooltip="Újra" :disabled="!can_redo"></base-button>
-			
+			<base-button outlined fab small @click="redo" icon="mdi-redo" tooltip="Újra" :disabled="!can_redo"></base-button>			
 		</v-toolbar>
+
 		<popover
 			v-model="popover"
 			@close="deselect"
 			@set-shift="setShift"
 			@set-type="setType"
 			:selection_elements="selection_elements"
-			ref="base"></popover>
+			ref="base">
+		</popover>
+		<day-info :value="dayinfo" :targets="dayinfotarget" :start_times_cache="start_times" />
+		<employee-info :options="employeeinfo"/>
+		<employee-picker v-model="employeePicker"></employee-picker>
 
-			<day-info :value="dayinfo" :targets="dayinfotarget" :start_times_cache="start_times" />
-			<employee-info :options="employeeinfo"/>
 		<div class="table-wrapper ma-1" @scroll="scroll" ref="table_wrapper">
 			<table fixed-header class="table" v-if="sheet.schedule.length > 0">
 				<thead>
@@ -282,7 +289,7 @@ export default defineComponent({
 		</div>
 		<div v-if="sheet.schedule.length == 0" class="text-center mt-3">
 			Ez a beosztás nem tartalmaz dolgozót. <br>
-			<a class="overline">
+			<a class="overline" @click="employeePicker = true">
 				<v-icon left color="primary">mdi-account-plus</v-icon> 
 				<span>Dolgozó hozzáadása</span>
 			</a>
