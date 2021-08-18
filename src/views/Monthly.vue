@@ -23,6 +23,7 @@ import compSelection from "@/composables/selection"
 import visibilityTracker from "@/composables/visibility-tracker"
 import { ErrorGroup } from "@/model/assertions";
 import { Employee } from "@/model/staff";
+import store from "@/state/store"
 
 export default defineComponent({
 	name: "Monthly",
@@ -35,7 +36,7 @@ export default defineComponent({
 		BaseButton,
 		EmployeePicker
 	},
-	props:{
+	props: {
 		error_groups: Array as () => Array<Array<ErrorGroup>>,
 		start_times: Array as () => [number, number[]][]
 	},
@@ -85,8 +86,14 @@ export default defineComponent({
 
 		const employeePicker = ref(false)
 
-		const undo = useActions(["undo"]).undo
-		const redo = useActions(["redo"]).redo
+		const undo = async () => {
+			const batch = await useActions(store, ["undo"]).undo();
+			scrollBatchIntoView(batch)
+		}
+		const redo = async () => {
+			const batch = await useActions(store, ["redo"]).redo();
+			scrollBatchIntoView(batch)
+		}
 
 		function scrollBatchIntoView(batch: Operation[]) {
 			if (batch?.length > 0) {
@@ -106,14 +113,11 @@ export default defineComponent({
 				"ArrowDown": [0, 1]
 			}
 			if (e.ctrlKey) {
-				if (e.key.toLowerCase() == "z") {
-					const batch: Operation[] = await undo(); // CTRL + Z
-					scrollBatchIntoView(batch)
-				}
-				if (e.key.toLowerCase() == "y") {
-					const batch: Operation[] = await redo(); // CTRL + Y
-					scrollBatchIntoView(batch)
-				}
+				if (e.key.toLowerCase() == "z")
+					await undo(); // CTRL + Z
+				if (e.key.toLowerCase() == "y")
+					await redo(); // CTRL + Y
+
 			}
 			const bind = Object.entries(bindings).find(b => b[0] == e.key)
 			if (bind) {
@@ -162,7 +166,7 @@ export default defineComponent({
 					backgroundColor = `var(--v-holiday-base)`
 				else
 					backgroundColor = `var(--v-header-${isWeekend(date) ? "weekend" : "weekday"}-base)`
-				
+
 				let borderLeft = isDay(date, 1) ? '4px double #333' : ''
 				return { backgroundColor, borderLeft }
 			})
@@ -183,7 +187,7 @@ export default defineComponent({
 			selection_tracker,
 			selection_elements,
 			cursor_element,
-			setTableScroll
+			setTableScroll,
 		}
 	},
 	mounted() {
@@ -214,28 +218,35 @@ export default defineComponent({
 				this.$store.dispatch('set_type', { index: this.drag.employee_index, day: i, type })
 			}
 		},
-		setDayInfoTarget(e : Event){
+		setDayInfoTarget(e: Event) {
 			this.dayinfotarget = [e.target as Element]
 		},
-		employeeContextMenu(e : MouseEvent, employee : Employee){
+		employeeContextMenu(e: MouseEvent, employee: Employee) {
 			this.deselect()
 			this.employeeinfo.event = e;
-			this.employeeinfo.target = employee; 
+			this.employeeinfo.target = employee;
 			this.employeeinfo.show = true
 		}
 	},
-	 computed: {
-    ...mapGetters(['can_undo','can_redo'])
-  }
+	computed: {
+		...mapGetters(['can_undo', 'can_redo'])
+	}
 });
 </script>
 
 <template>
 	<div class="wrapper">
 		<v-toolbar class="toolbar">
-			<base-button color="success" @click="employeePicker = true" icon="mdi-account-multiple-plus" tooltip="Dolgozó hozzáadása"></base-button>
-			<base-button outlined fab small @click="undo" icon="mdi-undo" tooltip="Visszavonás" :disabled="!can_undo"></base-button>
-			<base-button outlined fab small @click="redo" icon="mdi-redo" tooltip="Újra" :disabled="!can_redo"></base-button>			
+			<base-button
+				v-for="([tooltip, icon, click, { circular, ...rest }], i) in [
+					[ 'Dolgozó hozzáadása', 'mdi-account-multiple-plus', () => {employeePicker = true; deselect()}, { color: 'success' }, ],
+					[ 'Visszavonás', 		'mdi-undo', undo, { circular: true, disabled: !can_undo }, ],
+					[ 'Újra', 				'mdi-redo', redo, { circular: true, disabled: !can_redo }, ],
+					[ 'Gyorsdolgozó', 		'mdi-plus', add,  { circular: true }],
+				]"
+				:key="i"
+				v-bind="{ tooltip, icon, outlined: circular, fab: circular, small: circular, ...rest, }"
+				v-on="{click}"></base-button>
 		</v-toolbar>
 
 		<popover
@@ -246,8 +257,11 @@ export default defineComponent({
 			:selection_elements="selection_elements"
 			ref="base">
 		</popover>
-		<day-info :value="dayinfo" :targets="dayinfotarget" :start_times_cache="start_times" />
-		<employee-info :options="employeeinfo"/>
+		<day-info
+			:value="dayinfo"
+			:targets="dayinfotarget"
+			:start_times_cache="start_times" />
+		<employee-info :options="employeeinfo" />
 		<employee-picker v-model="employeePicker"></employee-picker>
 
 		<div class="table-wrapper ma-1" @scroll="scroll" ref="table_wrapper">
@@ -260,7 +274,7 @@ export default defineComponent({
 							:style="day_header_style[n - 1]"
 							v-for="n in sheet.month_length"
 							:key="n"
-							@mouseenter="dayinfotarget = [$event.target]; dayinfo = true"
+							@mouseenter=" dayinfotarget = [$event.target]; dayinfo = true; "
 							@mouseleave="dayinfo = false">
 							{{ n }}
 						</th>
@@ -289,9 +303,9 @@ export default defineComponent({
 			</table>
 		</div>
 		<div v-if="sheet.schedule.length == 0" class="text-center mt-3">
-			Ez a beosztás nem tartalmaz dolgozót. <br>
+			Ez a beosztás nem tartalmaz dolgozót. <br />
 			<a class="overline" @click="employeePicker = true">
-				<v-icon left color="primary">mdi-account-plus</v-icon> 
+				<v-icon left color="primary">mdi-account-plus</v-icon>
 				<span>Dolgozó hozzáadása</span>
 			</a>
 		</div>
@@ -317,7 +331,7 @@ export default defineComponent({
 	scroll-behavior: smooth;
 	max-height: calc(100vh - 136px);
 }
-.toolbar >>> .v-toolbar__content{
+.toolbar >>> .v-toolbar__content {
 	gap: 15px;
 }
 </style>
