@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, ref } from '@vue/composition-api'
+import { defineComponent, ref, watch } from '@vue/composition-api'
 import { createNamespacedHelpers, useNamespacedState, useState } from "vuex-composition-helpers";
 import store from "@/state/store"
 import EmployeeRow from "@/components/EmployeeRow.vue"
@@ -19,8 +19,13 @@ export default defineComponent({
 
 		const valid = ref(false);
 		const newEmployeeName = ref("");
-		const employeeNameRules = [() => newEmployeeName.value != "" || 'Név nem lehet üres',
-		() => employees.value.every((e: Employee) => e.name != newEmployeeName.value) || 'Már létezik ilyen nevű dolgozó!']
+		const employeeNameRules = [
+			() => newEmployeeName.value != "" || 'Név nem lehet üres',
+			() => employees.value.every((e: Employee) => e.name != newEmployeeName.value) || 'Már létezik ilyen nevű dolgozó!'
+		];
+		
+		//@ts-ignore
+		watch(dialog,() => context.root.$nextTick(() => context.refs.form.resetValidation()))
 
 		function create(name: string) {
 			if (!valid.value) return;
@@ -28,7 +33,6 @@ export default defineComponent({
 			newEmployeeName.value = ""
 			dialog.value = false
 		}
-
 		return { employees, create, remove, dialog, newEmployeeName, employeeNameRules, valid }
 	},
 })
@@ -41,14 +45,9 @@ export default defineComponent({
 
 		<v-dialog v-model="dialog" width="500px">
 			<template v-slot:activator="{ on, attrs }">
-				<v-btn
-					color="success"
-					v-bind="attrs"
-					v-on="on"
-					@click="$refs.form.resetValidation()"
-				>
-					<v-icon left>mdi-account-plus</v-icon> Új dolgozó</v-btn
-				>
+				<v-btn color="success" v-bind="attrs" v-on="on">
+					<v-icon left>mdi-account-plus</v-icon> Új dolgozó
+				</v-btn>
 			</template>
 
 			<v-card>
@@ -59,10 +58,10 @@ export default defineComponent({
 					<v-form v-model="valid" ref="form">
 						<v-text-field
 							label="Dolgozó neve"
-							v-model="newEmployeeName"
+							autofocus
+							v-model.trim="newEmployeeName"
 							:rules="employeeNameRules"
-							@keydown.enter="create(newEmployeeName)"
-						></v-text-field>
+							@keydown.enter.prevent="create(newEmployeeName)"></v-text-field>
 					</v-form>
 				</v-card-text>
 
@@ -74,8 +73,7 @@ export default defineComponent({
 						:disabled="!valid"
 						color="primary"
 						text
-						@click="create(newEmployeeName)"
-					>
+						@click="create(newEmployeeName)">
 						Hozzáadás
 					</v-btn>
 				</v-card-actions>
@@ -86,11 +84,10 @@ export default defineComponent({
 			v-for="employee in employees"
 			:key="employee.name"
 			:name="employee.name"
-			@remove="remove"
-		></employee-row>
+			@remove="remove"></employee-row>
 		<div class="text-center" v-if="employees.length == 0">
-			Nincsenek dolgozók definiálva. <br/>
-			<a @click="dialog = true;">
+			Nincsenek dolgozók definiálva. <br />
+			<a @click="dialog = true">
 				<v-icon color="primary" left>mdi-account-plus</v-icon>
 				<span class="overline">Új dolgozó</span>
 			</a>

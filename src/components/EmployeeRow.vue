@@ -30,7 +30,7 @@ export default defineComponent({
 </script>
 
 <template>
-	<v-card class="container">
+	<v-card class="container" width="80%">
 		<v-text-field
 			solo
 			label="Dolgozó neve"
@@ -56,6 +56,6 @@ export default defineComponent({
 <style scoped>
 .container {
 	display: flex;
-	margin: 10px
+	margin: 10px auto;
 }
 </style>
