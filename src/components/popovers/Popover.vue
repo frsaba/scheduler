@@ -1,8 +1,8 @@
 <script lang="ts">
 import Vue from "vue";
 import { DayType, DayTypeDescriptions } from "@/model/day-types";
-import LeaveButton from "@/components/LeaveButton.vue";
-import HourPicker from "@/components/HourPicker.vue";
+import LeaveButton from "@/components/popovers/LeaveButton.vue";
+import HourPicker from "@/components/popovers/HourPicker.vue";
 import BasePopover from "@/components/BasePopover.vue";
 
 interface LeaveButtonData {

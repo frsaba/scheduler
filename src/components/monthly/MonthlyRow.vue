@@ -1,6 +1,6 @@
 <script lang="ts">
 import Vue from "vue";
-import ScheduleDayComponent from "@/components/ScheduleDay.vue";
+import ScheduleDayComponent from "@/components/monthly/ScheduleDay.vue";
 import { accumulators, Aggregate } from "@/model/aggregates"
 import { ScheduleDay, ScheduleRow } from "@/model/schedule-sheet";
 import { assertions, ErrorGroup } from "@/model/assertions"

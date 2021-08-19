@@ -1,7 +1,7 @@
 <script lang="ts">
 import { computed, defineComponent } from '@vue/composition-api'
 import { ErrorGroup } from '@/model/assertions'
-import ErrorPanel from '@/components/ErrorPanel.vue'
+import ErrorPanel from '@/components/sidepanel/ErrorPanel.vue'
 
 export default defineComponent({
 	props: {

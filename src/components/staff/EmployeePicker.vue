@@ -1,6 +1,6 @@
 <script lang="ts">
 import { defineComponent, ref, Ref, watch } from '@vue/composition-api'
-import EmployeeTable from "@/components/EmployeePickerTable.vue"
+import EmployeeTable from "@/components/staff/EmployeePickerTable.vue"
 import { Sheet } from '@/model/schedule-sheet';
 import { useActions, useState, useGetters, createNamespacedHelpers } from "vuex-composition-helpers";
 import { Employee, Staff } from '@/model/staff';

@@ -6,13 +6,13 @@ import { mapGetters } from 'vuex'
 
 import { throttle, debounce, last } from "lodash";
 
-import MonthlyRow from "@/components/MonthlyRow.vue";
-import Popover from "@/components/Popover.vue";
+import MonthlyRow from "@/components/monthly/MonthlyRow.vue";
+import Popover from "@/components/popovers/Popover.vue";
 import BasePopover from "@/components/BasePopover.vue";
-import DayInfo from "@/components/DayInfo.vue"
-import EmployeeInfo, { EmployeeInfoOptions } from "@/components/EmployeeInfo.vue"
+import DayInfo from "@/components/popovers/DayInfo.vue"
+import EmployeeInfo, { EmployeeInfoOptions } from "@/components/popovers/EmployeeInfo.vue"
 import BaseButton from "@/components/BaseButton.vue"
-import EmployeePicker from "@/components/EmployeePicker.vue"
+import EmployeePicker from "@/components/staff/EmployeePicker.vue"
 import { DayType } from "@/model/day-types";
 import { accumulators } from "@/model/aggregates"
 import { Sheet } from "@/model/schedule-sheet";

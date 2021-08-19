@@ -2,7 +2,7 @@
 import { defineComponent, ref, watch } from '@vue/composition-api'
 import { createNamespacedHelpers, useNamespacedState, useState } from "vuex-composition-helpers";
 import store from "@/state/store"
-import EmployeeRow from "@/components/EmployeeRow.vue"
+import EmployeeRow from "@/components/staff/EmployeeRow.vue"
 import { Employee } from '@/model/staff';
 
 export default defineComponent({

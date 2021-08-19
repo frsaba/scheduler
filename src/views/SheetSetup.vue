@@ -3,7 +3,7 @@ import { defineComponent, ref } from '@vue/composition-api'
 import { createNamespacedHelpers } from 'vuex-composition-helpers'
 import store from "@/state/store"
 import { Employee, Staff } from "@/model/staff"
-import EmployeePicker from "@/components/EmployeePickerTable.vue"
+import EmployeePicker from "@/components/staff/EmployeePickerTable.vue"
 
 export default defineComponent({
 	name: "SheetSetup",

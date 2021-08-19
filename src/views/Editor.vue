@@ -3,11 +3,11 @@ import Vue from 'vue'
 import { Splitpanes, Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 import Monthly from "@/views/Monthly.vue"
-import GlobalCounters from "@/components/GlobalCounters.vue"
+import GlobalCounters from "@/components/sidepanel/GlobalCounters.vue"
 import { assertions, ErrorGroup } from "@/model/assertions"
 import { Sheet } from '@/model/schedule-sheet'
 import { CountStartingTimes } from '@/model/aggregates'
-import ErrorPanel from "@/components/ErrorList.vue";
+import ErrorPanel from "@/components/sidepanel/ErrorList.vue";
 
 export default Vue.extend({
 	name: "Editor",
