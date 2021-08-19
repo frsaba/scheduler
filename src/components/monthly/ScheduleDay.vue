@@ -18,7 +18,8 @@ export default Vue.extend({
 		display_text(): string {
 			switch (this.type) {
 				case DayType.shift:
-					return `${this.start} <br> ${(this.duration + this.start) % 24}`;
+					let endResult = (this.duration + this.start) % 24;
+					return `${this.start} <br> ${endResult ? endResult : 24}`;
 				case DayType.unpaid:
 					return this.is_sunday ? "P" : "SZ"
 				default:

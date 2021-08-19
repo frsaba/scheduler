@@ -9,6 +9,10 @@ export default Vue.extend({
 			type: Number,
 			default: 8
 		},
+		hour24: {
+			type: Boolean,
+			default: false,
+		}
 	},
 	methods:
 	{
@@ -32,7 +36,7 @@ export default Vue.extend({
 
 <template>
 	<div class="wrapper">
-		<input type="number" min="0" max="23" step="1" ref="field"
+		<input type="number" :min="0 + hour24" :max="23 + hour24" step="1" ref="field"
 			v-bind:value="value"
 			@input="$emit('input', $event.target.value)"
 			@focus="$event.target.select()"

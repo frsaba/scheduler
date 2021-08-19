@@ -140,14 +140,14 @@ export class MinRestPerWeek implements Assertion {
 				let nextWorkingDay = remaining[nextWorkingDayIndex]
 
 				//skip ahead beyond the next working day we found
-				if (nextWorkingDayIndex >= 0) index += nextWorkingDayIndex
+				if(nextWorkingDayIndex >= 0) index += nextWorkingDayIndex
 
 				let restEnd = nextWorkingDay ? moment(getShiftStartDate(nextWorkingDay)) : weekendDate
 
 				rests.push(restEnd.diff(restStart, 'hours'))
 				// console.log(restStart.toLocaleString(), restEnd.toLocaleString())
 
-				if (!nextWorkingDay) break; //We've delt with the last rest of the week
+				if (!nextWorkingDay) break; //We've dealt with the last rest of the week
 				restStart = moment(getShiftEndDate(nextWorkingDay))
 			}
 			// console.log(rests)

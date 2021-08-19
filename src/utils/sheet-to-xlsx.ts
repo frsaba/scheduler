@@ -97,8 +97,10 @@ export default async function replaceTemplate(template: Excel.Worksheet, sheet: 
 			let day = Number(cell.col) - 1; // Assuming days start at column B
 			if (day > sheet.month_length) return ""
 			let scheduleDay = sheet.GetRow(currentScheduleRow).GetDay(day)
-			if (scheduleDay.type == DayType.shift)
-				return (scheduleDay.start + scheduleDay.duration) % 24
+			if (scheduleDay.type == DayType.shift) {
+				let resultEnd = (scheduleDay.start + scheduleDay.duration) % 24
+				return resultEnd ? resultEnd : 24
+			}
 			else
 				return ""
 		}],

@@ -41,6 +41,9 @@ export default Vue.extend({
 	computed: {
 		desc() {
 			return DayTypeDescriptions
+		},
+		displayed_shift_end() : number {
+			return this.shift_end ? this.shift_end : 24
 		}
 	},
 	created() {
@@ -74,8 +77,8 @@ export default Vue.extend({
 			this.setShift(false);
 		},
 		//if user changes end, decrease duration and keep shift_start the same
-		inputEnd() {
-			this.shift_end = Math.round(Math.abs(this.shift_end + 24)) % 24;
+		inputEnd(shift_end_new: number) {
+			this.shift_end = Math.round(Math.abs(Number(shift_end_new) + 24)) % 24;
 			this.shift_duration = (this.shift_start < this.shift_end ? 0 : 24) + this.shift_end - this.shift_start;
 			this.setShift(false)
 		},
@@ -105,7 +108,7 @@ export default Vue.extend({
 			<div class="upper">
 				<hour-picker v-model.number="shift_start" @input="inputStart" />
 				-
-				<hour-picker v-model.number="shift_end" @input="inputEnd" />
+				<hour-picker :value="displayed_shift_end" @input="inputEnd" :hour24="true" />
 
 				<leave-button :type="0" @click="setShift(true)" tooltip="Műszak" accelerator="Enter">
 					<v-icon>mdi-set-split</v-icon>
