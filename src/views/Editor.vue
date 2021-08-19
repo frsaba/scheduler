@@ -58,6 +58,8 @@ export default Vue.extend({
 }
 .placeholder {
 	overflow: hidden;
+	margin: 1em;
+	min-width: 12em;
 }
 </style>
 

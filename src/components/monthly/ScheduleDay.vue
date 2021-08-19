@@ -34,8 +34,8 @@ export default Vue.extend({
 				'selected': this.is_selected,
 				'weekend': this.is_weekend || this.is_holiday,
 				'monday': this.is_monday,
+				'first': this.selection[0] == this.day,
 				'last': this.selection[this.selection.length - 1] == this.day,
-				'first': this.selection[0] == this.day
 			}]
 		},
 		type_string(): string {
@@ -44,21 +44,21 @@ export default Vue.extend({
 		is_selected(): boolean {
 			return this.selection.includes(this.day)
 		},
-        to_date(): Date {
-            let sheet = this.$store.state.sheets.sheet
-            return new Date(sheet.year, sheet.month - 1, this.day)
-        },
+		to_date(): Date {
+			let sheet = this.$store.state.sheets.sheet
+			return new Date(sheet.year, sheet.month - 1, this.day)
+		},
 		is_weekend(): boolean {
-            return isWeekend(this.to_date);
+			return isWeekend(this.to_date);
 		},
 		is_holiday(): boolean {
 			return isHoliday(this.to_date)
 		},
 		is_sunday(): boolean {
-            return isDay(this.to_date, 0) // 0 = Sunday
+			return isDay(this.to_date, 0) // 0 = Sunday
 		},
 		is_monday(): boolean {
-            return isDay(this.to_date, 1) // 1 = Monday
+			return isDay(this.to_date, 1) // 1 = Monday
 		},
 		style(): unknown {
 			const color = DayTypeDescriptions[this.type].color
@@ -70,8 +70,8 @@ export default Vue.extend({
 </script>
 
 <template>
-    <td :class="classes" :style="style" v-html="display_text">
-    </td>
+	<td :class="classes" :style="style" v-html="display_text">
+	</td>
 </template>
 
 <style scoped>
@@ -84,7 +84,7 @@ td {
 	border: 0.5px solid #ccc;
 	text-align: center;
 	min-width: 2.7em;
-    width: 100vw;
+	width: 100vw;
 	height: 3.75em;
 	text-shadow: white 0px 0px 20px;
 	font-weight: 500;
@@ -110,12 +110,24 @@ td {
 .has-error {
 	box-shadow: inset 0px -4px var(--v-error-base);
 }
+.monday.first.selected.has-warning {
+	box-shadow: inset 3px 0px #ddd, inset 0px -4px var(--v-warning-base);
+}
+.monday.first.selected.has-error {
+	box-shadow: inset 3px 0px #ddd, inset 0px -4px var(--v-error-base);
+}
+.monday {
+	border-left: 4px solid #ddd;
+	min-width: calc(2.7em + 4px);
+}
+.monday.first.selected {
+	border-left: 1px solid black;
+	padding-left: 3px;
+	box-shadow: inset 3px 0px #ddd;
+}
 .weekend {
 	filter: hue-rotate(-20deg);
 	z-index: -1;
-}
-.monday{
-	border-left: 4px double #ddd;
 }
 .weekend:hover {
 	filter: brightness(90%) !important;
