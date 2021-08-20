@@ -191,12 +191,12 @@ export default defineComponent({
 		}
 	},
 	mounted() {
-		if (this.$store.getters['staff/count'] < 1) {
-			this.$store.commit("staff/add_employee", "Példa János_Lusta");
-			this.$store.dispatch("staff/add", "Példa János");
-			this.$store.dispatch("staff/add", "Példa János2");
-			this.$store.dispatch("staff/add", "Példa János3");
-		}
+		// if (this.$store.getters['staff/count'] < 1) {
+		// 	this.$store.commit("staff/add_employee", "Példa János_Lusta");
+		// 	this.$store.dispatch("staff/add", "Példa János");
+		// 	this.$store.dispatch("staff/add", "Példa János2");
+		// 	this.$store.dispatch("staff/add", "Példa János3");
+		// }
 		this.staffCount = this.$store.getters['staff/count'];
 
 		const root = this.$refs.table_wrapper as Element

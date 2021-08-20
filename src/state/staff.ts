@@ -1,5 +1,6 @@
 import { Module } from "vuex";
-import staff, {Staff, Employee} from "@/model/staff"
+import staff, { Staff, Employee } from "@/model/staff"
+import Vue from "vue";
 
 const module: Module<Staff, {}> = {
     namespaced: true,
@@ -10,25 +11,39 @@ const module: Module<Staff, {}> = {
         },
         remove_employee(state, payload) {
             let i = state.employees.findIndex(e => e.name == payload)
-            state.employees.splice(i,1)
+            state.employees.splice(i, 1)
         },
-        rename(state, {oldName, newName} : {oldName : string, newName: string}): void {
+        rename(state, { oldName, newName }: { oldName: string, newName: string }): void {
             let i = state.employees.findIndex(e => e.name == oldName)
             console.log(oldName)
             state.employees[i].name = newName
         },
     },
     actions: {
-        add({ commit, dispatch }, payload): void {
-            commit('add_employee', payload)
-            dispatch('add', payload, { root: true })
+        add({ state, commit, dispatch }, payload): void {
+            if (state.employees.some(e => e.name == payload)) return console.error(`Már létezik '${payload}' dolgozó!`)
+            commit('add_employee', payload);
+            dispatch('add', payload, { root: true });
+            dispatch('save');
         },
         remove({ commit, dispatch }, payload): void {
-            commit('remove_employee', payload)
-            dispatch('remove_employee', payload, { root: true })
+            commit('remove_employee', payload);
             //Remove from sheet, remove all relevant operations from undo/redostack
+            dispatch('remove_employee', payload, { root: true });
+            dispatch('save');
         },
-        
+        save({ state }): void {
+            window.localStorage.setItem("employees", JSON.stringify(state.employees))
+        },
+        load({ state, dispatch }): void {
+            const loaded = JSON.parse(window.localStorage.getItem("employees") ?? "[]") as Employee[]
+            Vue.set(state, "employees", loaded)
+
+            for (let e of state.employees) {
+                dispatch('add', e, { root: true });
+            }
+        }
+
     },
     getters: {
         count: state => {

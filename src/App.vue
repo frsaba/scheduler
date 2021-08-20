@@ -36,6 +36,8 @@ export default Vue.extend({
 			this.snackbar = true;
 			this.hide();
 		});
+
+		this.$store.dispatch("staff/load")
 	},
 	destroyed() {
 		ipcRenderer.removeAllListeners("export-query")
