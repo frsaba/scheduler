@@ -4,10 +4,10 @@ import { DayType } from "@/model/day-types"
 import { isNight } from "@/utils/date-helpers"
 import _ from "lodash";
 import { Employee } from "@/model/staff";
-import vuetify from "@/plugins/vuetify";
 import Vue from "vue";
+import { RootState } from "./store";
 
-class State {
+export class SheetState {
     sheet: Sheet = new Sheet(2021, 12);
     undoStack = new Array<Array<Operation>>();
     redoStack = new Array<Array<Operation>>();
@@ -18,8 +18,8 @@ export interface Operation {
     payload: { index: number, day: number, [x: string]: any }
 }
 
-const sheets: Module<State, {}> = {
-    state: new State,
+const sheets: Module<SheetState, RootState> = {
+    state: new SheetState,
     mutations: {
         add_row({ sheet }, payload) {
             sheet.AddRow(payload)
@@ -152,7 +152,7 @@ const sheets: Module<State, {}> = {
         }
     },
     getters: {
-        day: (context: State) => (index: number, day: number): ScheduleDay | undefined => {
+        day: (context: SheetState) => (index: number, day: number): ScheduleDay | undefined => {
             try {
                 return context.sheet.GetRow(index).GetDay(day)
             } catch {

@@ -1,8 +1,9 @@
 import { Module } from "vuex";
 import staff, { Staff, Employee } from "@/model/staff"
 import Vue from "vue";
+import { RootState } from "./store";
 
-const module: Module<Staff, {}> = {
+const module: Module<Staff, RootState> = {
     namespaced: true,
     state: staff,
     mutations: {
