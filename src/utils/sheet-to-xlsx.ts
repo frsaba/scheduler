@@ -34,7 +34,7 @@ export async function bufferToWorkbook(buffer: Excel.Buffer) {
 }
 
 export default async function replaceTemplate(template: Excel.Worksheet, sheet: Sheet) {
-	let employeeIndex: Position
+	let firstEmployeePos: Position
 	let employeeDistance: Position
 	let currentScheduleRow: number
 
@@ -50,36 +50,35 @@ export default async function replaceTemplate(template: Excel.Worksheet, sheet: 
 		}],
 		["employeeName", (cell: Excel.Cell) => {
 			let current = new Position(cell.row, cell.col)
-			if (!employeeIndex) employeeIndex = current
+			if (!firstEmployeePos) firstEmployeePos = current
 
 			currentScheduleRow = 0
-			return sheet.GetRow(currentScheduleRow).employee.name
+			return sheet.GetRow(currentScheduleRow)?.employee?.name
 		}],
 		["nextEmployee", (cell: Excel.Cell) => {
 			let current = new Position(cell.row, cell.col)
-			if (!employeeDistance)
-				employeeDistance = current.subtract(employeeIndex)
-
-			currentScheduleRow = (current.row - employeeIndex.row) / employeeDistance.row;
-			// Only copy to next row if there is a next employee
-			if (currentScheduleRow < sheet.schedule.length - 1) {
-				let next = new Position(current.row + employeeDistance.row, current.col + employeeDistance.col)
-				copyRange(template, current, new Position(current.row + employeeDistance.row - 1, 50), next)
-			} else {
-				// Add conditional formatting for weekends on the last employee
+			if (!employeeDistance) {
+				employeeDistance = current.subtract(firstEmployeePos)
 				template.addConditionalFormatting({
-					ref: `B$${employeeIndex.row - 1}:AF${current.row + employeeDistance.row - 1}`,
+					ref: `B$${firstEmployeePos.row - 1}:AF${employeeDistance.row * sheet.schedule.length + firstEmployeePos.row - 1}`,
 					rules: [
 						{
 							priority: 1,
 							type: "expression",
-							formulae: [`WEEKDAY(DATE(${sheet.year},${sheet.month},B$${employeeIndex.row - 1}),2)>5`],
+							formulae: [`WEEKDAY(DATE(${sheet.year},${sheet.month},B$${firstEmployeePos.row - 1}),2)>5`],
 							style: { fill: { type: "pattern", pattern: "solid", bgColor: { argb: "FFFFFF00" } } },
 						}
 					]
 				})
 			}
-			return sheet.GetRow(currentScheduleRow).employee.name
+
+			currentScheduleRow = (current.row - firstEmployeePos.row) / employeeDistance.row;
+			// Only copy to next row if there is a next employee
+			if (currentScheduleRow < sheet.schedule.length - 1) {
+				let next = new Position(current.row + employeeDistance.row, current.col + employeeDistance.col)
+				copyRange(template, current, new Position(current.row + employeeDistance.row - 1, 50), next)
+			} 
+			return sheet.GetRow(currentScheduleRow)?.employee?.name
 		}],
 		["shiftStart", (cell: Excel.Cell) => {
 			let current = new Position(cell.row, cell.col)
@@ -87,7 +86,9 @@ export default async function replaceTemplate(template: Excel.Worksheet, sheet: 
 			let day = current.col - 1; // Assuming days start at column B
 			if (day > sheet.month_length) return ""
 
-			let scheduleDay = sheet.GetRow(currentScheduleRow).GetDay(day)
+			let scheduleDay = sheet.GetRow(currentScheduleRow)?.GetDay(day)
+			if (!scheduleDay) return undefined
+
 			if (scheduleDay.type == DayType.shift)
 				return scheduleDay.start
 			else
@@ -96,8 +97,8 @@ export default async function replaceTemplate(template: Excel.Worksheet, sheet: 
 		["shiftEnd", (cell: Excel.Cell) => {
 			let day = Number(cell.col) - 1; // Assuming days start at column B
 			if (day > sheet.month_length) return ""
-			let scheduleDay = sheet.GetRow(currentScheduleRow).GetDay(day)
-			if (scheduleDay.type == DayType.shift) {
+			let scheduleDay = sheet.GetRow(currentScheduleRow)?.GetDay(day)
+			if (scheduleDay?.type == DayType.shift) {
 				let resultEnd = (scheduleDay.start + scheduleDay.duration) % 24
 				return resultEnd ? resultEnd : 24
 			}
@@ -105,7 +106,11 @@ export default async function replaceTemplate(template: Excel.Worksheet, sheet: 
 				return ""
 		}],
 		...accumulators.map(x =>
-			[x.name, () => x.evaluate(sheet.GetRow(currentScheduleRow).days)]
+			[x.name, () => {
+				let days = sheet.GetRow(currentScheduleRow)?.days
+
+				return days ? x.evaluate(days) : undefined
+			}]
 		) as [string, (...args: any[]) => Excel.CellValue][],
 	])
 
@@ -120,7 +125,7 @@ export default async function replaceTemplate(template: Excel.Worksheet, sheet: 
 	})
 }
 
-let reg = /(?<=\$)\{.*?\}/g;
+let reg = /\$\{.*?\}/g;
 
 function replaceTemplateCell(cell: Excel.Cell, bindings: BindingMap) {
 	if (!cell.value || typeof cell.value !== "string") return cell.value;
@@ -138,16 +143,16 @@ function replaceTemplateCell(cell: Excel.Cell, bindings: BindingMap) {
 			let func = bindings.get(key);
 			if (func) {
 				let retVal = func(cell, ...obj[key]);
-				if (retVal == null) retVal = ""
+				if (retVal == null || retVal == undefined) retVal = ""
 				if (typeof retVal === "boolean")
 					retVal = retVal ? 'OK' : '!'
 
 				// If the template is the only thing in the string keep the return type
-				if (cell.value.length === match.length + 1)
+				if (cell.value.length === match.length)
 					result = retVal;
 				// If there are other things convert it to a string
 				else
-					result = result!.toString().replace(`$${match}`, retVal.toString())
+					result = result!.toString().replace(`${match}`, retVal.toString())
 			}
 		}
 	}
@@ -159,6 +164,8 @@ function replaceTemplateCell(cell: Excel.Cell, bindings: BindingMap) {
 function jsonify(str: string) {
 	if (!str) return "{}";
 
+	// Trim leading dollar sign
+	str = str.replace(/^\$/, "")
 	// Trim leading and trailing curly braces
 	str = str.replace(/^\{?|\}?$/g, "");
 
