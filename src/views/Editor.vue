@@ -77,6 +77,7 @@ export default Vue.extend({
 	background: #000;
 	color: #fff;
 	z-index: 1;
+	height: 3em;
 }
 .table thead th:hover {
 	filter: invert(15%);

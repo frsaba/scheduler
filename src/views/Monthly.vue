@@ -11,6 +11,7 @@ import Popover from "@/components/popovers/Popover.vue";
 import BasePopover from "@/components/BasePopover.vue";
 import DayInfo from "@/components/popovers/DayInfo.vue"
 import EmployeeInfo, { EmployeeInfoOptions } from "@/components/popovers/EmployeeInfo.vue"
+import AggregatesContextMenu, { AggregatesContextMenuOptions } from "@/components/popovers/AggregatesContextMenu.vue";
 import BaseButton from "@/components/BaseButton.vue"
 import EmployeePicker from "@/components/staff/EmployeePicker.vue"
 import { DayType } from "@/model/day-types";
@@ -34,7 +35,8 @@ export default defineComponent({
 		DayInfo,
 		EmployeeInfo,
 		BaseButton,
-		EmployeePicker
+		EmployeePicker,
+		AggregatesContextMenu
 	},
 	props: {
 		error_groups: Array as () => Array<Array<ErrorGroup>>,
@@ -84,6 +86,8 @@ export default defineComponent({
 			event: null
 		} as EmployeeInfoOptions)
 
+		const aggregatesMenu = reactive(new AggregatesContextMenuOptions(accumulators))
+
 		const employeePicker = ref(false)
 
 		const undo = async () => {
@@ -106,6 +110,11 @@ export default defineComponent({
 		}
 
 		const keydown = async (e: KeyboardEvent) => {
+			if(e.key == "Escape" && aggregatesMenu.show || employeeinfo.show){
+				aggregatesMenu.show = false;
+				employeeinfo.show = false;
+				e.stopImmediatePropagation();
+			}
 			const bindings = {
 				"ArrowRight": [1, 0],
 				"ArrowLeft": [-1, 0],
@@ -144,17 +153,19 @@ export default defineComponent({
 		// @ts-ignore
 		const scroll = throttle(() => { context.refs.base.updateRects() }, 50);
 
-		// Styling
-		const right_side_headers = computed((): string[] => {
-			return accumulators.map(a => a.label)
-		})
 
+		//Uses filter to keep the original order
+		const aggregates = computed(() => accumulators.filter(a => aggregatesMenu.selected.includes(a)))
+
+		const right_side_headers = computed((): string[] => {
+			return aggregates.value.map(a => a.label)
+		})
 		//Having this as computed so it's cached and doesn't run on every render
 		const header_styles = computed((): Array<any> => {
-			return accumulators.map((a, i) => ({
+			return aggregates.value.map((a, i) => ({
 				backgroundColor: a.header_color,
 				color: FontColorFromBackground(a.header_color),
-				right: (accumulators.length - 1 - i) * 3 + "em" //right side sticky columns
+				right: (aggregates.value.length - 1 - i) * 3 + "em" //right side sticky columns
 			}))
 		})
 
@@ -180,6 +191,8 @@ export default defineComponent({
 			dayinfotarget,
 			employeeinfo,
 			employeePicker,
+			aggregatesMenu,
+			aggregates,
 			...selectionObj,
 			scroll,
 			undo, redo,
@@ -219,13 +232,23 @@ export default defineComponent({
 			}
 		},
 		setDayInfoTarget(e: Event) {
+			if(this.aggregatesMenu.show) return;
+			this.dayinfo = true;
 			this.dayinfotarget = [e.target as Element]
 		},
 		employeeContextMenu(e: MouseEvent, employee: Employee) {
 			this.deselect()
 			this.employeeinfo.event = e;
-			this.employeeinfo.target = employee;
 			this.employeeinfo.show = true
+			this.employeeinfo.target = employee;
+			this.aggregatesMenu.show = false; 
+		},
+		aggregatesContextMenu(e: MouseEvent) {
+			// this.deselect()
+			this.aggregatesMenu.event= e;
+			this.aggregatesMenu.show = true;
+			this.employeeinfo.show = false; 
+			this.dayinfo = false;
 		}
 	},
 	computed: {
@@ -263,6 +286,7 @@ export default defineComponent({
 			:start_times_cache="start_times" />
 		<employee-info :options="employeeinfo" />
 		<employee-picker v-model="employeePicker"></employee-picker>
+		<aggregates-context-menu :options="aggregatesMenu"></aggregates-context-menu>
 
 		<div class="table-wrapper ma-1" @scroll="scroll" ref="table_wrapper">
 			<table fixed-header class="table" v-if="sheet.schedule.length > 0">
@@ -274,15 +298,17 @@ export default defineComponent({
 							:style="day_header_style[n - 1]"
 							v-for="n in sheet.month_length"
 							:key="n"
-							@mouseenter=" dayinfotarget = [$event.target]; dayinfo = true; "
-							@mouseleave="dayinfo = false">
+							@mouseenter="setDayInfoTarget"
+							@mouseleave="dayinfo = false"
+							@contextmenu="aggregatesContextMenu">
 							{{ n }}
 						</th>
 						<th
 							class="header-sticky-right acc-header"
 							v-for="(acc, i) in right_side_headers"
 							:key="acc"
-							:style="header_styles[i]">
+							:style="header_styles[i]"
+							@contextmenu="aggregatesContextMenu">
 							{{ acc }}
 						</th>
 					</tr>
@@ -292,6 +318,7 @@ export default defineComponent({
 						v-for="(row, i) in sheet.schedule"
 						:key="row.employee.name"
 						:row="row"
+						:aggregates="aggregates"
 						:selection="i == drag.employee_index ? selection : []"
 						:error_groups="error_groups[i]"
 						:ref="row.employee.name"

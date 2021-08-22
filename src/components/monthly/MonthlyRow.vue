@@ -1,7 +1,7 @@
 <script lang="ts">
 import Vue from "vue";
 import ScheduleDayComponent from "@/components/monthly/ScheduleDay.vue";
-import { accumulators, Aggregate } from "@/model/aggregates"
+import { Aggregate } from "@/model/aggregates"
 import { ScheduleDay, ScheduleRow } from "@/model/schedule-sheet";
 import { assertions, ErrorGroup } from "@/model/assertions"
 export default Vue.extend({
@@ -12,7 +12,8 @@ export default Vue.extend({
 	props: {
 		row: ScheduleRow,
 		selection: [],
-		error_groups: Array as () => Array<ErrorGroup>
+		error_groups: Array as () => ErrorGroup[],
+		aggregates: Array as () => Aggregate[]
 	},
 	methods: {
 		down(i: number) {
@@ -26,25 +27,25 @@ export default Vue.extend({
 		},
 	},
 	computed: {
-		accumulators(): Aggregate[] {
-			return accumulators
-		},
+		// aggregates(): Aggregate[] {
+		// 	return aggregates
+		// },
 		days() {
 			return this.row.days
 		},
 		employee_name() {
 			return this.row.employee.name
 		},
-		//Ha,ving this as computed means it only updates when this.days changes
+		//Having this as computed means it only updates when this.days changes
 		accumulator_values(): (number | boolean)[] {
-			return this.accumulators.map(a => a.evaluate(this.days as ScheduleDay[]));
+			return this.aggregates.map(a => a.evaluate(this.days as ScheduleDay[]));
 		},
 		counter_styles(): Array<any> {
-			// return accumulators.map(a => ({ backgroundColor: a.header_color }))
-			return accumulators.map((a, i) =>
+			// return aggregates.map(a => ({ backgroundColor: a.header_color }))
+			return this.aggregates.map((a, i) =>
 			({
 				backgroundColor: a.background_color,
-				right: (accumulators.length - 1 - i) * 3 + "em" //right side sticky columns
+				right: (this.aggregates.length - 1 - i) * 3 + "em" //right side sticky columns
 			}))
 		}
 	}
@@ -73,7 +74,7 @@ export default Vue.extend({
 			class="sticky-right text-center counter"
 			v-for="(acc, i) in accumulator_values"
 			:style="counter_styles[i]"
-			:key="accumulators[i].label"
+			:key="aggregates[i].label"
 		>
 			<v-icon
 				v-if="typeof acc === 'boolean'"
