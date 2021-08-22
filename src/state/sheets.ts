@@ -46,13 +46,15 @@ const sheets: Module<SheetState, RootState> = {
         }
     },
     actions: {
-        new_sheet(context, {year, month, employees}){
+        new_sheet(context, { year, month, employees }) {
             Vue.set(context.state, "sheet", new Sheet(year, month, employees));
             Vue.set(context.state, "undoStack", []);
             Vue.set(context.state, "redoStack", []);
         },
-        add(context, payload): void {
-            context.commit('add_row', payload)
+        add({ state, commit }, payload): void {
+            if (state.sheet.schedule.some(row => row.employee.name == payload)) 
+                return console.error(`'${payload} dolgozó már szerepel a beosztásban!`)
+            commit('add_row', payload)
         },
         remove_employee({ commit, getters }, name: string) {
             const index = getters.index(name)
@@ -165,9 +167,9 @@ const sheets: Module<SheetState, RootState> = {
         index: (context) => (name: string): number => {
             return context.sheet.schedule.findIndex(row => row.employee.name == name)
         },
-        can_undo: ({undoStack}) => undoStack.some(batch => batch.length > 0),
-        can_redo: ({redoStack}) => redoStack.some(batch => batch.length > 0),
-        isInSheet: ({sheet}) => (name : string) => sheet.schedule.some(row => row.employee.name == name)
+        can_undo: ({ undoStack }) => undoStack.some(batch => batch.length > 0),
+        can_redo: ({ redoStack }) => redoStack.some(batch => batch.length > 0),
+        isInSheet: ({ sheet }) => (name: string) => sheet.schedule.some(row => row.employee.name == name)
     }
 }
 export default sheets

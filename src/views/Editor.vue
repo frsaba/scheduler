@@ -36,8 +36,7 @@ export default Vue.extend({
 				<pane>
 					<global-counters
 						:start_times="start_times"
-						v-if="start_times.length > 0"
-					/>
+						v-if="start_times.length > 0" />
 					<div v-else class="placeholder text-center mt-2 overline">
 						<v-icon>mdi-calendar-clock</v-icon>
 						Napra lebontás itt fog megjelenni
@@ -45,7 +44,7 @@ export default Vue.extend({
 				</pane>
 				<pane>
 					<error-panel :error_groups="error_groups"></error-panel>
-					
+
 				</pane>
 			</splitpanes>
 		</pane>
@@ -63,36 +62,37 @@ export default Vue.extend({
 }
 </style>
 
-<style>
+<style lang="scss">
 .table {
 	position: relative;
 	border-collapse: separate;
 	table-layout: fixed;
 	user-select: none;
 	border-spacing: 0;
-}
-.table thead th {
-	position: sticky;
-	top: 0;
-	background: #000;
-	color: #fff;
-	z-index: 1;
-	height: 3em;
-}
-.table thead th:hover {
-	filter: invert(15%);
-}
 
-.table thead th:first-child {
-	left: 0;
-	z-index: 2;
-}
+	thead th {
+		position: sticky;
+		top: 0;
+		background: #000;
+		color: #fff;
+		z-index: 1;
+		height: 3em;
 
-.table tbody th {
-	position: sticky;
-	left: 0;
-	background: #fff;
-	border: 1px solid #ccc;
+		&:hover {
+			filter: invert(15%);
+		}
+		&:first-child {
+			left: 0;
+			z-index: 2;
+		}
+	}
+
+	tbody th {
+		position: sticky;
+		left: 0;
+		background: #fff;
+		border: 1px solid #ccc;
+	}
 }
 a:hover span {
 	text-decoration: underline;

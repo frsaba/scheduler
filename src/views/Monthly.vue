@@ -110,7 +110,7 @@ export default defineComponent({
 		}
 
 		const keydown = async (e: KeyboardEvent) => {
-			if(e.key == "Escape" && aggregatesMenu.show || employeeinfo.show){
+			if (e.key == "Escape" && aggregatesMenu.show || employeeinfo.show) {
 				aggregatesMenu.show = false;
 				employeeinfo.show = false;
 				e.stopImmediatePropagation();
@@ -232,7 +232,7 @@ export default defineComponent({
 			}
 		},
 		setDayInfoTarget(e: Event) {
-			if(this.aggregatesMenu.show) return;
+			if (this.aggregatesMenu.show) return;
 			this.dayinfo = true;
 			this.dayinfotarget = [e.target as Element]
 		},
@@ -241,13 +241,13 @@ export default defineComponent({
 			this.employeeinfo.event = e;
 			this.employeeinfo.show = true
 			this.employeeinfo.target = employee;
-			this.aggregatesMenu.show = false; 
+			this.aggregatesMenu.show = false;
 		},
 		aggregatesContextMenu(e: MouseEvent) {
 			// this.deselect()
-			this.aggregatesMenu.event= e;
+			this.aggregatesMenu.event = e;
 			this.aggregatesMenu.show = true;
-			this.employeeinfo.show = false; 
+			this.employeeinfo.show = false;
 			this.dayinfo = false;
 		}
 	},
@@ -292,24 +292,23 @@ export default defineComponent({
 			<table fixed-header class="table" v-if="sheet.schedule.length > 0">
 				<thead>
 					<tr>
-						<th class="text-center nametag">Név</th>
+						<th class="names-header">Név</th>
 						<th
-							class="text-center"
-							:style="day_header_style[n - 1]"
-							v-for="n in sheet.month_length"
-							:key="n"
+							v-for="day in sheet.month_length"
+							:key="day"
+							:style="day_header_style[day - 1]"
 							@mouseenter="setDayInfoTarget"
 							@mouseleave="dayinfo = false"
 							@contextmenu="aggregatesContextMenu">
-							{{ n }}
+							{{ day }}
 						</th>
 						<th
-							class="header-sticky-right acc-header"
-							v-for="(acc, i) in right_side_headers"
-							:key="acc"
+							class="header-sticky-right"
+							v-for="(label, i) in right_side_headers"
+							:key="label"
 							:style="header_styles[i]"
 							@contextmenu="aggregatesContextMenu">
-							{{ acc }}
+							{{ label }}
 						</th>
 					</tr>
 				</thead>
@@ -317,15 +316,14 @@ export default defineComponent({
 					<monthly-row
 						v-for="(row, i) in sheet.schedule"
 						:key="row.employee.name"
-						:row="row"
-						:aggregates="aggregates"
+						v-bind="{row, aggregates}"
 						:selection="i == drag.employee_index ? selection : []"
 						:error_groups="error_groups[i]"
 						:ref="row.employee.name"
 						@day-mouse-down="dragStart(i, $event)"
 						@day-mouse-up="dragEnd(i, $event)"
 						@day-mouse-enter="dragEnter(i, $event)"
-						@employee-contextmenu="employeeContextMenu($event, row.employee)"/>
+						@employee-contextmenu="employeeContextMenu($event, row.employee)" />
 				</tbody>
 			</table>
 		</div>
@@ -340,16 +338,14 @@ export default defineComponent({
 </template>
 
 <style scoped>
-.nametag {
+.names-header {
 	min-width: 10em;
 	border-right-style: double;
-}
-.acc-header {
-	min-width: 3em;
 }
 .header-sticky-right {
 	position: sticky;
 	z-index: 2;
+	min-width: 3em;
 }
 .table-wrapper {
 	overflow: auto;

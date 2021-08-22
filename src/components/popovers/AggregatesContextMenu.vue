@@ -8,14 +8,14 @@ import { Aggregate } from '@/model/aggregates';
 export class AggregatesContextMenuOptions {
 	show: boolean = false;
 	event: MouseEvent | null = null;
-    items: Aggregate[];
+	items: Aggregate[];
 	selected: Aggregate[];
 	constructor(
 		aggregates: Aggregate[],
 	) {
-        this.items = aggregates;
-        this.selected = aggregates;
-    }
+		this.items = aggregates;
+		this.selected = aggregates;
+	}
 
 }
 
@@ -31,7 +31,7 @@ export default defineComponent({
 		// const sheet: Sheet = useState(['sheets']).sheets.value.sheet;
 		const x = computed(() => props.options.event?.clientX);
 		const y = computed(() => (props.options.event?.clientY ?? 0) + 20);
-        
+
 
 		const remove = useActions(['remove_employee']).remove_employee
 
@@ -51,7 +51,7 @@ export default defineComponent({
 		absolute
 		offset-y
 		class="menu"
-        :close-on-content-click="false">
+		:close-on-content-click="false">
 		<v-list dense>
 			<v-list-item-group
 				v-model="options.selected"
@@ -79,14 +79,16 @@ export default defineComponent({
 	</v-menu>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .menu {
 	z-index: 10;
 }
-.theme--light.v-list-item--active::before {
-    opacity: 0;
-}
-.theme--light.v-list-item--active:hover:before {
-    opacity: 0.12;
+.theme--light.v-list-item--active {
+	&::before {
+		opacity: 0;
+	}
+	&:hover:before {
+		opacity: 0.12;
+	}
 }
 </style>
