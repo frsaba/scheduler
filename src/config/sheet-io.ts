@@ -6,12 +6,14 @@ import { readFileSync, writeFileSync } from "fs";
 let templatePath = Path.join(__dirname, "../src/assets/template.xlsx");
 let exportPath = Path.join(__dirname, "../src/assets/out.xlsx");
 
-// export function ImportSheet() {
-// 	const path = GetPathFromUser();
-// 	if (path) {
-// 		ReadFile(path);
-// 	}
-// }
+export function ImportSheet() {
+	let window = BrowserWindow.getFocusedWindow()!;
+	let template = readFileSync(templatePath)
+	let path = GetPathFromUser()
+	if (!path) return
+	let target = readFileSync(path)
+	window.webContents.send("import-query", template, target);
+}
 
 export function ExportSheet() {
 	let window = BrowserWindow.getFocusedWindow()!;
@@ -27,7 +29,7 @@ function GetPathFromUser(): string | undefined {
 	var result = dialog.showOpenDialogSync({
 		properties: ['openFile'],
 		filters: [
-			{ name: 'Excel files', extensions: ['xlsx', 'xls'] },
+			{ name: 'Excel files', extensions: ['xlsx'] },
 		]
 	});
 	if (result) {

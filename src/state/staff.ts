@@ -21,8 +21,7 @@ const module: Module<Staff, RootState> = {
         },
     },
     actions: {
-        add({ state, commit, dispatch }, payload): void {
-            if (state.employees.some(e => e.name == payload)) return console.error(`Már létezik '${payload}' dolgozó!`)
+        add({ commit, dispatch }, payload): void {
             commit('add_employee', payload);
             dispatch('add', payload, { root: true });
             dispatch('save');

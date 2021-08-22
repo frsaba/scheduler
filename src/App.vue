@@ -3,7 +3,9 @@ import Vue from "vue";
 import Snackbar from "@/components/Snackbar.vue";
 import { ipcRenderer } from "electron";
 import { debounce } from "lodash";
-import replaceTemplate, { bufferToWorkbook } from "@/utils/sheet-to-xlsx"
+import replaceTemplate from "@/utils/sheet-to-xlsx"
+import parseWithTemplate from "@/utils/xlsx-to-sheet"
+import { bufferToWorkbook } from "@/utils/xlsx-helpers"
 
 export default Vue.extend({
 	name: "App",
@@ -25,10 +27,16 @@ export default Vue.extend({
 
 		ipcRenderer.on("export-query", async (_, templateBuffer: Buffer) => {
 			let workbook = await bufferToWorkbook(templateBuffer)
-			let template = workbook.getWorksheet("Main")
-			await replaceTemplate(template, this.$store.state.sheets.sheet)
+			let template = workbook.worksheets[0]
+			replaceTemplate(template, this.$store.state.sheets.sheet)
 			let outBuffer = await workbook.xlsx.writeBuffer()
 			ipcRenderer.send("export-reply", outBuffer)
+		})
+
+		ipcRenderer.on("import-query", async (_, templateBuffer: Buffer, targetBuffer: Buffer) => {
+			let template = (await bufferToWorkbook(templateBuffer)).worksheets[0]
+			let target = (await bufferToWorkbook(targetBuffer)).worksheets[0]
+			parseWithTemplate(template, target)
 		})
 
 		ipcRenderer.on("zoom", (event, { zoom }) => {

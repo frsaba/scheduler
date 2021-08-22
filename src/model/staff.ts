@@ -1,7 +1,11 @@
 export class Staff {
     employees: Array<Employee> = new Array()
     Add(name: string) {
-        this.employees.push(new Employee(name, this.employees.length))
+		if (this.employees.some(e => e.name == name)) throw `Már létezik '${name}' dolgozó!`
+
+		let employee = new Employee(name, this.employees.length)
+        this.employees.push(employee)
+		return employee
     }
     private GetEmployeeID(name: string): number {
         let id = this.employees.findIndex(e => e.name == name);
