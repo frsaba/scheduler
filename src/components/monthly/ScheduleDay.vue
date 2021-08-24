@@ -111,20 +111,12 @@ td {
 .has-error {
 	box-shadow: inset 0px -4px var(--v-error-base);
 }
-.monday.first.selected.has-warning {
-	box-shadow: inset 3px 0px #ddd, inset 0px -4px var(--v-warning-base);
-}
-.monday.first.selected.has-error {
-	box-shadow: inset 3px 0px #ddd, inset 0px -4px var(--v-error-base);
-}
 .monday {
-	border-left: 4px solid #ddd;
+	border-left: 2px solid #555;
 	min-width: calc(2.7em + 4px);
 }
 .monday.first.selected {
-	border-left: 1px solid black;
-	padding-left: 3px;
-	box-shadow: inset 3px 0px #ddd;
+	border-left: 2px solid #555;
 }
 .weekend {
 	filter: hue-rotate(-20deg);

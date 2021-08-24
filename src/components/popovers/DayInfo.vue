@@ -28,8 +28,9 @@ export default defineComponent({
 
 		const holiday = computed(() => getHoliday(date.value)?.name)
 
-		const startTimes = computed(() =>
-			Array.from(props.start_times_cache!, ([hour, counts]) => [hour, counts[day.value - 1]]))
+		const startTimes = computed(() => {
+			return Array.from(props.start_times_cache!, ([hour, counts]) => [hour, counts[day.value - 1]]).filter(([hour, count]) => count !== 0)
+		})
 
 		return {
 			day,
