@@ -68,7 +68,7 @@ export class ScheduleDay {
         public start: number = 0,
         public duration = 0,
     ) {
-        this.date = new Date(this.row.sheet.year, this.row.sheet.month - 1, this.day)
+        this.date = new Date(this.row.sheet.year, this.row.sheet.month, this.day)
     }
 
     Clear() {

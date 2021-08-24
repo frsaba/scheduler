@@ -26,7 +26,8 @@ export default function parseWithTemplate(template: Excel.Worksheet, input: Exce
 		}],
 		["month", (inputMonth: string) => {
 			month = parseInt(inputMonth)
-			if (isNaN(month)) month = moment(inputMonth, "MMMM", "HU").month()
+			if (isNaN(month)) 
+				month = moment(inputMonth, "MMMM", "HU").month()
 		}],
 		["employeeName", (employee: string, cell: Excel.Cell) => {
 			if (schedules.some(x => x.employee == employee)) return
@@ -119,6 +120,7 @@ export default function parseWithTemplate(template: Excel.Worksheet, input: Exce
 			}
 		}
 	}
+
 	router.push("/staff")
 	router.back()
 }

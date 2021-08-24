@@ -171,7 +171,7 @@ export default defineComponent({
 
 		const day_header_style = computed((): Array<any> => {
 			return new Array(sheet.month_length).fill(1).map((a, i) => {
-				let date = new Date(sheet.year, sheet.month - 1, i + 1)
+				let date = new Date(sheet.year, sheet.month, i + 1)
 				let backgroundColor;
 				if (isHoliday(date))
 					backgroundColor = `var(--v-holiday-base)`

@@ -39,7 +39,7 @@ export default function replaceTemplate(template: Excel.Worksheet, sheet: Sheet)
 						{
 							priority: 1,
 							type: "expression",
-							formulae: [`WEEKDAY(DATE(${sheet.year},${sheet.month},B$${firstEmployeePos.row - 1}),2)>5`],
+							formulae: [`WEEKDAY(DATE(${sheet.year},${sheet.month + 1},B$${firstEmployeePos.row - 1}),2)>5`],
 							style: { fill: { type: "pattern", pattern: "solid", bgColor: { argb: "FFFFFF00" } } },
 						}
 					]

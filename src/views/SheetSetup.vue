@@ -28,7 +28,7 @@ export default defineComponent({
 		newSheet() {
 			this.$router.push("/")
 			const date = new Date(this.datePicker)
-			this.$store.dispatch("new_sheet", { year: date.getFullYear(), month: date.getMonth() + 1, employees: this.selection })
+			this.$store.dispatch("new_sheet", { year: date.getFullYear(), month: date.getMonth(), employees: this.selection })
 		}
 	},
 })

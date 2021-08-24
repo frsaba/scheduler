@@ -47,7 +47,7 @@ export default Vue.extend({
 		},
 		to_date(): Date {
 			let sheet = this.$store.state.sheets.sheet
-			return new Date(sheet.year, sheet.month - 1, this.day)
+			return new Date(sheet.year, sheet.month, this.day)
 		},
 		is_weekend(): boolean {
 			return isWeekend(this.to_date);

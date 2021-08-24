@@ -22,7 +22,7 @@ export default defineComponent({
 		const sheet: Sheet = useState(['sheets']).sheets.value.sheet
 
 		const dateFormat: Intl.DateTimeFormatOptions = { weekday: 'long', month: 'long', day: 'numeric' };
-		const date = computed(() => new Date(sheet.year, sheet.month - 1, day.value))
+		const date = computed(() => new Date(sheet.year, sheet.month, day.value))
 
 		const localeString = computed(() => date.value.toLocaleDateString('hu-HU', dateFormat))
 
