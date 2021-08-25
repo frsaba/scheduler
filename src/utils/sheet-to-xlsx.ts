@@ -4,6 +4,7 @@ import _ from "lodash"
 import { accumulators, CountStartingTimes } from "@/model/aggregates"
 import { DayType, DayTypeDescriptions } from '@/model/day-types';
 import { Position, copyRange, jsonify } from "@/utils/xlsx-helpers"
+import moment from 'moment';
 
 type BindingMap = Map<string, (...args: any[]) => Excel.CellValue>
 
@@ -14,7 +15,7 @@ export default function replaceTemplate(template: Excel.Worksheet, sheet: Sheet)
 
 	let bindings: BindingMap = new Map<string, (...args: any[]) => Excel.CellValue>([
 		["year", () => sheet.year],
-		["month", () => sheet.month],
+		["month", () => moment(sheet.month + 1, "M", "HU").format("MMMM")],
 		["startDate", () => {
 			return new Date(sheet.year, sheet.month, 1)
 		}],
