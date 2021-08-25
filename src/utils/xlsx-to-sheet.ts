@@ -108,7 +108,7 @@ export default function parseWithTemplate(template: Excel.Worksheet, input: Exce
 			let day = dayIndex + 1
 			let dayType = DayTypeDescriptions.findIndex(x => x.label === upper)
 			if (dayType !== -1) {
-				store.dispatch("set_type", { index, day, type: dayType, undo: true })
+				store.dispatch("set_type", { index, day, type: dayType, initial: true })
 			} else {
 				let start = parseInt(upper)
 				if (isNaN(start)) continue
@@ -116,9 +116,10 @@ export default function parseWithTemplate(template: Excel.Worksheet, input: Exce
 				if (isNaN(end)) throw "Hiba importálás közben: A műszak kezdetéhez nem társult befejező időpont"
 				let duration = (start < end ? 0 : 24) + end - start
 
-				store.dispatch("set_shift", { index, day, start, duration, undo: true })
+				store.dispatch("set_shift", { index, day, start, duration, initial: true })
 			}
 		}
+		store.dispatch("new_batch")
 	}
 
 	router.push("/staff")
