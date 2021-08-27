@@ -43,11 +43,8 @@ export default Vue.extend({
 		desc() {
 			return DayTypeDescriptions[this.type]
 		},
-		full_tooltip() {
-			if (this.accelerator != "") {
-				return `${this.tooltip} (${capitalize(this.accelerator)})`
-			}
-			return this.tooltip
+		keybind(){
+			return capitalize(this.accelerator)
 		}
 	},
 })
@@ -60,7 +57,8 @@ export default Vue.extend({
 				<slot>{{desc.label}}</slot>
 			</v-btn>
 		</template>
-		<span>{{full_tooltip}}</span>
+		<span>{{tooltip}}  <kbd :dark="false">{{keybind}}</kbd></span>
+		
 	</v-tooltip>
 
 </template>
@@ -72,4 +70,8 @@ export default Vue.extend({
 .fab:hover::before {
 	opacity: 0.15 !important;
 }
+/* .theme--light.v-application kbd {
+    background: #e8e8e8;
+    color: #000000;
+} */
 </style>
