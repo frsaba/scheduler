@@ -34,8 +34,8 @@ export default Vue.extend({
 			shift_start: 8,
 			shift_end: 16,
 			shift_duration: 8,
-			leave_buttons: [DayType.paid, DayType.unpaid, DayType.weekend, DayType.sick, DayType.holiday] as DayType[],
-			accelerators: ["f", "s", "h", "t", "ü", "Delete", "Enter", "Escape"] //Last three are used only in IgnoreKeys
+			leave_buttons: [DayType.paid, DayType.freeday, DayType.nonworking_day, DayType.weekend, DayType.sick, DayType.holiday] as DayType[],
+			accelerators: ["f", "s", "p", "h", "t", "ü", "Delete", "Enter", "Escape"] //Last three are used only in IgnoreKeys
 		};
 	},
 	computed: {
@@ -105,6 +105,11 @@ export default Vue.extend({
 			:offset="{x: 0, y: 10}"
 			ref="base">
 		<v-card class="card" ref="card">
+			<span class="close-button">
+				<leave-button @click="close" x-small elevation="0" color="white" tooltip="Bezárás" accelerator="Escape">
+						<v-icon>mdi-close</v-icon>
+				</leave-button>
+			</span>
 			<div class="upper">
 				<hour-picker v-model.number="shift_start" @input="inputStart" />
 				-
@@ -113,11 +118,8 @@ export default Vue.extend({
 				<leave-button :type="0" @click="setShift(true)" tooltip="Műszak" accelerator="Enter">
 					<v-icon>mdi-set-split</v-icon>
 				</leave-button>
-				<leave-button :type="7" @click="setType" dark tooltip="Törlés" color="red" accelerator="Delete">
+				<leave-button :type="8" @click="setType" dark tooltip="Törlés" color="red" accelerator="Delete">
 					<v-icon>mdi-delete</v-icon>
-				</leave-button>
-				<leave-button class="absolute" @click="close" x-small elevation="0" color="white" tooltip="Bezárás" accelerator="Escape">
-					<v-icon>mdi-close</v-icon>
 				</leave-button>
 			</div>
 			<div class="lower">
@@ -144,8 +146,13 @@ export default Vue.extend({
 	gap: 10px;
 	justify-content: space-between;
 }
+.upper {
+	justify-content: center;
+}
 
-/* .absolute {
+.close-button {
 	position: absolute;
-} */
+	top: 0;
+	right: 0;
+}
 </style>

@@ -95,7 +95,7 @@ export const accumulators: Array<Aggregate> = [
     new TotalHours("totalHours", "Össz. óra", "#FFFFFF", "#FFFFFF"),
     new ShiftVariety("shiftVariety", "33%", "#FFFFFF", "#FFFFFF"),
     new SomeShortShifts("someShortShifts", "2x8", "#FFFFFF", "#FFFFFF"),
-    ...[DayType.paid, DayType.sick, [DayType.unpaid, DayType.weekend]].map(t => new DayTypeCounter(t)),
+    ...[DayType.paid, DayType.sick, [DayType.freeday, DayType.nonworking_day, DayType.weekend]].map(t => new DayTypeCounter(t)),
 ]
 
 export class StartTimeCount {

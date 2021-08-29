@@ -20,8 +20,6 @@ export default Vue.extend({
 				case DayType.shift:
 					let endResult = (this.duration + this.start) % 24;
 					return `${this.start} <br> ${endResult ? endResult : 24}`;
-				case DayType.unpaid:
-					return this.is_sunday ? "P" : "SZ"
 				default:
 					return DayTypeDescriptions[this.type].label
 			}
