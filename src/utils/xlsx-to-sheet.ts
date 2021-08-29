@@ -121,7 +121,10 @@ export default function parseWithTemplate(template: Excel.Worksheet, input: Exce
 		}
 		store.dispatch("new_batch")
 	}
-
-	router.push("/staff")
-	router.back()
+	if(router.currentRoute.fullPath == "/"){
+		router.push("/staff")
+		router.back()
+	}else{
+		router.push("/")
+	}
 }

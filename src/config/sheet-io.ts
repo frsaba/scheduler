@@ -6,36 +6,52 @@ import { readFileSync, writeFileSync } from "fs";
 let templatePath = Path.join(__dirname, "../src/assets/template.xlsx");
 let exportPath = Path.join(__dirname, "../src/assets/out.xlsx");
 
-export function ImportSheet() {
+export function ImportSheet(path: string | undefined = undefined) {
 	let window = BrowserWindow.getFocusedWindow()!;
 	let template = readFileSync(templatePath)
-	let path = GetPathFromUser()
+	path ??= GetImportPathFromUser()
 	if (!path) return
 	let target = readFileSync(path)
 	window.webContents.send("import-query", template, target);
 }
 
 export function ExportSheet() {
+	let path = GetExportPathFromUser()
+	if (!path) return
 	let window = BrowserWindow.getFocusedWindow()!;
+
 	let template = readFileSync(templatePath)
-	window.webContents.send("export-query", template);
+	window.webContents.send("export-query", template, path);
 }
 
-ipcMain.on("export-reply", (_, outBuffer: Buffer) => {
-	writeFileSync(exportPath, outBuffer)
+ipcMain.on("export-reply", (event, outBuffer: Buffer, path: string) => {
+	try {
+		writeFileSync(path, outBuffer)
+	} catch (e) {
+		event.reply("export-done", path, e)
+	}
+	event.reply("export-done", path)
 })
 
-function GetPathFromUser(): string | undefined {
+ipcMain.on("import-path", (_, path: string) => {
+	console.log(path)
+	ImportSheet(path)
+})
+
+function GetExportPathFromUser() {
+	return dialog.showSaveDialogSync({
+		filters: [
+			{ name: 'Excel fájlok', extensions: ['xlsx'] },
+		]
+	});
+}
+
+function GetImportPathFromUser() {
 	var result = dialog.showOpenDialogSync({
 		properties: ['openFile'],
 		filters: [
-			{ name: 'Excel files', extensions: ['xlsx'] },
+			{ name: 'Excel fájlok', extensions: ['xlsx'] },
 		]
 	});
-	if (result) {
-		var path = result[0];
-
-		return path
-	}
-	return undefined;
+	return result?.[0];
 }

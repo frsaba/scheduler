@@ -25,12 +25,17 @@ export default Vue.extend({
 	created() {
 		this.hide = debounce(() => { this.snackbar = false }, this.timeout);
 
-		ipcRenderer.on("export-query", async (_, templateBuffer: Buffer) => {
+		ipcRenderer.on("export-query", async (_, templateBuffer: Buffer, path : string) => {
 			let workbook = await bufferToWorkbook(templateBuffer)
 			let template = workbook.worksheets[0]
 			replaceTemplate(template, this.$store.state.sheets.sheet)
 			let outBuffer = await workbook.xlsx.writeBuffer()
-			ipcRenderer.send("export-reply", outBuffer)
+			ipcRenderer.send("export-reply", outBuffer, path)
+		})
+
+		ipcRenderer.on("export-done", (_, path  :string, error : Error | undefined) => {
+			if(error) return console.error(error)
+			this.$store.commit("log_export", {sheet : this.$store.state.sheets.sheet, path})
 		})
 
 		ipcRenderer.on("import-query", async (_, templateBuffer: Buffer, targetBuffer: Buffer) => {
@@ -45,7 +50,7 @@ export default Vue.extend({
 			this.hide();
 		});
 
-		this.$store.dispatch("staff/load")
+		this.$store.dispatch("load")
 	},
 	destroyed() {
 		ipcRenderer.removeAllListeners("export-query")

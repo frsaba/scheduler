@@ -5,7 +5,7 @@ import _ from "lodash";
 import moment from "moment"
 
 export function daysInMonth(year: number, month: number): number {
-    return new Date(year, month, 0).getDate(); // Month is 0-indexed
+    return new Date(year, month + 1, 0).getDate(); // Month is 0-indexed
 }
 
 export function isWeekend(date: Date): boolean {

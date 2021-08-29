@@ -6,11 +6,23 @@ import _ from "lodash";
 import { Employee } from "@/model/staff";
 import Vue from "vue";
 import { RootState } from "./store";
+import moment from "moment";
+
+
+export interface RecentSheetInfo {
+    year: number,
+    month: number,
+    employeeCount : number,
+    modified?: Date,
+    opened?: Date,
+    path: string,
+}
 
 export class SheetState {
-    sheet: Sheet = new Sheet(2021, 12);
+    sheet: Sheet = new Sheet(2021, 8);
     undoStack = new Array<Array<Operation>>();
     redoStack = new Array<Array<Operation>>();
+    recentSheets = new Array<RecentSheetInfo>();
 }
 
 export interface Operation {
@@ -49,6 +61,17 @@ const sheets: Module<SheetState, RootState> = {
                     .filter(batch => batch.every(op => op.payload.index != index))) //Keep all other employees' batches
                     .map(batch => batch.map(op => op.payload.index += op.payload.index > index ? -1 : 0)) //Shift down indexes that come after the removed row
             }
+        },
+        log_export(state, { sheet, path }: { sheet: Sheet, path: string }) {
+            let entry : RecentSheetInfo = {year: sheet.year, month: sheet.month, employeeCount : sheet.schedule.length,  path}
+            let index = state.recentSheets.findIndex(s => s.path == path) // Overwrite existing entry
+            if (index == -1) index = state.recentSheets.length // Otherwise just append it
+            Vue.set(state.recentSheets, index, entry)
+
+            entry.modified = new Date();
+            //TODO: sort based on latest modified OR opened date
+            window.localStorage.setItem("recentSheets", JSON.stringify(
+                state.recentSheets.sort((a,b) => moment(b.modified).diff(a.modified)).slice(0,5)))
         }
     },
     actions: {
@@ -72,6 +95,7 @@ const sheets: Module<SheetState, RootState> = {
             const { index, day, start, duration } = payload;
             //Check if we're actually about to make a change
             let old: ScheduleDay = context.getters.day(index, day);
+            if (!old) return console.log("Nem létező nap:", payload)
             if (old.type == DayType.shift && old.start == start && old.duration == duration) return;
 
             context.dispatch('register_undo', { action: "set_shift", payload })
@@ -94,6 +118,7 @@ const sheets: Module<SheetState, RootState> = {
             const { index, day, type } = payload;
 
             let currentShift: ScheduleDay = context.getters.day(index, day);
+            if (!currentShift) return console.log("Nem létező nap:", payload)
             if (currentShift.type == type) return; //This is a duplicate call, we don't have to do anything
 
             context.dispatch('register_undo', { action: "set_type", payload })

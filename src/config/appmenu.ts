@@ -7,7 +7,7 @@ const template: Electron.MenuItemConstructorOptions[] = [
         submenu: [
 			{
 				label: "Import",
-				click: ImportSheet
+				click: () => ImportSheet()
 			},
 			{
 				label: "Export",

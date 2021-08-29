@@ -262,7 +262,7 @@ export default defineComponent({
 		<v-toolbar class="toolbar">
 			<base-button
 				v-for="([tooltip, icon, click, { circular, ...rest }], i) in [
-					[ 'Dolgozó hozzáadása', 'mdi-account-multiple-plus', () => {employeePicker = true; deselect()}, { color: 'success' }, ],
+					[ 'Beosztásban szereplő dolgozók', 'mdi-account-multiple', () => {employeePicker = true; deselect()}, { color: 'success' }, ],
 					[ 'Visszavonás', 		'mdi-undo', undo, { circular: true, disabled: !can_undo }, ],
 					[ 'Újra', 				'mdi-redo', redo, { circular: true, disabled: !can_redo }, ],
 					[ 'Gyorsdolgozó', 		'mdi-plus', add,  { circular: true }],
