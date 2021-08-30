@@ -19,16 +19,11 @@ export default defineComponent({
 		const { employees } = useStaffState(["employees"]);
 		const newSheetDialog = ref(false)
 		const selection = ref(employees.value)
-		const datePicker = ref(new Date().toISOString().substring(0, 9))
+		const datePicker = ref(new Date().toISOString().substring(0, 10))
 
-		// const recentSheets = [
-		// 	[2021, "január", 15, moment([2021, 7, 27, 19, 34]).locale("HU").calendar(), "G:/repos/scheduler/src/assets/out.xlsx"],
-		// 	[2020, "december", 12, moment([2021, 7, 26, 19, 13]).locale("HU").calendar(), "G:/repos/scheduler/src/assets/out.xlsx"],
-		// ]
-
-		const recents = computed(() => recentSheets.map(entry =>[
+		const recents = computed(() => recentSheets.map(entry => [
 			path.basename(entry.path),
-			entry.year, moment(entry.month  + 1, "M", "HU").format("MMMM"),
+			entry.year, moment(entry.month + 1, "M", "HU").format("MMMM"),
 			entry.employeeCount,
 			moment(entry.modified).locale("HU").calendar(),
 			entry.path]))
@@ -37,13 +32,18 @@ export default defineComponent({
 			ipcRenderer.send("import-path", path)
 		}
 
+		function reveal(path: string) {
+			ipcRenderer.send("reveal-in-explorer", path)
+		}
+
 		return {
 			newSheetDialog,
 			datePicker,
 			selection,
 			employees,
 			recents,
-			importRecentSheet
+			importRecentSheet,
+			reveal
 		}
 	},
 	methods: {
@@ -57,11 +57,10 @@ export default defineComponent({
 </script>
 
 <template>
-	<div class="d-flex align-center justify-center wrapper">
+	<div class="wrapper">
 		<v-dialog v-model="newSheetDialog" width="unset" height="80%">
 			<template v-slot:activator="{ on, attrs }">
-				<div class="sheet template-border" v-bind="attrs" v-on="on">
-
+				<div class="sheet new-sheet-button" v-bind="attrs" v-on="on">
 					<v-icon x-large>mdi-plus</v-icon>
 					<span class="overline">Új beosztás</span>
 				</div>
@@ -92,16 +91,36 @@ export default defineComponent({
 				</v-card-actions>
 			</v-card>
 		</v-dialog>
-		<button class="sheet"
+		<button v-ripple class="sheet"
 			v-for="[filename, year,month,numEmployees, timeAgo, path] in recents"
 			:key="path"
 			@click="importRecentSheet(path)">
 
-			<v-icon>mdi-calendar</v-icon>
-			<span class="font-weight-bold">{{year}}. {{month}}</span>
-			<span class="caption">{{numEmployees}} dolgozó</span>
-			<span class="caption">Módosítva: {{timeAgo}}</span>
-			<span class="filename">{{filename}}</span>
+			<v-btn fab x-small plain class="reveal-in-explorer" @click.stop="reveal(path)">
+				<v-icon>mdi-open-in-new</v-icon>
+			</v-btn>
+
+			<span class="font-weight-bold overline">
+				<v-icon color="info">mdi-calendar</v-icon>
+				<br>
+				{{year}}. {{month}}
+			</span>
+			<span class="filename">
+				<v-icon color="green">mdi-microsoft-excel</v-icon>
+				<br>
+				{{filename}}
+			</span>
+			<span class="caption">
+				<v-icon color="secondary">mdi-account-multiple</v-icon>
+				{{numEmployees}} dolgozó
+			</span>
+			<div class="timeAgo caption">
+				<v-icon>mdi-file-clock-outline</v-icon>
+				<span>
+					Módosítva: <br> {{timeAgo}}
+
+				</span>
+			</div>
 
 		</button>
 	</div>
@@ -116,13 +135,14 @@ export default defineComponent({
 	border: 3px solid #ccc;
 	background: #fff;
 	display: flex;
-	position:relative;
+	position: relative;
 	align-items: center;
 	flex-direction: column;
-	justify-content: center;
+	justify-content: space-evenly;
 	width: 200px;
-	height: 300px;
-	border-radius: 5%;
+	height: 300px !important;
+	gap: 5px;
+	border-radius: 20px;
 
 	&:hover {
 		filter: brightness(98%);
@@ -130,16 +150,33 @@ export default defineComponent({
 			transform: scale(110%);
 		}
 	}
-	.filename{
-		position:absolute;
-		left: 10px;
-		top: 10px;
+	.filename {
+		padding: 10px;
+		text-align: center;
+		max-width: 200px;
+		word-wrap: break-word;
+	}
+	.timeAgo {
+		display: flex;
+		gap: 5px;
+		text-align: left;
+		font-style: italic;
 	}
 }
-
+.new-sheet-button {
+	justify-content: center;
+}
+.reveal-in-explorer {
+	top: 0;
+	right: 0;
+	position: absolute;
+}
 .wrapper {
+	display: flex;
+	align-content: center;
+	justify-content: center;
 	height: 100%;
-	gap: 10px;
+	gap: 3% 3%;
 	flex-wrap: wrap;
 }
 </style>

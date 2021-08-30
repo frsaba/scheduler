@@ -1,6 +1,6 @@
 "use strict";
 
-import { app, protocol, BrowserWindow } from "electron";
+import { app, protocol, BrowserWindow, ipcMain, shell } from "electron";
 import { autoUpdater } from "electron-updater"
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer"
@@ -41,11 +41,14 @@ async function createWindow() {
         win.loadURL("app://./index.html");
     }
 
-	win.once("ready-to-show", () => {
-		autoUpdater.checkForUpdatesAndNotify()
-	})
+    win.once("ready-to-show", () => {
+        autoUpdater.checkForUpdatesAndNotify()
+    })
 
     zoom(win);
+    ipcMain.on("reveal-in-explorer", (_, path: string) => {
+        shell.showItemInFolder(path)
+    })
 }
 
 // Quit when all windows are closed.
@@ -77,7 +80,7 @@ app.on("ready", async () => {
         }
     }
     createWindow();
-    
+
 
 });
 

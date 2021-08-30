@@ -42,7 +42,7 @@ export default Vue.extend({
 		desc() {
 			return DayTypeDescriptions
 		},
-		displayed_shift_end() : number {
+		displayed_shift_end(): number {
 			return this.shift_end ? this.shift_end : 24
 		}
 	},
@@ -64,7 +64,7 @@ export default Vue.extend({
 			this.$refs.base.updateRects()
 		},
 		ignoreKeys(e: KeyboardEvent) {
-			if(!this.value) return;
+			if (!this.value) return;
 			let k = e.key
 			//Arrow key, Ctrl + *, any single letter, any accelerator
 			if (k.startsWith("Arrow") || e.ctrlKey || (k.length == 1 && k.toLowerCase() != k.toUpperCase()) || this.accelerators.includes(k))
@@ -100,14 +100,14 @@ export default Vue.extend({
 
 <template>
 	<base-popover
-			v-model="value"
-			:targets="selection_elements"
-			:offset="{x: 0, y: 10}"
-			ref="base">
+		v-model="value"
+		:targets="selection_elements"
+		:offset="{x: 0, y: 12}"
+		ref="base">
 		<v-card class="card" ref="card">
 			<span class="close-button">
-				<leave-button @click="close" x-small elevation="0" color="white" tooltip="Bezárás" accelerator="Escape">
-						<v-icon>mdi-close</v-icon>
+				<leave-button plain color="secondary" @click="close" x-small elevation="0" tooltip="Bezárás" accelerator="Escape">
+					<v-icon>mdi-close</v-icon>
 				</leave-button>
 			</span>
 			<div class="upper">
@@ -143,16 +143,20 @@ export default Vue.extend({
 	margin: 1em;
 	display: flex;
 	align-items: center;
-	gap: 10px;
-	justify-content: space-between;
 }
 .upper {
+	gap: 15px;
 	justify-content: center;
+}
+.lower {
+	gap: 8px;
+	justify-content: space-between;
 }
 
 .close-button {
 	position: absolute;
 	top: 0;
 	right: 0;
+	color: red;
 }
 </style>

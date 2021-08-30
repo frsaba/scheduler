@@ -17,7 +17,6 @@ export default new Vuex.Store({
 	mutations: {},
 	actions: {
 		load({ dispatch, state }) {
-			console.log(state)
 			dispatch("staff/load")
 			const recents = JSON.parse(window.localStorage.getItem("recentSheets") ?? "[]") 
             Vue.set(state.sheets, "recentSheets", recents)
