@@ -4,6 +4,9 @@ module.exports = {
 	pluginOptions: {
 		electronBuilder: {
 			nodeIntegration: true,
+			builderOptions: {
+				productName: "Napsugár Otthon Beosztáskezelő"
+			}
 		},
 	},
 };

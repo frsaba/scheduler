@@ -34,7 +34,6 @@ ipcMain.on("export-reply", (event, outBuffer: Buffer, path: string) => {
 })
 
 ipcMain.on("import-path", (_, path: string) => {
-	console.log(path)
 	ImportSheet(path)
 })
 

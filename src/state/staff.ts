@@ -16,7 +16,6 @@ const module: Module<Staff, RootState> = {
         },
         rename(state, { oldName, newName }: { oldName: string, newName: string }): void {
             let i = state.employees.findIndex(e => e.name == oldName)
-            console.log(oldName)
             state.employees[i].name = newName
         },
     },

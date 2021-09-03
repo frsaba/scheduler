@@ -29,7 +29,7 @@ export default Vue.extend({
 div.wrapper {
 	position: absolute;
 	bottom: 1vw;
-	right: 1vw;
+	left: 1vw;
 	width: 10vw;
 	min-width: 10vh;
 	padding: 0.5vw 1vw;

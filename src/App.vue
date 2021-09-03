@@ -1,16 +1,19 @@
 <script lang="ts">
 import Vue from "vue";
 import Snackbar from "@/components/Snackbar.vue";
+import UpdateNotification from "./components/UpdateNotification.vue";
 import { ipcRenderer } from "electron";
 import { debounce } from "lodash";
 import replaceTemplate from "@/utils/sheet-to-xlsx"
 import parseWithTemplate from "@/utils/xlsx-to-sheet"
 import { bufferToWorkbook } from "@/utils/xlsx-helpers"
+import { version } from "process";
 
 export default Vue.extend({
 	name: "App",
 	components: {
-		Snackbar
+		Snackbar,
+		UpdateNotification
 	},
 	data: () => ({
 		zoomLevel: 100,
@@ -20,12 +23,13 @@ export default Vue.extend({
 		routes:
 			[["Munkalapok", "/setup", "mdi-file-document-multiple"],
 			["Szerkesztő", "/", "mdi-table-edit"],
-			["Dolgozók", "/staff", "mdi-account"]]
+			["Dolgozók", "/staff", "mdi-account"]],
+		version: ""
 	}),
 	created() {
 		this.hide = debounce(() => { this.snackbar = false }, this.timeout);
 
-		ipcRenderer.on("export-query", async (_, templateBuffer: Buffer, path : string) => {
+		ipcRenderer.on("export-query", async (_, templateBuffer: Buffer, path: string) => {
 			let workbook = await bufferToWorkbook(templateBuffer)
 			let template = workbook.worksheets[0]
 			replaceTemplate(template, this.$store.state.sheets.sheet)
@@ -33,9 +37,9 @@ export default Vue.extend({
 			ipcRenderer.send("export-reply", outBuffer, path)
 		})
 
-		ipcRenderer.on("export-done", (_, path  :string, error : Error | undefined) => {
-			if(error) return console.error(error)
-			this.$store.commit("log_export", {sheet : this.$store.state.sheets.sheet, path})
+		ipcRenderer.on("export-done", (_, path: string, error: Error | undefined) => {
+			if (error) return console.error(error)
+			this.$store.commit("log_export", { sheet: this.$store.state.sheets.sheet, path })
 		})
 
 		ipcRenderer.on("import-query", async (_, templateBuffer: Buffer, targetBuffer: Buffer) => {
@@ -52,6 +56,9 @@ export default Vue.extend({
 
 		this.$store.dispatch("load")
 	},
+	mounted() {
+		ipcRenderer.invoke("app_version").then((version) => this.version = version)
+	},
 	destroyed() {
 		ipcRenderer.removeAllListeners("export-query")
 	}
@@ -60,9 +67,10 @@ export default Vue.extend({
 
 <template>
 	<v-app class="app">
+		<update-notification></update-notification>
 		<snackbar :visibility="snackbar">
 			<v-icon class="magnifier" color="white">mdi-magnify</v-icon>
-			Nagyítás: 
+			Nagyítás:
 			<br />
 			{{ zoomLevel }}%
 		</snackbar>
@@ -73,8 +81,7 @@ export default Vue.extend({
 					:key="route"
 					outlined
 					@click="$router.push(route)"
-					:disabled="$router.currentRoute.path == route"
-				>
+					:disabled="$router.currentRoute.path == route">
 					<v-icon class="navbar-icon">{{ icon }}</v-icon>
 					{{ name }}
 				</v-btn>
@@ -85,9 +92,8 @@ export default Vue.extend({
 			<v-btn
 				href="https://github.com/vuetifyjs/vuetify/releases/latest"
 				target="_blank"
-				text
-			>
-				<span class="mr-2">Latest Release</span>
+				text>
+				<span class="mr-2">Latest Release {{version}}</span>
 				<v-icon>mdi-open-in-new</v-icon>
 			</v-btn>
 		</v-app-bar>
@@ -113,7 +119,8 @@ export default Vue.extend({
 </style>
 
 <style>
-html, body{
+html,
+body {
 	overflow: auto !important;
 }
 </style>
