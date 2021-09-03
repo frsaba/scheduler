@@ -60,7 +60,12 @@ export default Vue.extend({
 
 <template>
 	<v-app class="app">
-		<snackbar :visibility="snackbar"> Nagyítás: {{ zoomLevel }}% </snackbar>
+		<snackbar :visibility="snackbar">
+			<v-icon class="magnifier" color="white">mdi-magnify</v-icon>
+			Nagyítás: 
+			<br />
+			{{ zoomLevel }}%
+		</snackbar>
 		<v-app-bar app color="primary" dark>
 			<div class="d-flex align-center routes">
 				<v-btn
@@ -100,6 +105,10 @@ export default Vue.extend({
 }
 .navbar-icon {
 	padding-right: 5px;
+}
+.magnifier {
+	font-size: 2vh;
+	transition: none;
 }
 </style>
 
