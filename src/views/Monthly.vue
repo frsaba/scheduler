@@ -1,6 +1,6 @@
 <script lang="ts">
 import Vue from "vue";
-import { computed, defineComponent, onUnmounted, ref, reactive } from "@vue/composition-api";
+import { computed, defineComponent, onUnmounted, ref, reactive, watch } from "@vue/composition-api";
 import { useActions, useState } from "vuex-composition-helpers";
 import { mapGetters } from 'vuex'
 
@@ -72,9 +72,10 @@ export default defineComponent({
 		const cursor_element = computed(() => (drag.end > 0) ? getDayElement(drag.employee_index, drag.end) : null)
 
 		const selection_tracker = visibilityTracker(selection_elements)
-		// watch(selection_tracker.anyVisible, async (fresh, stale) => {
-		// 	popover.value = await fresh
-		// })
+
+		watch(selection_tracker.anyVisible, (fresh, stale) => {
+			popover.value = fresh
+		})
 
 		const dayinfo = ref(false)
 		const dayinfotarget = ref()
