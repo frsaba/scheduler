@@ -65,6 +65,10 @@ export default defineComponent({
 
 		// Selection
 		const popover = ref(false)
+		let onPaneResized = () => {
+			// @ts-ignore
+			context.refs.base.updateRects()
+		}
 		const selectionObj = compSelection(sheet, popover);
 		const { drag, dragEndEmpty, moveSelection, setSelection, deselect, selection } = selectionObj;
 
@@ -188,6 +192,7 @@ export default defineComponent({
 			staffCount: ref(4),
 			sheet,
 			popover,
+			onPaneResized,
 			dayinfo,
 			dayinfotarget,
 			employeeinfo,

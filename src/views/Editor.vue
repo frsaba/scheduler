@@ -12,6 +12,12 @@ import ErrorPanel from "@/components/sidepanel/ErrorList.vue";
 export default Vue.extend({
 	name: "Editor",
 	components: { Splitpanes, Pane, Monthly, GlobalCounters, ErrorPanel },
+	methods: {
+		resized() {
+			// @ts-ignore
+			this.$refs.monthly.onPaneResized()
+		}
+	},
 	computed: {
 		error_groups(): ErrorGroup[][] {
 			return this.sheet.schedule.map(row => assertions.map(x => x.evaluate(row)).flat())
@@ -27,9 +33,9 @@ export default Vue.extend({
 </script>
 
 <template>
-	<splitpanes class="default-theme panes">
+	<splitpanes class="default-theme panes" @resized="resized">
 		<pane min-size="50">
-			<monthly :error_groups="error_groups" :start_times="start_times" />
+			<monthly :error_groups="error_groups" :start_times="start_times" ref="monthly" />
 		</pane>
 		<pane size="20">
 			<splitpanes horizontal>
