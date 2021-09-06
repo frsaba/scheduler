@@ -229,12 +229,12 @@ export default defineComponent({
 		},
 		setShift({ start, duration }: { start: number, duration: number }) {
 			for (let i of this.selection) {
-				this.$store.dispatch('set_shift', { index: this.drag.employee_index, day: i, start, duration })
+				this.$store.dispatch('set_shift', { index: this.drag.employee_index, day: i, start, duration } as Operation["payload"])
 			}
 		},
 		setType(type: DayType) {
 			for (let i of this.selection) {
-				this.$store.dispatch('set_type', { index: this.drag.employee_index, day: i, type })
+				this.$store.dispatch('set_type', { index: this.drag.employee_index, day: i, type } as Operation["payload"])
 			}
 		},
 		setDayInfoTarget(e: Event) {

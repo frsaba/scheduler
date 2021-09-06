@@ -5,6 +5,7 @@ import { DayTypeDescriptions } from '@/model/day-types';
 import { Position, copyRange, jsonify } from "@/utils/xlsx-helpers"
 import router from "@/router/index"
 import moment from 'moment';
+import { Operation } from '@/state/sheets';
 
 interface Schedule {
 	employee: string,
@@ -108,7 +109,7 @@ export default function parseWithTemplate(template: Excel.Worksheet, input: Exce
 			let day = dayIndex + 1
 			let dayType = DayTypeDescriptions.findIndex(x => x.label === upper)
 			if (dayType !== -1) {
-				store.dispatch("set_type", { index, day, type: dayType, initial: true })
+				store.dispatch("set_type", { index, day, type: dayType, origin: "import" } as Operation["payload"])
 			} else {
 				let start = parseInt(upper)
 				if (isNaN(start)) continue
@@ -116,7 +117,7 @@ export default function parseWithTemplate(template: Excel.Worksheet, input: Exce
 				if (isNaN(end)) throw "Hiba importálás közben: A műszak kezdetéhez nem társult befejező időpont"
 				let duration = (start < end ? 0 : 24) + end - start
 
-				store.dispatch("set_shift", { index, day, start, duration, initial: true })
+				store.dispatch("set_shift", { index, day, start, duration, origin: "import" } as Operation["payload"])
 			}
 		}
 		store.dispatch("new_batch")
