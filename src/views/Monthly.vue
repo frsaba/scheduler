@@ -103,6 +103,23 @@ export default defineComponent({
 			const batch = await useActions(store, ["redo"]).redo();
 			scrollBatchIntoView(batch)
 		}
+		const copy = () => {
+			if (selection.value.length === 0) return
+
+			useActions(store, ["copy"]).copy({ employee_index: drag.employee_index, days: selection.value });
+		}
+		const cut = () => {
+			if (selection.value.length === 0) return
+
+			useActions(store, ["cut"]).cut({ employee_index: drag.employee_index, days: selection.value });
+		}
+		const paste = async () => {
+			if (selection.value.length === 0) return
+
+			let day = selection.value[0]
+			let count = await useActions(store, ["paste"]).paste({ employee_index: drag.employee_index, day });
+			setSelection(day, day + count - 1, drag.employee_index)
+		}
 
 		function scrollBatchIntoView(batch: Operation[]) {
 			if (batch?.length > 0) {
@@ -127,11 +144,18 @@ export default defineComponent({
 				"ArrowDown": [0, 1]
 			}
 			if (e.ctrlKey) {
-				if (e.key.toLowerCase() == "z")
-					await undo(); // CTRL + Z
-				if (e.key.toLowerCase() == "y")
-					await redo(); // CTRL + Y
-
+				switch (e.key.toLowerCase()) {
+					case "z":
+						return undo();
+					case "y":
+						return redo();
+					case "c":
+						return copy();
+					case "x":
+						return cut();
+					case "v":
+						return paste();	
+				}
 			}
 			const bind = Object.entries(bindings).find(b => b[0] == e.key)
 			if (bind) {

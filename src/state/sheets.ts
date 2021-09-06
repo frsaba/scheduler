@@ -8,7 +8,6 @@ import Vue from "vue";
 import { RootState } from "./store";
 import moment from "moment";
 
-
 export interface RecentSheetInfo {
 	year: number,
 	month: number,
@@ -22,18 +21,19 @@ export class SheetState {
 	sheet: Sheet = new Sheet(2021, 8);
 	undoStack = new Array<Array<Operation>>();
 	redoStack = new Array<Array<Operation>>();
+	clipboard = new Array<Operation>();
 	recentSheets = new Array<RecentSheetInfo>();
 }
 
 export interface Operation {
-	action: string,
+	action: "set_shift" | "set_type",
 	payload: {
 		index: number,
 		day: number,
 		type?: DayType,
 		start?: number,
 		duration?: number
-		origin?: "undo" | "redo" | "import" | "user"
+		origin?: "undo" | "redo" | "import" | "user" | "clipboard"
 	}
 }
 
@@ -151,10 +151,10 @@ const sheets: Module<SheetState, RootState> = {
 				//Look for the last action in history that mutated the same day
 				let revertTo = _.last(state.undoStack.flat().filter(({ payload: { index, day } }) => (index == payload.index && day == payload.day)))
 				if (revertTo) {
-					dispatch(revertTo.action, { ...revertTo.payload, origin: "undo" } as Operation["payload"]) //Do that action again
+					dispatch(revertTo.action, { ...revertTo.payload, origin: "undo" }) //Do that action again
 				} else {
 					//If no such action is found, clear the cell
-					dispatch('set_type', { ...payload, type: DayType.empty, origin: "undo" } as Operation["payload"])
+					dispatch('set_type', { ...payload, type: DayType.empty, origin: "undo" })
 				}
 
 			}
@@ -168,7 +168,7 @@ const sheets: Module<SheetState, RootState> = {
 			if (batch) {
 				dispatch('new_batch')
 				for (let op of batch) {
-					dispatch(op.action, { ...op.payload, origin: "redo" } as Operation["payload"])
+					dispatch(op.action, { ...op.payload, origin: "redo" })
 				}
 			}
 			return batch
@@ -177,8 +177,11 @@ const sheets: Module<SheetState, RootState> = {
 			if (op.payload.origin !== "undo") { // If this action was a result of an undo, don't register it since it would lead to looping undos
 				if (op.payload.origin !== "redo") state.redoStack = []
 				let last_batch = _.last(state.undoStack)
-				// Start new batch if op action is different or stack is empty
-				if (last_batch == undefined || (last_batch[0] && (last_batch[0].payload.type != op.payload.type))) {
+				// Start new batch if ...
+				if (last_batch == undefined || (last_batch[0] && // stack is empty
+					(last_batch[0].payload.type != op.payload.type) && // op action is different
+					(last_batch[0].payload.origin !== "clipboard" && last_batch[0].payload.origin !== "redo")) // except when pasting or redoing
+				) {
 					dispatch('new_batch')
 					last_batch = _.last(state.undoStack)
 				}
@@ -189,7 +192,37 @@ const sheets: Module<SheetState, RootState> = {
 		new_batch({ state }) {
 			let last_batch = state.undoStack[state.undoStack.length - 1]
 			if (!last_batch || last_batch.length > 0) state.undoStack.push([]);
-		}
+		},
+		copy({ state }, { employee_index, days }: { employee_index: number, days: number[] }) {
+			state.clipboard = days.map(dayNumber => {
+				let day = state.sheet.GetRow(employee_index).GetDay(dayNumber)
+				let op: Operation = {
+					action: day.type === DayType.shift ? "set_shift" : "set_type",
+					payload: {
+						index: employee_index,
+						day: dayNumber,
+						type: day.type,
+						start: day.start,
+						duration: day.duration,
+					}
+				}
+				return op
+			})
+		},
+		async cut({ state, dispatch }, { employee_index, days }: { employee_index: number, days: number[] }) {
+			await dispatch("copy", { employee_index, days })
+			for (let i = 0; i < state.clipboard.length; i++) {
+				dispatch("set_type", { origin: "clipboard", index: employee_index, day: days[i], type: DayType.empty })
+			}
+		},
+		paste({ state, dispatch }, { employee_index, day }: { employee_index: number, day: number }) {
+			for (let i = 0; i < state.clipboard.length; i++) {
+				let op = state.clipboard[i]
+				dispatch(op.action, { ...op.payload, origin: "clipboard", index: employee_index, day: day + i })
+			}
+
+			return state.clipboard.length
+		},
 	},
 	getters: {
 		day: (context: SheetState) => (index: number, day: number): ScheduleDay | undefined => {
