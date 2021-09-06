@@ -71,6 +71,13 @@ export class ScheduleDay {
         this.date = new Date(this.row.sheet.year, this.row.sheet.month, this.day)
     }
 
+	public get end() {
+		if (this.type != DayType.shift) throw Error("Az olyan napoknak, amik nem műszakok nincs végső időpontja.")
+
+		let end = (this.start + this.duration) % 24
+		return end ? end : 24
+	}
+
     Clear() {
         this.SetType(DayType.empty)
     }
@@ -85,7 +92,6 @@ export class ScheduleDay {
             this.duration = 0;
         }
         this.type = type
-
     }
 }
 
