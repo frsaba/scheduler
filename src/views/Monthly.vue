@@ -103,15 +103,18 @@ export default defineComponent({
 			const batch = await useActions(store, ["redo"]).redo();
 			scrollBatchIntoView(batch)
 		}
+		let clipboard = ref(false)
 		const copy = () => {
 			if (selection.value.length === 0) return
 
 			useActions(store, ["copy"]).copy({ employee_index: drag.employee_index, days: selection.value });
+			clipboard.value = true
 		}
 		const cut = () => {
 			if (selection.value.length === 0) return
 
 			useActions(store, ["cut"]).cut({ employee_index: drag.employee_index, days: selection.value });
+			clipboard.value = true
 		}
 		const paste = async () => {
 			if (selection.value.length === 0) return
@@ -231,6 +234,7 @@ export default defineComponent({
 			selection_elements,
 			cursor_element,
 			setTableScroll,
+			clipboard
 		}
 	},
 	mounted() {
@@ -364,6 +368,9 @@ export default defineComponent({
 				<span>Dolgozó hozzáadása</span>
 			</a>
 		</div>
+		<v-snackbar light v-model="clipboard" min-width="fit-content" :timeout="2000">
+			<v-icon>mdi-content-copy</v-icon> Vágólapra másolva
+		</v-snackbar>
 	</div>
 </template>
 

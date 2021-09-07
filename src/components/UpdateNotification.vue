@@ -49,7 +49,7 @@ export default defineComponent({
 </script>
 
 <template>
-	<v-snackbar right bottom v-model="show" color="white text-center" :timeout="-1">
+	<v-snackbar right bottom light v-model="show" :timeout="-1">
 		<div class="wrapper">
 			<v-progress-circular v-if="downloading" indeterminate color="primary"></v-progress-circular>
 			{{ message }}
@@ -61,7 +61,7 @@ export default defineComponent({
 
 		<template v-slot:action="{attrs}">
 			<v-btn plain fab x-small @click="close" v-bind="attrs">
-				<v-icon color="secondary">mdi-close</v-icon>
+				<v-icon>mdi-close</v-icon>
 			</v-btn>
 		</template>
 	</v-snackbar>
@@ -74,7 +74,5 @@ export default defineComponent({
 	align-items: center;
 	justify-content: space-between;
 	gap: 10px;
-	background-color: white;
-	color: var(--v-secondary-base);
 }
 </style>
