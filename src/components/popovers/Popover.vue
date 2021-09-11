@@ -35,7 +35,8 @@ export default Vue.extend({
 			shift_end: 16,
 			shift_duration: 8,
 			leave_buttons: [DayType.paid, DayType.freeday, DayType.nonworking_day, DayType.weekend, DayType.sick, DayType.holiday] as DayType[],
-			accelerators: ["f", "s", "p", "h", "t", "ü", "Delete", "Enter", "Escape"] //Last three are used only in IgnoreKeys
+			accelerators: ["f", "s", "p", "h", "t", "ü", "Delete", "Enter", "Escape"], //Last three are used only in IgnoreKeys
+			last_action: ""
 		};
 	},
 	computed: {
@@ -74,20 +75,26 @@ export default Vue.extend({
 		inputStart() {
 			this.shift_start = Math.round(Math.abs(this.shift_start + 24)) % 24;
 			this.shift_end = (this.shift_duration + this.shift_start) % 24;
-			this.setShift(false);
+			this.setShift();
 		},
 		//if user changes end, decrease duration and keep shift_start the same
 		inputEnd(shift_end_new: number) {
 			this.shift_end = Math.round(Math.abs(Number(shift_end_new) + 24)) % 24;
 			this.shift_duration = (this.shift_start < this.shift_end ? 0 : 24) + this.shift_end - this.shift_start;
-			this.setShift(false)
+			this.setShift()
 		},
-		setShift(newBatch: boolean) {
+		setShift(newBatch: boolean = false) {
+			if (this.last_action !== "set-shift" || newBatch) {
+				this.newBatch()
+			}
+
 			this.$emit('set-shift', { start: this.shift_start, duration: this.shift_duration })
-			if (newBatch) this.newBatch()
+			this.last_action = "set-shift"
 		},
 		setType(type: DayType) {
+			this.newBatch()
 			this.$emit('set-type', type)
+			this.last_action = "set-type"
 		},
 	},
 	watch: {

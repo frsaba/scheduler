@@ -92,76 +92,91 @@ const sheets: Module<SheetState, RootState> = {
 			commit("remove_employee", index)
 			commit("delete_undos", index)
 		},
-		set_shift(context, payload: Operation["payload"]) {
-			const { index, day, start, duration } = payload;
-			//Check if we're actually about to make a change
-			let old: ScheduleDay = context.getters.day(index, day);
-			if (!old) return console.log("Nem létező nap:", payload)
-			if (old.type == DayType.shift && old.start == start && old.duration == duration) return;
+		set_shift({ getters, dispatch, commit }, payload: Operation["payload"]) {
+			const { index, day, start, duration, origin } = payload;
 
-			context.dispatch('register_undo', { action: "set_shift", payload } as Operation)
-
-			context.commit('set_shift', payload)
-
-			let currentShift: ScheduleDay = context.getters.day(index, day);
-			let nextShift: ScheduleDay = context.getters.day(index, day + 1);
-
-			if (nextShift) {
-				//Add rest day after night shift
-				if (isNight(currentShift) && !isNight(nextShift))
-					context.commit('set_type', { index: index, day: day + 1, type: DayType.rest })
-				//Remove rest day if we're removing a night shift
-				else if (!isNight(currentShift) && nextShift.type == DayType.rest)
-					context.commit('set_type', { index: index, day: day + 1, type: DayType.empty })
-			}
-		},
-		set_type(context, payload: Operation["payload"]) {
-			const { index, day, type } = payload;
-
-			let currentShift: ScheduleDay = context.getters.day(index, day);
+			let currentShift: ScheduleDay = getters.day(index, day);
 			if (!currentShift) return console.log("Nem létező nap:", payload)
-			if (currentShift.type == type) return; //This is a duplicate call, we don't have to do anything
+			if (currentShift.type == DayType.shift && currentShift.start == start && currentShift.duration == duration) return;
 
-			context.dispatch('register_undo', { action: "set_type", payload })
+			dispatch('register_undo', { action: "set_shift", payload } as Operation)
+			commit('set_shift', payload)
 
-			let previousShift: ScheduleDay = context.getters.day(index, day - 1);
-			let nextShift: ScheduleDay = context.getters.day(index, day + 1);
+			let nextShift: ScheduleDay = getters.day(index, day + 1);
 
-			if (nextShift && isNight(currentShift) && nextShift.type === DayType.rest)
-				context.commit('set_type', { index, day: day + 1, type: DayType.empty })
+			// Only manipulate surrounding cells if the action doesn't originate from an undo or a redo
+			if (!nextShift || origin === "undo" || origin === "redo") return
 
-			if (previousShift && type === DayType.empty && isNight(previousShift))
-				context.commit('set_type', { index, day, type: DayType.rest })
-			else
-				context.commit('set_type', { index, day, type });
+			//Add rest day after night shift
+			if (isNight(currentShift) && !isNight(nextShift))
+				dispatch('set_type', { index, day: day + 1, type: DayType.rest })
+			//Revert rest day to previous value
+			else if (!isNight(currentShift) && nextShift.type == DayType.rest)
+				dispatch('revert', { index, day: day + 1 })
 		},
-		undo({ state, dispatch }) {
-			let last_batch = state.undoStack.pop();
-			if (!last_batch || !last_batch.length) last_batch = state.undoStack.pop(); //A new batch has been started => undo the previous one
-			if (!last_batch) return; //Empty history => No actions to revert
-			if (last_batch.some(op => op.payload.origin === "import")) {
-				// This is the result of an import action => don't undo it
-				state.undoStack.push(last_batch); // restore it, since it was popped
+		set_type({ getters, dispatch, commit }, payload: Operation["payload"]) {
+			const { index, day, type, origin } = payload;
+
+			let currentShift: ScheduleDay = getters.day(index, day);
+			if (!currentShift) return console.log("Nem létező nap:", payload)
+			if (currentShift.type == type) return;
+
+			dispatch('register_undo', { action: "set_type", payload })
+
+			let previousShift: ScheduleDay = getters.day(index, day - 1);
+			let nextShift: ScheduleDay = getters.day(index, day + 1);
+
+			// Only manipulate surrounding cells if the action doesn't originate from an undo or a redo
+			if (origin === "undo" || origin === "redo") {
+				commit("set_type", { index, day, type })
+				return
+			}
+
+			// Revert rest day
+			if (nextShift && isNight(currentShift) && nextShift.type === DayType.rest)
+				dispatch("revert", { index, day: day + 1 })
+			// Replace empty cell with rest day
+			if (previousShift && type === DayType.empty && isNight(previousShift))
+				dispatch('set_type', { index, day, type: DayType.rest })
+			// Otherwise just set the given type to the cell
+			else
+				commit("set_type", { index, day, type })
+		},
+
+		revert({ state, dispatch }, { index, day, origin }: Operation["payload"]) {
+			let isCurrentCell = ({ payload }: Operation) => payload.index === index && payload.day === day
+			// Every batch that contains the given cell
+			let actionsOnCell = state.undoStack.filter(x => x.some(isCurrentCell))
+
+			// The batch before the last batch containing only the operations on the given cell
+			// The undo stack contains the last performed action batch that's why we need to revert to
+			// the one before the last
+			let reverts = actionsOnCell[actionsOnCell.length - 2]?.filter(isCurrentCell)
+			if (reverts) {
+				// Execute every action in the batch
+				for (let op of reverts)
+					dispatch(op.action, { ...op.payload, origin })
+			} else {
+				//If no such action is found, clear the cell
+				dispatch('set_type', { index, day, type: DayType.empty, origin })
+			}
+		},
+		undo({ state: { undoStack, redoStack }, dispatch }) {
+			// Find the last element in the undo stack that isn't empty
+			let last_batch_index = _.findLastIndex(undoStack, x => !_.isEmpty(x))
+			let last_batch = undoStack[last_batch_index]
+			if (!last_batch) return
+
+			if (last_batch.some(op => op.payload.origin === "import")) // This is the result of an import action => don't undo it
 				return;
-			}
 
-			state.redoStack.push(last_batch)
+			redoStack.push(last_batch)
 
-			for (let { payload } of last_batch) {
-				//Look for the last action in history that mutated the same day
-				let revertTo = _.last(state.undoStack.flat().filter(({ payload: { index, day } }) => (index == payload.index && day == payload.day)))
-				if (revertTo) {
-					dispatch(revertTo.action, { ...revertTo.payload, origin: "undo" }) //Do that action again
-				} else {
-					//If no such action is found, clear the cell
-					dispatch('set_type', { ...payload, type: DayType.empty, origin: "undo" })
-				}
+			for (let { payload } of last_batch)
+				dispatch("revert", { ...payload, origin: "undo" })
 
-			}
-
-			dispatch('new_batch') //If a new batch was already started before the undo, we got rid of it with pop(). We'll restore it
+			undoStack.splice(last_batch_index, 1); // Remove the undone batch from the stack
 			return last_batch
-
 		},
 		redo({ state, dispatch }) {
 			let batch = state.redoStack.pop()
@@ -174,23 +189,21 @@ const sheets: Module<SheetState, RootState> = {
 			return batch
 		},
 		register_undo({ state, dispatch }, op: Operation) {
-			if (op.payload.origin !== "undo") { // If this action was a result of an undo, don't register it since it would lead to looping undos
-				if (op.payload.origin !== "redo") state.redoStack = []
-				let last_batch = _.last(state.undoStack)
-				// Start new batch if ...
-				if (last_batch == undefined || (last_batch[0] && // stack is empty
-					(last_batch[0].payload.type != op.payload.type) && // op action is different
-					(last_batch[0].payload.origin !== "clipboard" && last_batch[0].payload.origin !== "redo")) // except when pasting or redoing
-				) {
-					dispatch('new_batch')
-					last_batch = _.last(state.undoStack)
-				}
-				if (_.isEqual(_.last(state.undoStack), op) == false) //Don't register the same action 
-					last_batch!.push(op)
+			if (op.payload.origin === "undo") return // If this action was a result of an undo, don't register it since it would lead to looping undos
+			if (op.payload.origin !== "redo") state.redoStack = []
+
+			let last_batch = _.last(state.undoStack)
+			// Start new batch if stack is empty
+			if (last_batch == undefined || !last_batch[0]) {
+				dispatch('new_batch')
+				last_batch = _.last(state.undoStack)
 			}
+
+			if (_.isEqual(_.last(state.undoStack), op) == false) // Don't register the same action 
+				last_batch!.push(op)
 		},
 		new_batch({ state }) {
-			let last_batch = state.undoStack[state.undoStack.length - 1]
+			let last_batch = _.last(state.undoStack)
 			if (!last_batch || last_batch.length > 0) state.undoStack.push([]);
 		},
 		copy({ state }, { employee_index, days }: { employee_index: number, days: number[] }) {
@@ -209,8 +222,8 @@ const sheets: Module<SheetState, RootState> = {
 				return op
 			})
 		},
-		async cut({ state, dispatch }, { employee_index, days }: { employee_index: number, days: number[] }) {
-			await dispatch("copy", { employee_index, days })
+		cut({ state, dispatch }, { employee_index, days }: { employee_index: number, days: number[] }) {
+			dispatch("copy", { employee_index, days })
 			for (let i = 0; i < state.clipboard.length; i++) {
 				dispatch("set_type", { origin: "clipboard", index: employee_index, day: days[i], type: DayType.empty })
 			}
