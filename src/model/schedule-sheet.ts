@@ -5,9 +5,11 @@ import staff, { Employee } from "@/model/staff"
 export class Sheet {
     month_length: number
     schedule: Array<ScheduleRow> = []
+	date: Date
 
     constructor(public year: number, public month: number, employees: Employee[] = []) {
         this.month_length = daysInMonth(year, month)
+		this.date = new Date(year, month, 1)
         for(const employee of employees){
             this.AddRow(employee)
         }

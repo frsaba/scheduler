@@ -19,12 +19,13 @@ import { accumulators } from "@/model/aggregates"
 import { Sheet } from "@/model/schedule-sheet";
 import { Operation } from "@/state/sheets"
 import { FontColorFromBackground } from "@/utils/color-helpers"
-import { isWeekend, isHoliday, isDay } from "@/utils/date-helpers"
+import { isWeekend, isHoliday, isDay, weekdaysInMonth, workhoursInMonth } from "@/utils/date-helpers"
 import compSelection from "@/composables/selection"
 import visibilityTracker from "@/composables/visibility-tracker"
 import { ErrorGroup } from "@/model/assertions";
 import { Employee } from "@/model/staff";
 import store from "@/state/store"
+import moment from "moment";
 
 export default defineComponent({
 	name: "Monthly",
@@ -215,9 +216,17 @@ export default defineComponent({
 			})
 		})
 
+		const toolbarInfo = computed(() => [
+			`${sheet.year}. ${moment(sheet.date, "", "hu").format("MMMM")}`,
+			`Havi óraszám: ${workhoursInMonth(sheet.date)}`,
+			`SZ: ${weekdaysInMonth(sheet.date, 6)}`, // \xA0 -> non-breaking space
+			`P: ${weekdaysInMonth(sheet.date, 0)}`
+		])
+
 		return {
 			staffCount: ref(4),
 			sheet,
+			toolbarInfo,
 			popover,
 			onPaneResized,
 			dayinfo,
@@ -309,6 +318,11 @@ export default defineComponent({
 				:key="i"
 				v-bind="{ tooltip, icon, outlined: circular, fab: circular, small: circular, ...rest, }"
 				v-on="{click}"></base-button>
+			<v-spacer></v-spacer>
+			<template v-for="(info, i) in toolbarInfo">
+				<v-divider vertical :key="i + 'divider'"></v-divider>
+				<div class="overline toolbar-info" :key="i">{{info}}</div>
+			</template>
 		</v-toolbar>
 
 		<popover
@@ -398,5 +412,10 @@ export default defineComponent({
 }
 .toolbar >>> .v-toolbar__content {
 	gap: 15px;
+}
+.toolbar-info {
+	line-height: 1.2rem;
+	text-align: center;
+	min-width: fit-content
 }
 </style>
