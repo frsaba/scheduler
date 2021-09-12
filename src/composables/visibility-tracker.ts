@@ -34,11 +34,15 @@ export default function track(subjects: Ref<Array<Element>>,) {
 	})
 
 	function createObserver(root: Element, margin: string, visibility_threshold = 0.15) {
+		observer.disconnect(); //Without this, we might receive entries from past observers about subjects we are no longer observing
 		observer = new IntersectionObserver(callback, {
 			root, rootMargin: margin,
 			threshold: [0.1, 0.9]
 		})
 		_visibility_threshold = visibility_threshold
+		for (let s of subjects.value) {
+			observer.observe(s)
+		}
 	}
 
 	function scrollIntoView(entries: IntersectionObserverEntry[], scroll: (dx: number, dy: number) => void, padding = 0) {

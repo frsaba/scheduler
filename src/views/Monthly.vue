@@ -250,6 +250,11 @@ export default defineComponent({
 		this.setTableScroll = root.scrollBy.bind(root)
 		this.selection_tracker.createObserver(root, `-48px -${48 * 6}px 0px  -160px`)
 	},
+	watch: {
+		aggregates(){
+			this.selection_tracker.createObserver(this.$refs.table_wrapper as Element, `-48px -${48 * this.aggregates.length}px 0px  -160px`)
+		}
+	},
 	methods: {
 		add() {
 			this.$store.dispatch("staff/add", "Példa János" + this.staffCount);
