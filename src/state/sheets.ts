@@ -33,7 +33,7 @@ export interface Operation {
 		type?: DayType,
 		start?: number,
 		duration?: number
-		origin?: "undo" | "redo" | "import" | "user" | "clipboard"
+		origin?: "undo" | "redo" | "import" | "user" | "clipboard" | "auto"
 	}
 }
 
@@ -104,15 +104,16 @@ const sheets: Module<SheetState, RootState> = {
 
 			let nextShift: ScheduleDay = getters.day(index, day + 1);
 
-			// Only manipulate surrounding cells if the action doesn't originate from an undo or a redo
-			if (!nextShift || origin === "undo" || origin === "redo") return
-
-			//Add rest day after night shift
-			if (isNight(currentShift) && !isNight(nextShift))
-				dispatch('set_type', { index, day: day + 1, type: DayType.rest })
-			//Revert rest day to previous value
-			else if (!isNight(currentShift) && nextShift.type == DayType.rest)
-				dispatch('revert', { index, day: day + 1 })
+			// Only manipulate surrounding cells if the action originates from a user or clipboard, because
+			// in the other cases it is handled by the undo stack
+			if (nextShift && (origin === "user" || origin === "clipboard")) {
+				//Add rest day after night shift
+				if (isNight(currentShift) && !isNight(nextShift))
+					dispatch('set_type', { index, day: day + 1, type: DayType.rest })
+				//Revert rest day to previous value
+				else if (!isNight(currentShift) && nextShift.type == DayType.rest)
+					dispatch('revert', { index, day: day + 1, origin: "auto" })
+			}
 		},
 		set_type({ getters, dispatch, commit }, payload: Operation["payload"]) {
 			const { index, day, type, origin } = payload;
@@ -121,45 +122,49 @@ const sheets: Module<SheetState, RootState> = {
 			if (!currentShift) return console.log("Nem létező nap:", payload)
 			if (currentShift.type == type) return;
 
-			dispatch('register_undo', { action: "set_type", payload })
-
 			let previousShift: ScheduleDay = getters.day(index, day - 1);
 			let nextShift: ScheduleDay = getters.day(index, day + 1);
 
-			// Only manipulate surrounding cells if the action doesn't originate from an undo or a redo
-			if (origin === "undo" || origin === "redo") {
-				commit("set_type", { index, day, type })
-				return
+			// Only manipulate surrounding cells if the action originates from a user or clipboard, because
+			// in the other cases it is handled by the undo stack
+			if (origin === "user" || origin === "clipboard") {
+				// Revert rest day
+				if (nextShift && isNight(currentShift) && nextShift.type === DayType.rest)
+					dispatch("revert", { index, day: day + 1, origin: "auto" })
+				// Replace empty cell with rest day
+				if (previousShift && type === DayType.empty && isNight(previousShift))
+					return dispatch('set_type', { index, day, type: DayType.rest })
 			}
-
-			// Revert rest day
-			if (nextShift && isNight(currentShift) && nextShift.type === DayType.rest)
-				dispatch("revert", { index, day: day + 1 })
-			// Replace empty cell with rest day
-			if (previousShift && type === DayType.empty && isNight(previousShift))
-				dispatch('set_type', { index, day, type: DayType.rest })
-			// Otherwise just set the given type to the cell
-			else
-				commit("set_type", { index, day, type })
+			dispatch('register_undo', { action: "set_type", payload })
+			commit("set_type", { index, day, type })
 		},
 
-		revert({ state, dispatch }, { index, day, origin }: Operation["payload"]) {
-			let isCurrentCell = ({ payload }: Operation) => payload.index === index && payload.day === day
-			// Every batch that contains the given cell
-			let actionsOnCell = state.undoStack.filter(x => x.some(isCurrentCell))
+		// Reverts the given cell to its previous state
+		revert({ state: { undoStack }, dispatch }, { index, day, origin }: Operation["payload"]) {
+			let revert: Operation | undefined;
+			let skip = true;
 
-			// The batch before the last batch containing only the operations on the given cell
-			// The undo stack contains the last performed action batch that's why we need to revert to
-			// the one before the last
-			let reverts = actionsOnCell[actionsOnCell.length - 2]?.filter(isCurrentCell)
-			if (reverts) {
-				// Execute every action in the batch
-				for (let op of reverts)
-					dispatch(op.action, { ...op.payload, origin })
-			} else {
-				//If no such action is found, clear the cell
-				dispatch('set_type', { index, day, type: DayType.empty, origin })
+			// Look for the last operation in the second to last batch that mutated the given cell
+			for (let i = undoStack.length - 1; i >= 0; i--) {
+				// Find every operation in the current batch that manipulated the given cell
+				let filtered = undoStack[i].filter(({ payload }: Operation) => payload.index === index && payload.day === day)	
+				if (_.isEmpty(filtered)) continue
+
+				// The undo stack also contains the last performed action so we need to skip it
+				if (skip) {
+					skip = false;
+					continue;
+				}
+				
+				revert = _.last(filtered);
+				break;
 			}
+
+			if (revert)
+				dispatch(revert.action, { ...revert.payload, origin })
+			else
+				// If no such operation is found, clear the cell
+				dispatch('set_type', { index, day, type: DayType.empty, origin })
 		},
 		undo({ state: { undoStack, redoStack }, dispatch }) {
 			// Find the last element in the undo stack that isn't empty
