@@ -120,9 +120,10 @@ export default defineComponent({
 		const paste = async () => {
 			if (selection.value.length === 0) return
 
-			let day = selection.value[0]
-			let count = await useActions(store, ["paste"]).paste({ employee_index: drag.employee_index, day });
-			setSelection(day, day + count - 1, drag.employee_index)
+			let days = selection.value
+			let count = await useActions(store, ["paste"]).paste({ employee_index: drag.employee_index, days });
+			if (!count) return
+			setSelection(days[0], days[0] + count - 1, drag.employee_index)
 		}
 
 		function scrollBatchIntoView(batch: Operation[]) {
@@ -321,7 +322,7 @@ export default defineComponent({
 			<v-spacer></v-spacer>
 			<template v-for="(info, i) in toolbarInfo">
 				<v-divider vertical :key="i + 'divider'"></v-divider>
-				<div class="overline toolbar-info" :key="i">{{info}}</div>
+				<div class="overline toolbar-info" :key="i + 'info'">{{info}}</div>
 			</template>
 		</v-toolbar>
 

@@ -147,7 +147,7 @@ const sheets: Module<SheetState, RootState> = {
 			// Look for the last operation in the second to last batch that mutated the given cell
 			for (let i = undoStack.length - 1; i >= 0; i--) {
 				// Find every operation in the current batch that manipulated the given cell
-				let filtered = undoStack[i].filter(({ payload }: Operation) => payload.index === index && payload.day === day)	
+				let filtered = undoStack[i].filter(({ payload }: Operation) => payload.index === index && payload.day === day)
 				if (_.isEmpty(filtered)) continue
 
 				// The undo stack also contains the last performed action so we need to skip it
@@ -155,7 +155,7 @@ const sheets: Module<SheetState, RootState> = {
 					skip = false;
 					continue;
 				}
-				
+
 				revert = _.last(filtered);
 				break;
 			}
@@ -233,13 +233,23 @@ const sheets: Module<SheetState, RootState> = {
 				dispatch("set_type", { origin: "clipboard", index: employee_index, day: days[i], type: DayType.empty })
 			}
 		},
-		paste({ state, dispatch }, { employee_index, day }: { employee_index: number, day: number }) {
-			for (let i = 0; i < state.clipboard.length; i++) {
-				let op = state.clipboard[i]
-				dispatch(op.action, { ...op.payload, origin: "clipboard", index: employee_index, day: day + i })
-			}
+		paste({ state: { clipboard }, dispatch }, { employee_index, days }: { employee_index: number, days: number[] }) {
+			if (!clipboard.length) return
+			console.log(days, clipboard)
+			let pasteCount = Math.floor(days.length / clipboard.length);
 
-			return state.clipboard.length
+			for (let n = 0; n < Math.max(1, pasteCount); n++) {
+				for (let i = 0; i < clipboard.length; i++) {
+					let op = clipboard[i]
+					dispatch(op.action, {
+						...op.payload,
+						origin: "clipboard",
+						index: employee_index,
+						day: days[n * clipboard.length + i] ?? days[0] + i
+					})
+				}
+			}
+			return pasteCount * clipboard.length
 		},
 	},
 	getters: {
