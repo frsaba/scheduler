@@ -1,6 +1,7 @@
 import { Sheet, ScheduleRow, ScheduleDay } from "@/model/schedule-sheet"
 import { DayType, DayTypeDescription, DayTypeDescriptions } from "@/model/day-types"
 import { Lighten } from "@/utils/color-helpers"
+import { functionsIn } from "lodash"
 
 export interface Aggregate {
 	name: string,
@@ -120,4 +121,31 @@ export function CountStartingTimes(sheet: Sheet): Map<number, number[]> {
     }
 
     return new Map([...counter].sort((a, b) => a[0] - b[0])); //Sort ascending by hour
+}
+
+export function CountPresentBetween(sheet: Sheet, start: number, end: number) {
+	let result = new Array(sheet.month_length).fill(0)
+
+	let target_hours = hoursBetween(start, end)
+	for (const row of sheet.schedule) {
+		for (let i = 0; i < sheet.month_length; i++) {
+			let day = row.GetDay(i + 1);
+			if (day.type != DayType.shift) continue;
+
+			let current_hours = hoursBetween(day.start, day.end);
+			// If the target shift is within the current shift
+			if (target_hours.every(x => current_hours.includes(x)))
+				result[i] += 1;
+		}
+	}
+
+	return result
+}
+
+function hoursBetween(start: number, end: number) {
+	let hours = [];
+	for (let currentHour = start; currentHour !== end; currentHour = (currentHour + 1) % 25)
+		hours.push(currentHour);
+
+	return hours;
 }

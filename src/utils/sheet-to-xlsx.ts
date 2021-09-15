@@ -1,10 +1,11 @@
 import Excel from 'exceljs';
 import { Sheet } from "@/model/schedule-sheet";
 import _ from "lodash"
-import { accumulators, CountStartingTimes } from "@/model/aggregates"
+import { accumulators, CountPresentBetween, CountStartingTimes } from "@/model/aggregates"
 import { DayType, DayTypeDescriptions } from '@/model/day-types';
 import { Position, copyRange, jsonify } from "@/utils/xlsx-helpers"
 import moment from 'moment';
+import { start } from 'repl';
 
 type BindingMap = Map<string, (...args: any[]) => Excel.CellValue>
 
@@ -12,6 +13,8 @@ export default function replaceTemplate(template: Excel.Worksheet, sheet: Sheet)
 	let firstEmployeePos: Position
 	let employeeDistance: Position
 	let currentScheduleRow: number
+	let startingTimes = CountStartingTimes(sheet)
+	let presentBetweenCache = new Map<string, number[]>()
 
 	let bindings: BindingMap = new Map<string, (...args: any[]) => Excel.CellValue>([
 		["year", () => sheet.year],
@@ -21,7 +24,17 @@ export default function replaceTemplate(template: Excel.Worksheet, sheet: Sheet)
 		}],
 		["startsAt", (cell: Excel.Cell, hour: number) => {
 			let day = Number(cell.col) - 1; // Assuming days start at column B
-			return CountStartingTimes(sheet).get(hour)?.[day - 1] ?? 0
+			return startingTimes.get(hour)?.[day - 1] ?? 0
+		}],
+		["presentBetween", (cell: Excel.Cell, startHour: number, endHour: number) => {
+			let day = Number(cell.col) - 1;
+
+			let key = `${startHour}-${endHour}`
+			if (presentBetweenCache.has(key)) 
+				return presentBetweenCache.get(key)![day - 1];
+
+			presentBetweenCache.set(key, CountPresentBetween(sheet, startHour, endHour))
+			return presentBetweenCache.get(key)![day - 1] ?? 0
 		}],
 		["employeeName", (cell: Excel.Cell) => {
 			let current = new Position(cell.row, cell.col)
