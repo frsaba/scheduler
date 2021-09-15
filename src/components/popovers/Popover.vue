@@ -2,7 +2,7 @@
 import Vue from "vue";
 import { DayType, DayTypeDescriptions } from "@/model/day-types";
 import LeaveButton from "@/components/popovers/LeaveButton.vue";
-import HourPicker from "@/components/popovers/HourPicker.vue";
+import ShiftPicker, { Shift } from "@/components/pickers/ShiftPicker.vue";
 import BasePopover from "@/components/BasePopover.vue";
 
 interface LeaveButtonData {
@@ -16,7 +16,7 @@ export default Vue.extend({
 	name: "Popover",
 	components: {
 		LeaveButton,
-		HourPicker,
+		ShiftPicker,
 		BasePopover
 	},
 	props: {
@@ -31,9 +31,7 @@ export default Vue.extend({
 	},
 	data() {
 		return {
-			shift_start: 8,
-			shift_end: 16,
-			shift_duration: 8,
+			shift: {start: 7, end: 19, duration: 12} as Shift,
 			leave_buttons: [DayType.paid, DayType.freeday, DayType.nonworking_day, DayType.weekend, DayType.sick, DayType.holiday] as DayType[],
 			accelerators: ["f", "s", "p", "h", "t", "ü", "Delete", "Enter", "Escape"], //Last three are used only in IgnoreKeys
 			last_action: ""
@@ -43,9 +41,6 @@ export default Vue.extend({
 		desc() {
 			return DayTypeDescriptions
 		},
-		displayed_shift_end(): number {
-			return this.shift_end ? this.shift_end : 24
-		}
 	},
 	created() {
 		window.addEventListener("keydown", this.ignoreKeys);
@@ -71,24 +66,13 @@ export default Vue.extend({
 			if (k.startsWith("Arrow") || e.ctrlKey || (k.length == 1 && k.toLowerCase() != k.toUpperCase()) || this.accelerators.includes(k))
 				e.preventDefault()
 		},
-		//if user changes the start, keep duration the same and set shift_end accordingly
-		inputStart() {
-			this.shift_start = Math.round(Math.abs(this.shift_start + 24)) % 24;
-			this.shift_end = (this.shift_duration + this.shift_start) % 24;
-			this.setShift();
-		},
-		//if user changes end, decrease duration and keep shift_start the same
-		inputEnd(shift_end_new: number) {
-			this.shift_end = Math.round(Math.abs(Number(shift_end_new) + 24)) % 24;
-			this.shift_duration = (this.shift_start < this.shift_end ? 0 : 24) + this.shift_end - this.shift_start;
-			this.setShift()
-		},
-		setShift(newBatch: boolean = false) {
+		setShift(shift: Shift, newBatch: boolean = false) {
+			this.shift = shift
 			if (this.last_action !== "set-shift" || newBatch) {
 				this.newBatch()
 			}
 
-			this.$emit('set-shift', { start: this.shift_start, duration: this.shift_duration })
+			this.$emit('set-shift', shift)
 			this.last_action = "set-shift"
 		},
 		setType(type: DayType) {
@@ -118,11 +102,10 @@ export default Vue.extend({
 				</leave-button>
 			</span>
 			<div class="upper">
-				<hour-picker v-model.number="shift_start" @input="inputStart" />
-				-
-				<hour-picker :value="displayed_shift_end" @input="inputEnd" :hour24="true" />
+				<shift-picker @input="setShift">
+				</shift-picker>
 
-				<leave-button :type="0" @click="setShift(true)" tooltip="Műszak" accelerator="Enter">
+				<leave-button :type="0" @click="setShift(shift, true)" tooltip="Műszak" accelerator="Enter">
 					<v-icon>mdi-set-split</v-icon>
 				</leave-button>
 				<leave-button :type="8" @click="setType" dark tooltip="Törlés" color="red" accelerator="Delete">

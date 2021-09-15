@@ -235,7 +235,6 @@ const sheets: Module<SheetState, RootState> = {
 		},
 		paste({ state: { clipboard }, dispatch }, { employee_index, days }: { employee_index: number, days: number[] }) {
 			if (!clipboard.length) return
-			console.log(days, clipboard)
 			let pasteCount = Math.floor(days.length / clipboard.length);
 
 			for (let n = 0; n < Math.max(1, pasteCount); n++) {

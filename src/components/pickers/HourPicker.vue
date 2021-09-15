@@ -52,6 +52,7 @@ export default Vue.extend({
 <style scoped>
 .wrapper {
 	position: relative;
+	gap: 0;
 }
 
 input[type="number"]::-webkit-inner-spin-button,
