@@ -7,7 +7,6 @@ import { debounce } from "lodash";
 import replaceTemplate from "@/utils/sheet-to-xlsx"
 import parseWithTemplate from "@/utils/xlsx-to-sheet"
 import { bufferToWorkbook } from "@/utils/xlsx-helpers"
-import { version } from "process";
 
 export default Vue.extend({
 	name: "App",
@@ -23,7 +22,8 @@ export default Vue.extend({
 		routes:
 			[["Munkalapok", "/setup", "mdi-file-document-multiple"],
 			["Szerkesztő", "/", "mdi-table-edit"],
-			["Dolgozók", "/staff", "mdi-account"]],
+			["Dolgozók", "/staff", "mdi-account"],
+			["Beállítások", "/settings", "mdi-cog"]],
 		version: ""
 	}),
 	created() {

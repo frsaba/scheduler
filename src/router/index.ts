@@ -5,6 +5,7 @@ import Home from "@/views/Home.vue";
 import Editor from "@/views/Editor.vue"
 import Staff from "@/views/Staff.vue"
 import SheetSetup from "@/views/SheetSetup.vue"
+import Settings from "@/views/Settings.vue"
 
 Vue.use(VueRouter);
 Vue.use(VueCompositionApi);
@@ -24,6 +25,11 @@ const routes: Array<RouteConfig> = [
     path: "/setup",
     name: "Sheet setup",
     component: SheetSetup,
+  },
+  {
+	path: "/settings",
+	name: "Settings",
+	component: Settings
   },
   {
     path: "/about",
