@@ -83,7 +83,7 @@ export default defineComponent({
 		})
 
 		const dayinfo = ref(false)
-		const dayinfotarget = ref()
+		const dayinfotarget = ref<Element[]>([])
 
 		const employeeinfo = reactive({
 			show: false,
@@ -136,31 +136,18 @@ export default defineComponent({
 			}
 		}
 
-		const keydown = async (e: KeyboardEvent) => {
-			if (e.key == "Escape" && aggregatesMenu.show || employeeinfo.show) {
-				aggregatesMenu.show = false;
-				employeeinfo.show = false;
-				e.stopImmediatePropagation();
-			}
+		function setDayInfoTarget (target: Element) {
+			if (aggregatesMenu.show) return;
+			dayinfo.value = true;
+			dayinfotarget.value = [target];
+		}
+
+		const arrowKeydown = (e: KeyboardEvent) => {
 			const bindings = {
 				"ArrowRight": [1, 0],
 				"ArrowLeft": [-1, 0],
 				"ArrowUp": [0, -1],
 				"ArrowDown": [0, 1]
-			}
-			if (e.ctrlKey) {
-				switch (e.key.toLowerCase()) {
-					case "z":
-						return undo();
-					case "y":
-						return redo();
-					case "c":
-						return copy();
-					case "x":
-						return cut();
-					case "v":
-						return paste();	
-				}
 			}
 			const bind = Object.entries(bindings).find(b => b[0] == e.key)
 			if (bind) {
@@ -173,11 +160,53 @@ export default defineComponent({
 				}
 			}
 		}
+
+		const keydown = (e: KeyboardEvent) => {
+			if (e.key == "Escape" && aggregatesMenu.show || employeeinfo.show) {
+				aggregatesMenu.show = false;
+				employeeinfo.show = false;
+				e.stopImmediatePropagation();
+			}
+
+			if (e.key == "Alt" && selection.value.length && !dayinfo.value) {
+				setDayInfoTarget((context.refs[`header${drag.end}`] as Element[])[0]);
+				e.preventDefault();
+			}
+
+			if (e.ctrlKey) {
+				switch (e.key.toLowerCase()) {
+					case "z":
+						return undo();
+					case "y":
+						return redo();
+					case "c":
+						return copy();
+					case "x":
+						return cut();
+					case "v":
+						return paste();
+				}
+			}
+		}
+
+
+		const keyup = (e: KeyboardEvent) => {
+			if (e.key == "Alt" && dayinfo.value) {
+				dayinfo.value = false;
+				e.preventDefault();
+			}
+		}
 		// Without throttling, holding down arrow keys makes the cursor move unreasonably fast,
 		// but scrolling unreasonably slow (when combined with smooth scrolling)
-		let keydownThrottled = throttle(keydown, 100);
-		window.addEventListener("keydown", keydownThrottled);
-		onUnmounted(() => window.removeEventListener("keydown", keydownThrottled))
+		let arrowKeydownThrottled = throttle(arrowKeydown, 100);
+		window.addEventListener("keydown", arrowKeydownThrottled);
+		onUnmounted(() => window.removeEventListener("keydown", arrowKeydownThrottled))
+
+		window.addEventListener("keydown", keydown);
+		onUnmounted(() => window.removeEventListener("keydown", keydown))
+
+		window.addEventListener("keyup", keyup);
+		onUnmounted(() => window.removeEventListener("keyup", keyup))
 
 		window.addEventListener("mouseup", dragEndEmpty);
 		onUnmounted(() => window.removeEventListener("mouseup", dragEndEmpty))
@@ -232,6 +261,7 @@ export default defineComponent({
 			onPaneResized,
 			dayinfo,
 			dayinfotarget,
+			setDayInfoTarget,
 			employeeinfo,
 			employeePicker,
 			aggregatesMenu,
@@ -261,7 +291,7 @@ export default defineComponent({
 		this.selection_tracker.createObserver(root, `-48px -${48 * 6}px 0px  -160px`)
 	},
 	watch: {
-		aggregates(){
+		aggregates() {
 			this.selection_tracker.createObserver(this.$refs.table_wrapper as Element, `-48px -${48 * this.aggregates.length}px 0px  -160px`)
 		}
 	},
@@ -280,11 +310,7 @@ export default defineComponent({
 				this.$store.dispatch('set_type', { index: this.drag.employee_index, day: i, type, origin: "user" } as Operation["payload"])
 			}
 		},
-		setDayInfoTarget(e: Event) {
-			if (this.aggregatesMenu.show) return;
-			this.dayinfo = true;
-			this.dayinfotarget = [e.target as Element]
-		},
+
 		employeeContextMenu(e: MouseEvent, employee: Employee) {
 			this.deselect()
 			this.employeeinfo.event = e;
@@ -350,8 +376,9 @@ export default defineComponent({
 						<th
 							v-for="day in sheet.month_length"
 							:key="day"
+							:ref="'header' + day"
 							:style="day_header_style[day - 1]"
-							@mouseenter="setDayInfoTarget"
+							@mouseenter="setDayInfoTarget($event.target)"
 							@mouseleave="dayinfo = false"
 							@contextmenu="aggregatesContextMenu">
 							{{ day }}
@@ -417,6 +444,6 @@ export default defineComponent({
 .toolbar-info {
 	line-height: 1.2rem;
 	text-align: center;
-	min-width: fit-content
+	min-width: fit-content;
 }
 </style>
