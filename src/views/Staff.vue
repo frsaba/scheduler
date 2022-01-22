@@ -83,6 +83,7 @@ export default defineComponent({
 		<employee-row
 			v-for="employee in employees"
 			:key="employee.name"
+			:id="employee.id"
 			:name="employee.name"
 			@remove="remove"></employee-row>
 		<div class="text-center" v-if="employees.length == 0">

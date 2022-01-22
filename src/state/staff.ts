@@ -10,13 +10,17 @@ const module: Module<Staff, RootState> = {
         add_employee(state, payload) {
             state.Add(payload)
         },
+		add_tag(state, {name, tag}: {name: string, tag: string}) {
+			state.AddTag(name, tag)
+		},
+		remove_tag(state, {name, tag}: {name: string, tag: string}) {
+			state.RemoveTag(name, tag)
+		},
         remove_employee(state, payload) {
-            let i = state.employees.findIndex(e => e.name == payload)
-            state.employees.splice(i, 1)
+            state.Remove(payload)
         },
         rename(state, { oldName, newName }: { oldName: string, newName: string }): void {
-            let i = state.employees.findIndex(e => e.name == oldName)
-            state.employees[i].name = newName
+            state.Rename(newName, oldName)
         },
     },
     actions: {
@@ -31,15 +35,25 @@ const module: Module<Staff, RootState> = {
             dispatch('remove_employee', payload, { root: true });
             dispatch('save');
         },
+		add_tag({commit, dispatch}, payload) {
+			commit('add_tag', payload);
+			dispatch('save');
+		},
+		remove_tag({commit, dispatch}, payload) {
+			commit('remove_tag', payload);
+			dispatch('save');
+		},
         save({ state }): void {
             window.localStorage.setItem("employees", JSON.stringify(state.employees))
         },
         load({ state, dispatch }): void {
             const loaded = JSON.parse(window.localStorage.getItem("employees") ?? "[]") as Employee[]
             Vue.set(state, "employees", loaded)
-
+			
             for (let e of state.employees) {
                 dispatch('add', e, { root: true });
+				for (let tag of e.tags)
+					if (!state.tags.includes(tag)) state.tags.push(tag)
             }
         }
 
