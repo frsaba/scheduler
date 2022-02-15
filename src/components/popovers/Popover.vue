@@ -34,7 +34,8 @@ export default Vue.extend({
 			shift: {start: 7, end: 19, duration: 12} as Shift,
 			leave_buttons: [DayType.paid, DayType.freeday, DayType.nonworking_day, DayType.weekend, DayType.sick, DayType.holiday] as DayType[],
 			accelerators: ["f", "s", "p", "h", "t", "ü", "Delete", "Enter", "Escape"], //Last three are used only in IgnoreKeys
-			last_action: ""
+			last_action: "",
+			pinned: false
 		};
 	},
 	computed: {
@@ -94,9 +95,13 @@ export default Vue.extend({
 		v-model="value"
 		:targets="selection_elements"
 		:offset="{x: 0, y: 12}"
+		:absolute="pinned"
 		ref="base">
 		<v-card class="card" ref="card">
 			<span class="close-button">
+				<leave-button plain color="secondary" @click="pinned = !pinned" x-small elevation="0" tooltip="Rögzítés" accelerator="-">
+					<v-icon>{{pinned ? "mdi-pin" : "mdi-pin-outline" }}</v-icon>
+				</leave-button>
 				<leave-button plain color="secondary" @click="close" x-small elevation="0" tooltip="Bezárás" accelerator="Escape">
 					<v-icon>mdi-close</v-icon>
 				</leave-button>

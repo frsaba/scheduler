@@ -17,6 +17,14 @@ export default defineComponent({
 			type: Object as () => { x: number, y: number },
 			default: () => ({ x: 0, y: 0 })
 		},
+		position: {
+			type: Object as () => { x: number, y: number },
+			default: () => ({ x: 0, y: 0 })
+		},
+		absolute: {
+			type: Boolean,
+			default: false
+		},
 		margin: {
 			type: Number,
 			default: 10
@@ -36,7 +44,6 @@ export default defineComponent({
 		const popover = ref() // Template ref to popover
 
 		let updateDimensions = () => {
-			// console.log(popover)
 			let rect = popover.value?.getBoundingClientRect();
 			popoverWidth.value = rect?.width ?? 0;
 			popoverHeight.value = rect?.height ?? 0;
@@ -48,25 +55,44 @@ export default defineComponent({
 		let popoverHeight = ref(100);
 
 		let x = computed(() => {
-			let { offset: { x: offset }, margin } = props;
-			if (!targetStartRect.value || !targetEndRect.value) return offset
-			let { left } = targetStartRect.value
-			let { right } = targetEndRect.value
-			let x = left + (right - left - popoverWidth.value) / 2 + offset;
-			return _.clamp(x, margin, window.innerWidth - popoverWidth.value - margin)
+			let { offset: { x: offset }, margin, position, absolute } = props;
+			let maxLeft = window.innerWidth - popoverWidth.value - margin;
+
+			let res = -1;
+			if (absolute)
+				res = position.x;
+			else {
+				if (!targetStartRect.value || !targetEndRect.value) return offset
+				let { left } = targetStartRect.value
+				let { right } = targetEndRect.value
+				res = left + (right - left - popoverWidth.value) / 2 + offset;
+				position.x = res;
+			}
+
+			return _.clamp(res, margin, maxLeft);
 		})
 
 		let y = computed(() => {
-			let { offset: { y: offset }, margin } = props;
-			if (!targetStartRect.value) return offset
-			let { bottom, top } = targetStartRect.value
+			let { offset: { y: offset }, margin, position, absolute } = props;
+			let maxTop = window.innerHeight - popoverHeight.value - margin;
 
-			// If the popover would cover the target move the popover above it
-			let maxTop = window.innerHeight - popoverHeight.value - margin
-			if (bottom > maxTop)
-				return _.clamp(top - offset - popoverHeight.value, margin, maxTop)
+			let res = -1;
+			if (absolute)
+				res = position.y;
+			else {
+				if (!targetStartRect.value) return offset
+				let { bottom, top } = targetStartRect.value
 
-			return _.clamp(bottom + offset, margin, maxTop)
+				// If the popover would cover the target move the popover above it
+				if (bottom > maxTop)
+					res = top - offset - popoverHeight.value;
+				else
+					res = bottom + offset;
+
+				position.y = res;
+			}
+
+			return _.clamp(res, margin, maxTop);
 		})
 
 		let style = computed(() => {
@@ -74,8 +100,39 @@ export default defineComponent({
 				left: x.value + "px",
 				top: y.value + "px",
 				visibility: props.value ? "visible" : "hidden",
-				opacity: props.value ? "1" : "0"
+				opacity: props.value ? "1" : "0",
+				cursor: props.absolute ? "grab" : "default",
+				transitionDuration: drag.dragging ? "0ms" : "300ms"
 			}
+		})
+
+		let drag = {
+			offset: {
+				x: 0,
+				y: 0
+			},
+			dragging: false
+		}
+
+		let dragStart = (e: MouseEvent) => {
+			drag.dragging = true;
+			let rect: DOMRect = popover.value?.getBoundingClientRect();
+			drag.offset.x = e.x - rect.x
+			drag.offset.y = e.y - rect.y
+		}
+
+		window.addEventListener("mousemove", (e) => {
+			let { position, absolute } = props;
+			if (!drag.dragging || !absolute ) return;
+			e.preventDefault()
+			position.x = e.pageX - drag.offset.x;
+			position.y = e.pageY - drag.offset.y;
+		})
+
+		window.addEventListener("mouseup", (e) => {
+			console.log("mouseup")
+
+			drag.dragging = false;
 		})
 
 		watch(() => props.targets, () => {
@@ -84,14 +141,19 @@ export default defineComponent({
 		})
 
 		return {
-			x, y, style, popoverWidth, popoverHeight, updateRects, popover
+			x, y, style, popoverWidth, popoverHeight, updateRects, popover,
+			dragStart
 		}
 	},
 })
 </script>
 
 <template>
-	<div class="popover" :style="style" ref="popover">
+	<div
+		class="popover"
+		@mousedown="dragStart"
+		:style="style"
+		ref="popover">
 		<slot></slot>
 	</div>
 </template>
@@ -101,7 +163,6 @@ export default defineComponent({
 	position: fixed;
 	z-index: 5;
 	transition-property: left, top, visibility, opacity;
-	transition-duration: 300ms;
 	transition-delay: 0ms, 0ms, 100ms, 100ms;
 }
 </style>
