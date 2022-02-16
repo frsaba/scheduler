@@ -1,5 +1,6 @@
 <script lang="ts">
-import { computed, defineComponent, ref, watch } from '@vue/composition-api'
+import { Position } from '@/utils/xlsx-helpers';
+import { computed, defineComponent, onUnmounted, ref, watch } from '@vue/composition-api'
 import { ipcRenderer } from "electron"
 import _ from "lodash"
 
@@ -58,7 +59,7 @@ export default defineComponent({
 			let { offset: { x: offset }, margin, position, absolute } = props;
 			let maxLeft = window.innerWidth - popoverWidth.value - margin;
 
-			let res = -1;
+			let res;
 			if (absolute)
 				res = position.x;
 			else {
@@ -66,33 +67,42 @@ export default defineComponent({
 				let { left } = targetStartRect.value
 				let { right } = targetEndRect.value
 				res = left + (right - left - popoverWidth.value) / 2 + offset;
-				position.x = res;
 			}
 
 			return _.clamp(res, margin, maxLeft);
 		})
 
+	
 		let y = computed(() => {
 			let { offset: { y: offset }, margin, position, absolute } = props;
 			let maxTop = window.innerHeight - popoverHeight.value - margin;
 
-			let res = -1;
+			let res;
 			if (absolute)
 				res = position.y;
 			else {
 				if (!targetStartRect.value) return offset
 				let { bottom, top } = targetStartRect.value
 
-				// If the popover would cover the target move the popover above it
+				// If the popover would cover the target, move the popover above it
 				if (bottom > maxTop)
 					res = top - offset - popoverHeight.value;
 				else
 					res = bottom + offset;
-
-				position.y = res;
 			}
 
 			return _.clamp(res, margin, maxTop);
+		});
+
+		// Save the position of the popover on the first change of absolute
+		let firstChange = true;
+		watch(() => props.absolute, () => {
+			if (firstChange) {
+				let rect: DOMRect = popover.value?.getBoundingClientRect();
+				props.position.x = rect.x;
+				props.position.y = rect.y;
+				firstChange = false;
+			}
 		})
 
 		let style = computed(() => {
@@ -101,17 +111,13 @@ export default defineComponent({
 				top: y.value + "px",
 				visibility: props.value ? "visible" : "hidden",
 				opacity: props.value ? "1" : "0",
-				cursor: props.absolute ? "grab" : "default",
 				transitionDuration: drag.dragging ? "0ms" : "300ms"
 			}
 		})
 
 		let drag = {
-			offset: {
-				x: 0,
-				y: 0
-			},
-			dragging: false
+			offset: { x: 0, y: 0 },
+			dragging: false,
 		}
 
 		let dragStart = (e: MouseEvent) => {
@@ -121,18 +127,24 @@ export default defineComponent({
 			drag.offset.y = e.y - rect.y
 		}
 
-		window.addEventListener("mousemove", (e) => {
+		let mousemove = (e: MouseEvent) => {
 			let { position, absolute } = props;
-			if (!drag.dragging || !absolute ) return;
+			if (!drag.dragging || !absolute) return;
 			e.preventDefault()
 			position.x = e.pageX - drag.offset.x;
 			position.y = e.pageY - drag.offset.y;
-		})
+		}
+		window.addEventListener("mousemove", mousemove)
 
-		window.addEventListener("mouseup", (e) => {
-			console.log("mouseup")
-
+		let mouseup = (e: MouseEvent) => {
 			drag.dragging = false;
+		};
+		window.addEventListener("mouseup", mouseup);
+
+
+		onUnmounted(() => {
+			window.removeEventListener("mousemove", mousemove);
+			window.removeEventListener("mouseup", mouseup);
 		})
 
 		watch(() => props.targets, () => {

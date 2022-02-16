@@ -140,7 +140,7 @@ export default Vue.extend({
 	align-items: center;
 }
 .upper {
-	gap: 15px;
+	gap: 12px;
 	justify-content: center;
 }
 .lower {
@@ -152,6 +152,5 @@ export default Vue.extend({
 	position: absolute;
 	top: 0;
 	right: 0;
-	color: red;
 }
 </style>
