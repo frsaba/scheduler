@@ -79,7 +79,8 @@ export default defineComponent({
 		const selection_tracker = visibilityTracker(selection_elements)
 
 		watch(selection_tracker.anyVisible, (fresh, stale) => {
-			popover.value = fresh
+			if (!drag.dragging)
+				popover.value = fresh
 		})
 
 		const dayinfo = ref(false)
