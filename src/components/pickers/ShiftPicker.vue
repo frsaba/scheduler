@@ -1,5 +1,5 @@
 <script lang="ts">
-import { computed, defineComponent, reactive, ref } from '@vue/composition-api'
+import { computed, defineComponent, reactive, ref, watch } from '@vue/composition-api'
 import HourPicker from "@/components/pickers/HourPicker.vue"
 
 export interface Shift {
@@ -12,7 +12,16 @@ export default defineComponent({
 	components: {
 		HourPicker
 	},
-	setup(props, { emit }) {
+	props: {
+		focus: {
+			type: Boolean,
+			default: false
+		}
+	},
+	setup(props, { emit, refs, root }) {
+		let start = ref();
+		let end = ref();
+
 		let shift = reactive({
 			start: 7,
 			end: 19,
@@ -34,11 +43,21 @@ export default defineComponent({
 			emit("input", shift)
 		}
 
+		let focusOn = (target: string) => {
+			((refs[target] as Vue).$refs["field"] as HTMLInputElement).focus();
+		}
+
+		watch(() => props.focus, (curr: boolean) => {
+			if (curr) setTimeout(() => focusOn('start'), 100);
+		})
+
 		return {
+			start, end,
 			shift,
 			displayed_end,
 			inputStart,
-			inputEnd
+			inputEnd,
+			focusOn
 		}
 	},
 })
@@ -46,9 +65,9 @@ export default defineComponent({
 
 <template>
 	<div>
-		<hour-picker v-model.number="shift.start" @input="inputStart" />
+		<hour-picker v-model.number="shift.start" @input="inputStart" @tab="focusOn('end')" ref="start"/>
 		<span>-</span>
-		<hour-picker :value="displayed_end" @input="inputEnd" :hour24="true" />
+		<hour-picker :value="displayed_end" @input="inputEnd" :hour24="true" @tab="focusOn('start')" ref="end" />
 	</div>
 </template>
 

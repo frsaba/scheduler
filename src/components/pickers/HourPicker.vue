@@ -29,6 +29,10 @@ export default Vue.extend({
 				this.add(-1)
 				e.preventDefault();
 			}
+			else if (e.key == "Tab") {
+				e.preventDefault()
+				this.$emit("tab", e);
+			}
 		}
 	}
 })

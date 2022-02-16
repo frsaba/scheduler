@@ -83,7 +83,7 @@ export default Vue.extend({
 		},
 	},
 	watch: {
-		selection_elements(prev: Element[], curr: Element[]) {
+		selection_elements() {
 			this.newBatch()
 		},
 	}
@@ -107,7 +107,7 @@ export default Vue.extend({
 				</leave-button>
 			</span>
 			<div class="upper">
-				<shift-picker @input="setShift">
+				<shift-picker @input="setShift" :focus="value">
 				</shift-picker>
 
 				<leave-button :type="0" @click="setShift(shift, true)" tooltip="Műszak" accelerator="Enter">

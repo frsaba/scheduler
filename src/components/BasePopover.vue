@@ -175,6 +175,6 @@ export default defineComponent({
 	position: fixed;
 	z-index: 5;
 	transition-property: left, top, visibility, opacity;
-	transition-delay: 0ms, 0ms, 100ms, 100ms;
+	transition-delay: 0ms, 0ms, 0ms, 100ms;
 }
 </style>
