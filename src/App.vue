@@ -58,9 +58,17 @@ export default Vue.extend({
 	},
 	mounted() {
 		ipcRenderer.invoke("app_version").then((version) => this.version = version)
+		window.addEventListener("keydown", (e) => {
+			if(e.shiftKey && e.ctrlKey && e.key == "I") this.toggleDevtools();
+		});
 	},
 	destroyed() {
 		ipcRenderer.removeAllListeners("export-query")
+	},
+	methods: {
+		toggleDevtools(){
+			ipcRenderer.send("toggle-devtools")
+		}
 	}
 });
 </script>
@@ -89,12 +97,8 @@ export default Vue.extend({
 
 			<v-spacer></v-spacer>
 
-			<v-btn
-				href="https://github.com/vuetifyjs/vuetify/releases/latest"
-				target="_blank"
-				text>
-				<span class="mr-2">Latest Release {{version}}</span>
-				<v-icon>mdi-open-in-new</v-icon>
+			<v-btn fab outlined color="white" x-small @click="toggleDevtools">
+				<v-icon>mdi-console-line</v-icon>
 			</v-btn>
 		</v-app-bar>
 

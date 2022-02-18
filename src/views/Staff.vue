@@ -32,6 +32,7 @@ export default defineComponent({
 			add({name})
 			newEmployeeName.value = ""
 			dialog.value = false
+			context.root.$nextTick(() => window.scrollTo({behavior: "smooth", top: document.body.scrollHeight}));
 		}
 		return { employees, create, remove, dialog, newEmployeeName, employeeNameRules, valid }
 	},

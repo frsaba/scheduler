@@ -27,11 +27,12 @@ async function createWindow() {
 		},
 		show: false
 	});
+	win.removeMenu();
 
 	if (process.env.WEBPACK_DEV_SERVER_URL) {
 		// Load the url of the dev server if in development mode
 		await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL as string);
-		if (!process.env.IS_TEST) win.webContents.openDevTools();
+		if (!process.env.IS_TEST) win.webContents.toggleDevTools();
 	} else {
 		createProtocol("app");
 		// Load the index.html when not in development
@@ -91,6 +92,10 @@ app.on("ready", async () => {
 
 	ipcMain.on("update-install", () => {
 		autoUpdater.quitAndInstall()
+	})
+
+	ipcMain.on("toggle-devtools", () => {
+		mainWindow.webContents.toggleDevTools();
 	})
 
 	mainWindow.maximize();

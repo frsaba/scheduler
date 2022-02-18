@@ -33,8 +33,12 @@ ipcMain.on("export-reply", (event, outBuffer: Buffer, path: string) => {
 	event.reply("export-done", path)
 })
 
-ipcMain.on("import-path", (_, path: string) => {
+ipcMain.on("import", (_, path: string) => {
 	ImportSheet(path)
+})
+
+ipcMain.on("export", (_, path: string) => {
+	ExportSheet()
 })
 
 function GetExportPathFromUser() {

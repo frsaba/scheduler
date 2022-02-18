@@ -29,7 +29,7 @@ export default defineComponent({
 			entry.path]))
 
 		function importRecentSheet(path: string) {
-			ipcRenderer.send("import-path", path)
+			ipcRenderer.send("import", path)
 		}
 
 		function reveal(path: string) {

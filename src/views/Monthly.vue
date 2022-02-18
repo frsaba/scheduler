@@ -26,6 +26,7 @@ import { ErrorGroup } from "@/model/assertions";
 import { Employee } from "@/model/staff";
 import store from "@/state/store"
 import moment from "moment";
+import { ipcRenderer } from "electron";
 
 export default defineComponent({
 	name: "Monthly",
@@ -127,6 +128,13 @@ export default defineComponent({
 			setSelection(days[0], days[0] + count - 1, drag.employee_index)
 		}
 
+		function open(){
+			ipcRenderer.send('import');
+		}
+		function save(){
+			ipcRenderer.send('export');
+		}
+
 		function scrollBatchIntoView(batch: Operation[]) {
 			if (batch?.length > 0) {
 				deselect()
@@ -176,16 +184,13 @@ export default defineComponent({
 
 			if (e.ctrlKey) {
 				switch (e.key.toLowerCase()) {
-					case "z":
-						return undo();
-					case "y":
-						return redo();
-					case "c":
-						return copy();
-					case "x":
-						return cut();
-					case "v":
-						return paste();
+					case "z": return undo();
+					case "y": return redo();
+					case "c": return copy();
+					case "x": return cut();
+					case "v": return paste();
+					case "s": return save();
+					case "o": return open();
 				}
 			}
 		}
@@ -275,7 +280,9 @@ export default defineComponent({
 			selection_elements,
 			cursor_element,
 			setTableScroll,
-			clipboard
+			clipboard,
+			open,
+			save
 		}
 	},
 	mounted() {
@@ -298,7 +305,7 @@ export default defineComponent({
 	},
 	methods: {
 		add() {
-			this.$store.dispatch("staff/add", "Példa János" + this.staffCount);
+			this.$store.dispatch("staff/add", {name : "Példa János" + this.staffCount});
 			this.staffCount++;
 		},
 		setShift({ start, duration }: { start: number, duration: number }) {
@@ -342,6 +349,8 @@ export default defineComponent({
 					[ 'Visszavonás', 		'mdi-undo', undo, { circular: true, disabled: !can_undo }, ],
 					[ 'Újra', 				'mdi-redo', redo, { circular: true, disabled: !can_redo }, ],
 					[ 'Gyorsdolgozó', 		'mdi-plus', add,  { circular: true }],
+					[ 'Fájl megnyitása', 		'mdi-folder-open', open,  { circular: true }],
+					[ 'Mentés', 		'mdi-floppy', save,  { circular: true }],
 				]"
 				:key="i"
 				v-bind="{ tooltip, icon, outlined: circular, fab: circular, small: circular, ...rest, }"
