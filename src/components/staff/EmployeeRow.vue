@@ -27,6 +27,7 @@ export default defineComponent({
 		const employeeName = ref(props.name);
 		const employee = store.state.staff.GetEmployee(props.name);
 		let employeeTextbox = ref(null);
+		let confirmDelete = ref(false);
 
 		const isEditing = ref(false);
 		const { useMutations, useActions, useState } = createNamespacedHelpers(store, "staff");
@@ -52,7 +53,7 @@ export default defineComponent({
 		const items = computed(() => {
 			return [
 				{ header: "Válassz a meglévő kategóriák közül vagy készíts egyet!" },
-				...tags.value.map(({name, color, fontColor}) => ({
+				...tags.value.map(({ name, color, fontColor }) => ({
 					text: name,
 					color,
 					fontColor
@@ -107,7 +108,7 @@ export default defineComponent({
 
 
 		return {
-			employeeName, employeeTextbox, edit, cancel, isEditing, rename, remove,
+			employeeName, employeeTextbox, edit, cancel, isEditing, rename, remove, confirmDelete,
 			search, items, filter, editItemCombo, editCombo, change, selectedItems
 		}
 	}
@@ -130,10 +131,37 @@ export default defineComponent({
 			<v-btn v-else color="success" @click="rename(name, employeeName)">
 				<v-icon left>mdi-check</v-icon>Alkalmaz
 			</v-btn>
-			<v-btn v-if="!isEditing" color="error" @click="remove(employeeName)">
-				<v-icon left>mdi-account-remove</v-icon>Törlés
-			</v-btn>
-			<v-btn v-else color="error" @click="cancel()">
+			<v-dialog v-model="confirmDelete" max-width="700px">
+				<template v-slot:activator="{on,}">
+					<v-btn v-if="!isEditing" v-on="on" color="error">
+						<v-icon left>mdi-account-remove</v-icon>Törlés
+					</v-btn>
+				</template>
+				<v-card class="confirm-dialog">
+					<v-card-title class="overline">
+						Dolgozó törlése
+					</v-card-title>
+					<v-divider></v-divider>
+					<div class="dialog-text">
+						Biztos ki szeretnéd törölni a <b> "{{employeeName}}" </b> nevű dolgozót?
+					</div>
+					
+
+					<v-card-actions>
+						<v-spacer></v-spacer>
+						<v-btn color="error" @click="remove(employeeName)">
+							<v-icon left>mdi-account-remove</v-icon>Törlés
+						</v-btn>
+						<v-btn color="darkgrey" outlined @click="confirmDelete = false">
+							<v-icon left>mdi-cancel</v-icon>Mégse
+						</v-btn>
+					</v-card-actions>
+
+				</v-card>
+
+			</v-dialog>
+
+			<v-btn v-if="isEditing" color="error" @click="cancel()">
 				<v-icon left>mdi-cancel</v-icon>Mégse
 			</v-btn>
 		</div>
@@ -232,5 +260,12 @@ export default defineComponent({
 }
 .subheading {
 	padding-right: 5px;
+}
+.confirm-dialog {
+	text-align: center;
+	padding: 10px;
+}
+.dialog-text{
+	padding: 25px;
 }
 </style>
