@@ -3,7 +3,7 @@ import { defineComponent, ref, watch } from '@vue/composition-api'
 import { createNamespacedHelpers, useNamespacedState, useState } from "vuex-composition-helpers";
 import store from "@/state/store"
 import EmployeeRow from "@/components/staff/EmployeeRow.vue"
-import { Employee } from '@/model/staff';
+import { Employee, Staff } from '@/model/staff';
 
 export default defineComponent({
 	name: "StaffMenu",
@@ -23,13 +23,13 @@ export default defineComponent({
 			() => newEmployeeName.value != "" || 'Név nem lehet üres',
 			() => employees.value.every((e: Employee) => e.name != newEmployeeName.value) || 'Már létezik ilyen nevű dolgozó!'
 		];
-		
+
 		//@ts-ignore
-		watch(dialog,() => context.root.$nextTick(() => context.refs.form.resetValidation()))
+		watch(dialog, () => context.root.$nextTick(() => context.refs.form.resetValidation()))
 
 		function create(name: string) {
 			if (!valid.value) return;
-			add(name)
+			add({name})
 			newEmployeeName.value = ""
 			dialog.value = false
 		}
@@ -42,7 +42,6 @@ export default defineComponent({
 <template>
 	<div>
 		<v-btn color="success" @click="$router.go(-1)"> Vissza</v-btn>
-
 		<v-dialog v-model="dialog" width="500px">
 			<template v-slot:activator="{ on, attrs }">
 				<v-btn color="success" v-bind="attrs" v-on="on">
@@ -79,19 +78,20 @@ export default defineComponent({
 				</v-card-actions>
 			</v-card>
 		</v-dialog>
-
-		<employee-row
-			v-for="employee in employees"
-			:key="employee.name"
-			:id="employee.id"
-			:name="employee.name"
-			@remove="remove"></employee-row>
-		<div class="text-center" v-if="employees.length == 0">
-			Nincsenek dolgozók definiálva. <br />
-			<a @click="dialog = true">
-				<v-icon color="primary" left>mdi-account-plus</v-icon>
-				<span class="overline">Új dolgozó</span>
-			</a>
+		<div class="text-center">
+			<employee-row
+				v-for="employee in employees"
+				:key="employee.name"
+				:id="employee.id"
+				:name="employee.name"
+				@remove="remove"></employee-row>
+			<div class="text-center" v-if="employees.length == 0">
+				Nincsenek dolgozók definiálva. <br />
+				<a @click="dialog = true">
+					<v-icon color="primary" left>mdi-account-plus</v-icon>
+					<span class="overline">Új dolgozó</span>
+				</a>
+			</div>
 		</div>
 	</div>
 </template>

@@ -3,7 +3,7 @@ import { computed, defineComponent, ref } from '@vue/composition-api'
 import { createNamespacedHelpers, useState } from 'vuex-composition-helpers'
 import store from "@/state/store"
 import { Employee, Staff } from "@/model/staff"
-import EmployeePicker from "@/components/staff/EmployeePickerTable.vue"
+import EmployeeTable from "@/components/staff/EmployeePickerTable.vue"
 import moment from "moment"
 import { ipcRenderer } from "electron"
 import path from "path"
@@ -11,7 +11,7 @@ import path from "path"
 export default defineComponent({
 	name: "SheetSetup",
 	components: {
-		EmployeePicker
+		EmployeeTable
 	},
 	setup(props, context) {
 		const { useState: useStaffState } = createNamespacedHelpers<Staff>(store, "staff");
@@ -77,7 +77,7 @@ export default defineComponent({
 					locale="hu-hu"
 					show-current="false"></v-date-picker>
 				<v-divider></v-divider>
-				<employee-picker v-model="selection" :defaultSelection="employees"></employee-picker>
+				<employee-table class="employeeTable" v-model="selection" :defaultSelection="employees"></employee-table>
 				<v-divider></v-divider>
 				<v-card-actions>
 					<v-spacer></v-spacer>
@@ -127,6 +127,10 @@ export default defineComponent({
 </template>
 
 <style scoped lang="scss">
+.employeeTable {
+	flex-direction: column;
+	flex-grow: 1;
+}
 .dialog {
 	min-width: 400px;
 	max-width: 600px;

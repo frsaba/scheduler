@@ -1,31 +1,47 @@
+import { tagColors, tagFontColors } from "@/plugins/vuetify"
+
 export class Staff {
 	employees: Employee[] = []
-	tags: string[] = []
+	tags: Tag[] = []
 	Add(name: string, tags: string[] = []) {
 		if (this.employees.some(e => e.name == name)) throw `Már létezik '${name}' dolgozó!`
 
-		let employee = new Employee(name, this.employees.length, tags)
+		let employee = new Employee(name, this.employees.length)
 		this.employees.push(employee)
+		for (const tag of tags)
+			this.AddTag(name, tag)
+
 		return employee
 	}
 	Remove(name: string) {
+		for (const tag of this.GetEmployee(name).tags)
+			this.RemoveTag(name, tag)
+
 		this.employees = this.employees.filter(x => x.name !== name)
-		
-		this.tags = this.tags.filter(tag => this.employees.find(e => e.tags.includes(tag)))
 	}
 	Rename(newName: string, oldName: string) {
 		let i = this.employees.findIndex(e => e.name == oldName)
 		this.employees[i].name = newName
 	}
-	AddTag(name: string, tag: string) {
-		if (!this.tags.includes(tag)) this.tags.push(tag)
-		this.GetEmployee(name).tags.push(tag)
+	AddTag(employeeName: string, tag: string) {
+		if (!this.tags.some(x => x.name == tag)) {
+			let color = tagColors[this.tags.length % tagColors.length];
+			let fontColor = tagFontColors[this.tags.length % tagFontColors.length];
+			this.tags.push({ name: tag, color, fontColor })
+		}
+		this.GetEmployee(employeeName).tags.push(tag)
 	}
 	RemoveTag(name: string, tag: string) {
 		let employee = this.GetEmployee(name);
 		employee.tags = employee.tags.filter(t => t !== tag)
-		if (!this.employees.find((x) => x.tags.includes(tag)))
-			this.tags = this.tags.filter(t => t !== tag)
+		if (!this.employees.find((x) => x.tags.includes(tag))) {
+			this.tags = this.tags.filter(t => t.name !== tag)
+			this.tags = this.tags.map((tag, i) => ({
+				name: tag.name,
+				color: tagColors[i % tagColors.length],
+				fontColor: tagFontColors[i % tagFontColors.length]
+			}));
+		}
 	}
 	private GetEmployeeID(name: string): number {
 		let id = this.employees.findIndex(e => e.name == name);
@@ -45,6 +61,12 @@ export class Employee {
 		public id: number,
 		public tags: string[] = []
 	) { }
+}
+
+export interface Tag {
+	name: string, 
+	color: string, 
+	fontColor: string
 }
 
 let staff = new Staff()

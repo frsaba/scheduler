@@ -56,7 +56,6 @@ export default function (
 			drag.start = drag.end;
 		}
 		else {
-			console.log(drag)
 			drag.employee_index = clamp(drag.employee_index + dy, 0, sheet.schedule.length - 1)
 			drag.end = clamp(drag.end + dx, 1, sheet.month_length)
 			drag.start = !e.shiftKey ? drag.end : clamp(drag.start, 1, sheet.month_length);

@@ -1,16 +1,15 @@
 <script lang="ts">
-import {  computed, defineComponent, Ref, ref } from '@vue/composition-api'
+import { computed, defineComponent, reactive, Ref, ref } from '@vue/composition-api'
 import { createNamespacedHelpers, } from "vuex-composition-helpers";
 import store from "@/state/store"
-import colors, { Color, Colors } from "vuetify/lib/util/colors"
-import { FontColorFromBackground } from "@/utils/color-helpers"
+import { Tag } from "@/model/staff"
 import _ from 'lodash';
 
-interface Tag {
+interface TagItem {
 	header?: string,
 	text: string,
 	color: string
-	textColor: string
+	fontColor: string
 }
 
 export default defineComponent({
@@ -30,11 +29,10 @@ export default defineComponent({
 		let employeeTextbox = ref(null);
 
 		const isEditing = ref(false);
-		const { useMutations, useActions } = createNamespacedHelpers(store, "staff");
+		const { useMutations, useActions, useState } = createNamespacedHelpers(store, "staff");
 
 		function edit() {
 			isEditing.value = true;
-			console.log(employeeTextbox.value);
 			(employeeTextbox.value! as HTMLFormElement).focus();
 		}
 		function rename(oldName: string, newName: string) {
@@ -49,27 +47,26 @@ export default defineComponent({
 			(employeeTextbox.value! as HTMLFormElement).blur();
 		}
 
-		const colorNames = ['deepPurple', 'purple', 'indigo', 'cyan', 'teal', 'orange'];
-		const chipColors = colorNames.map((x => (colors[x as keyof Colors] as Color)["lighten1"]))
-		const textColors = chipColors.map(x => FontColorFromBackground(x))
-
+		let tags: Ref<Tag[]> = useState(["tags"]).tags;
 		const search = ref("");
-		const items = computed(() => [
-			{ header: "Válassz a meglévő kategóriák közül vagy készíts egyet!" },
-			...store.state.staff.tags.map((tag, i) => ({
-				text: tag,
-				color: chipColors[i % chipColors.length],
-				textColor: textColors[i % textColors.length]
-			}))
-		] as Tag[])
+		const items = computed(() => {
+			return [
+				{ header: "Válassz a meglévő kategóriák közül vagy készíts egyet!" },
+				...tags.value.map(({name, color, fontColor}) => ({
+					text: name,
+					color,
+					fontColor
+				} as TagItem))
+			]
+		})
 
-		let selectedItems = computed(() =>
-			employee.tags.map((tag) => ({
+		let selectedItems = computed(() => {
+			return employee.tags.map((tag) => ({
 				text: tag,
-				color: items.value.find(x => x.text === tag)?.color,
-				textColor: items.value.find(x => x.text === tag)?.textColor
+				color: tags.value.find(x => x.name === tag)?.color,
+				fontColor: tags.value.find(x => x.name === tag)?.fontColor
 			}))
-		);
+		});
 		let editItemCombo: Ref<{ text: string } | null> = ref(null);
 		const editIndexCombo = ref(-1);
 
@@ -96,8 +93,7 @@ export default defineComponent({
 			}
 		}
 
-		function change(e: (string | {text: string, color: string, textColor: string})[]) {
-			console.log(e)
+		function change(e: (string | TagItem)[]) {
 			let tags = e.map(x => typeof x === "string" ? x : x.text)
 			// Element added
 			if (tags.length > employee.tags.length)
@@ -172,7 +168,7 @@ export default defineComponent({
 						v-bind="attrs"
 						:input-value="selected"
 						:color="item.color"
-						:text-color="item.textColor"
+						:text-color="item.fontColor"
 						dark
 						label
 						small>
@@ -188,7 +184,7 @@ export default defineComponent({
 				</template>
 				<template v-slot:item="{ index, item }">
 					<v-text-field
-						v-if="editItemCombo === item"
+						v-if="false"
 						v-model="editItemCombo.text"
 						autofocus
 						flat
@@ -199,7 +195,7 @@ export default defineComponent({
 					<v-chip
 						v-else
 						:color="item.color"
-						:text-color="item.textColor"
+						:text-color="item.fontColor"
 						dark
 						label
 						small>

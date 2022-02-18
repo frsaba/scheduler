@@ -7,8 +7,8 @@ const module: Module<Staff, RootState> = {
     namespaced: true,
     state: staff,
     mutations: {
-        add_employee(state, payload) {
-            state.Add(payload)
+        add_employee(state, {name, tags}) {
+            state.Add(name, tags)
         },
 		add_tag(state, {name, tag}: {name: string, tag: string}) {
 			state.AddTag(name, tag)
@@ -46,15 +46,12 @@ const module: Module<Staff, RootState> = {
         save({ state }): void {
             window.localStorage.setItem("employees", JSON.stringify(state.employees))
         },
-        load({ state, dispatch }): void {
+        load({ state, dispatch, commit }): void {
             const loaded = JSON.parse(window.localStorage.getItem("employees") ?? "[]") as Employee[]
-            Vue.set(state, "employees", loaded)
-			
-            for (let e of state.employees) {
-                dispatch('add', e, { root: true });
-				for (let tag of e.tags)
-					if (!state.tags.includes(tag)) state.tags.push(tag)
-            }
+
+			for (const { name, tags } of loaded) {
+				commit("add_employee", {name, tags})
+			}
         }
 
     },
