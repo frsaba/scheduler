@@ -5,17 +5,21 @@ import { defineComponent, ref, watch } from '@vue/composition-api'
 import { createNamespacedHelpers } from 'vuex-composition-helpers'
 import { Employee, Staff } from "@/model/staff"
 import store from "@/state/store"
+import { tagColors, tagFontColors } from "@/plugins/vuetify"
 
 export default defineComponent({
-	name: "EmployeePicker",
+	name: "EmployeePickerTable",
 	setup(props, context) {
 		const { useState, useMutations, useActions } = createNamespacedHelpers<Staff>(store, "staff");
-		const { employees } = useState(["employees"]);
+		let { employees, tags } = useState(["employees", "tags"]);
+
 		const search = ref("")
-		const headers = [{ text: 'Dolgozó neve', value: 'name' }]
+		const headers = [{ text: 'Dolgozó neve', value: 'name', width: "14em" }, { text: "Címkék", value: "tags" }]
+
+		
 
 		return {
-			employees, headers, search
+			employees, headers, search, tagColors, tagFontColors, tags
 		}
 	},
 })
@@ -35,8 +39,7 @@ export default defineComponent({
 				label="Keresés"
 				single-line
 				hide-details
-				clearable
-			></v-text-field>
+				clearable></v-text-field>
 		</div>
 
 		<v-data-table
@@ -51,13 +54,36 @@ export default defineComponent({
 			fixed-header
 			height="300px"
 			:search="search"
-		>
+			class="table">
 			<template v-slot:no-results>Nincs ilyen nevű dolgozó!</template>
+			<template v-slot:[`item.tags`]="{ item }">
+				<div class="tags">
+					<v-chip
+						v-for="(element, i) in item.tags"
+						:key="i"
+						:color="tags.find(x => x.name == element).color"
+						:text-color="tags.find(x => x.name == element).fontColor"
+						dark
+						label
+						small>
+						{{ element }}
+					</v-chip>
+				</div>
+			</template>
 		</v-data-table>
 	</div>
 </template>
 
 <style scoped>
+.table {
+	width: 100%;
+}
+.tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	padding: 8px;
+}
 .employees-title {
 	padding: 20px;
 }
