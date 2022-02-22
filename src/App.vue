@@ -16,7 +16,8 @@ export default Vue.extend({
 	},
 	data: () => ({
 		zoomLevel: 100,
-		snackbar: false,
+		snackbarZoom: false,
+		templateNotFound: false,
 		timeout: 2000,
 		hide: function () { },
 		routes:
@@ -27,7 +28,7 @@ export default Vue.extend({
 		version: ""
 	}),
 	created() {
-		this.hide = debounce(() => { this.snackbar = false }, this.timeout);
+		this.hide = debounce(() => { this.snackbarZoom = false }, this.timeout);
 
 		ipcRenderer.on("export-query", async (_, templateBuffer: Buffer, path: string) => {
 			let workbook = await bufferToWorkbook(templateBuffer)
@@ -48,9 +49,13 @@ export default Vue.extend({
 			parseWithTemplate(template, target)
 		})
 
+		ipcRenderer.on("template-not-found", () => {
+			this.templateNotFound = true;
+		})
+
 		ipcRenderer.on("zoom", (event, { zoom }) => {
 			this.zoomLevel = Math.round(zoom * 100);
-			this.snackbar = true;
+			this.snackbarZoom = true;
 			this.hide();
 		});
 
@@ -59,15 +64,19 @@ export default Vue.extend({
 	mounted() {
 		ipcRenderer.invoke("app_version").then((version) => this.version = version)
 		window.addEventListener("keydown", (e) => {
-			if(e.shiftKey && e.ctrlKey && e.key == "I") this.toggleDevtools();
+			if (e.shiftKey && e.ctrlKey && e.key == "I") this.toggleDevtools();
 		});
 	},
 	destroyed() {
 		ipcRenderer.removeAllListeners("export-query")
 	},
 	methods: {
-		toggleDevtools(){
+		toggleDevtools() {
 			ipcRenderer.send("toggle-devtools")
+		},
+		browse(browse: boolean) {
+			this.templateNotFound = false;
+			ipcRenderer.send("template-browse", browse);
 		}
 	}
 });
@@ -76,12 +85,29 @@ export default Vue.extend({
 <template>
 	<v-app class="app">
 		<update-notification></update-notification>
-		<snackbar :visibility="snackbar">
+		<snackbar :visibility="snackbarZoom">
 			<v-icon class="magnifier" color="white">mdi-magnify</v-icon>
 			Nagyítás:
 			<br />
 			{{ zoomLevel }}%
 		</snackbar>
+		<v-dialog
+			v-model="templateNotFound"
+			width="500">
+			<v-card>
+				<v-card-title>
+					<v-icon color="error">mdi-alert-outline</v-icon>&nbsp;Hiba
+				</v-card-title>
+				<v-card-text>
+					Az importáláshoz és exportáláshoz szükséges sablonfájl nem található!
+				</v-card-text>
+				<v-card-actions>
+					<v-spacer></v-spacer>
+					<v-btn color="primary" @click="browse(true)">Tallózás</v-btn>
+					<v-btn color="darkgrey" outlined @click="browse(false)">Mégse</v-btn>
+				</v-card-actions>
+			</v-card>
+		</v-dialog>
 		<v-app-bar app color="primary" dark>
 			<div class="d-flex align-center routes">
 				<v-btn
@@ -119,6 +145,18 @@ export default Vue.extend({
 .magnifier {
 	font-size: 2vh;
 	transition: none;
+}
+.overline {
+	line-height: 0;
+}
+
+.not-found-alert {
+	position: absolute;
+	text-align: center;
+	width: 30%;
+	left: 0; right: 0;
+	margin: 2em auto 0 auto;
+	z-index: 10;
 }
 </style>
 
