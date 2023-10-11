@@ -1,5 +1,5 @@
 <script lang="ts">
-import { computed, defineComponent, reactive, Ref, ref } from '@vue/composition-api'
+import { computed, defineComponent, reactive, Ref, ref, nextTick } from '@vue/composition-api'
 import { createNamespacedHelpers, } from "vuex-composition-helpers";
 import store from "@/state/store"
 import { Tag } from "@/model/staff"
@@ -32,9 +32,10 @@ export default defineComponent({
 		const isEditing = ref(false);
 		const { useMutations, useActions, useState } = createNamespacedHelpers(store, "staff");
 
-		function edit() {
+		async function edit() {
 			isEditing.value = true;
-			(employeeTextbox.value! as HTMLFormElement).focus();
+			//delay focus as disabled elements can't be focused
+			context.root.$nextTick(() => (employeeTextbox.value! as HTMLFormElement).focus());
 		}
 		function rename(oldName: string, newName: string) {
 			isEditing.value = false;
@@ -123,19 +124,25 @@ export default defineComponent({
 				solo
 				label="Dolgozó neve"
 				:value="name"
+				ref="employeeTextbox"
 				v-model="employeeName"
-				hide-details></v-text-field>
+				:disabled=!isEditing
+				hide-details
+				@keydown.enter.prevent="rename(name, employeeName)"></v-text-field>
 			<v-btn v-if="!isEditing" color="success" @click="edit()">
 				<v-icon left>mdi-pencil</v-icon>Átnevezés
 			</v-btn>
-			<v-btn v-else color="success" @click="rename(name, employeeName)">
+			<v-btn outlined v-else color="success" @click="rename(name, employeeName)">
 				<v-icon left>mdi-check</v-icon>Alkalmaz
 			</v-btn>
 			<v-dialog v-model="confirmDelete" max-width="700px">
 				<template v-slot:activator="{on,}">
-					<v-btn v-if="!isEditing" v-on="on" color="error">
-						<v-icon left>mdi-account-remove</v-icon>Törlés
-					</v-btn>
+					<!-- Extra wrapper div added as the button would not reappear without it -->
+					<div>
+						<v-btn v-on="on" color="error" v-if="!isEditing">
+							<v-icon left >mdi-account-remove</v-icon> <span>Törlés</span>
+						</v-btn>
+					</div>
 				</template>
 				<v-card class="confirm-dialog">
 					<v-card-title class="overline">
@@ -161,7 +168,7 @@ export default defineComponent({
 
 			</v-dialog>
 
-			<v-btn v-if="isEditing" color="error" @click="cancel()">
+			<v-btn v-if="isEditing" color="error" outlined @click="cancel()">
 				<v-icon left>mdi-cancel</v-icon>Mégse
 			</v-btn>
 		</div>

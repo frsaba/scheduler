@@ -42,10 +42,10 @@ export default defineComponent({
 
 <template>
 	<div>
-		<v-btn color="success" @click="$router.go(-1)"> Vissza</v-btn>
+		<v-btn class="ma-2" color="success" @click="$router.go(-1)"> Vissza</v-btn>
 		<v-dialog v-model="dialog" width="500px">
 			<template v-slot:activator="{ on, attrs }">
-				<v-btn color="success" v-bind="attrs" v-on="on">
+				<v-btn class="ma-2" color="success" v-bind="attrs" v-on="on">
 					<v-icon left>mdi-account-plus</v-icon> Új dolgozó
 				</v-btn>
 			</template>
