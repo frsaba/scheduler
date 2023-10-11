@@ -69,6 +69,7 @@ export default Vue.extend({
 	},
 	destroyed() {
 		ipcRenderer.removeAllListeners("export-query")
+		ipcRenderer.removeAllListeners("import-query")
 	},
 	methods: {
 		toggleDevtools() {

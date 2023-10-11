@@ -18,6 +18,7 @@ export default defineComponent({
 		const recentSheets = useState(store, ["sheets"]).sheets.value.recentSheets
 		const { employees } = useStaffState(["employees"]);
 		const newSheetDialog = ref(false)
+		const loading = ref(false)
 		const selection = ref(employees.value)
 		const datePicker = ref(new Date().toISOString().substring(0, 10))
 
@@ -29,6 +30,7 @@ export default defineComponent({
 			entry.path]))
 
 		function importRecentSheet(path: string) {
+			loading.value = true
 			ipcRenderer.send("import", path)
 		}
 
@@ -38,6 +40,7 @@ export default defineComponent({
 
 		return {
 			newSheetDialog,
+			loading,
 			datePicker,
 			selection,
 			employees,
@@ -57,7 +60,7 @@ export default defineComponent({
 </script>
 
 <template>
-	<div class="wrapper">
+	<div class="wrapper" v-if="!loading">
 		<v-dialog v-model="newSheetDialog" width="unset" height="80%">
 			<template v-slot:activator="{ on, attrs }">
 				<div class="sheet new-sheet-button" v-bind="attrs" v-on="on">
@@ -123,6 +126,12 @@ export default defineComponent({
 			</div>
 
 		</button>
+	</div>
+	<div class="pt-10 text-center" v-else>
+		<v-progress-circular
+			indeterminate
+			color="grey"
+			:size="50"></v-progress-circular>
 	</div>
 </template>
 
